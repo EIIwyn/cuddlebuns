@@ -394,6 +394,39 @@ body {
     animation: fadeIn 0.4s ease;
 }
 
+/* Sort Controls */
+.sort-controls {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+}
+
+.sort-btn {
+    background: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50px;
+    padding: 10px 24px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    transition: all var(--transition-normal);
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.sort-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateY(-2px);
+}
+
+.sort-btn--active {
+    color: #fff;
+}
+
 .commissions-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -766,7 +799,17 @@ body {
         padding: 12px 24px;
         font-size: 0.8rem;
     }
-    
+
+    .sort-controls {
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .sort-btn {
+        padding: 8px 18px;
+        font-size: 0.75rem;
+    }
+
     .commissions-grid {
         grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
         gap: 16px;

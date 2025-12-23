@@ -41,6 +41,18 @@ function getCommissions(character, selectedVersion) {
 }
 
 // ============================================
+// Helper to shuffle array (Fisher-Yates algorithm)
+// ============================================
+function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+}
+
+// ============================================
 // Character Button Component
 // ============================================
 function CharacterButton({ character, isSelected, onClick }) {
@@ -216,7 +228,7 @@ function CommissionCard({ commission, character, index, onImageClick }) {
 // ============================================
 // Commissions Grid Component
 // ============================================
-function CommissionsGrid({ character, commissions, versionName, onImageClick }) {
+function CommissionsGrid({ character, commissions, versionName, onImageClick, sortOrder, onSortChange }) {
     if (commissions.length === 0) {
         return (
             <div className="empty-state">
@@ -228,9 +240,35 @@ function CommissionsGrid({ character, commissions, versionName, onImageClick }) 
             </div>
         );
     }
-    
+
     return (
         <div className="commissions-container">
+            {/* Sort Controls */}
+            <div className="sort-controls">
+                <button
+                    className={`sort-btn ${sortOrder === 'recency' ? 'sort-btn--active' : ''}`}
+                    style={{
+                        borderColor: sortOrder === 'recency' ? character.color : 'rgba(255,255,255,0.2)',
+                        background: sortOrder === 'recency' ? `${character.color}20` : 'transparent',
+                        color: sortOrder === 'recency' ? character.color : 'rgba(255,255,255,0.6)',
+                    }}
+                    onClick={() => onSortChange('recency')}
+                >
+                    Newest
+                </button>
+                <button
+                    className={`sort-btn ${sortOrder === 'random' ? 'sort-btn--active' : ''}`}
+                    style={{
+                        borderColor: sortOrder === 'random' ? character.color : 'rgba(255,255,255,0.2)',
+                        background: sortOrder === 'random' ? `${character.color}20` : 'transparent',
+                        color: sortOrder === 'random' ? character.color : 'rgba(255,255,255,0.6)',
+                    }}
+                    onClick={() => onSortChange('random')}
+                >
+                    Randomize
+                </button>
+            </div>
+
             <div className="commissions-grid">
                 {commissions.map((commission, index) => (
                     <CommissionCard
@@ -404,6 +442,7 @@ function CharacterGallery() {
     const [lightboxVersionName, setLightboxVersionName] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [sortOrder, setSortOrder] = useState('random'); // 'random' or 'recency'
 
     // Load character data from JSON
     useEffect(() => {
@@ -450,6 +489,11 @@ function CharacterGallery() {
         setShowCommissions(false);
     };
 
+    // Handle sort order change
+    const handleSortChange = (newSortOrder) => {
+        setSortOrder(newSortOrder);
+    };
+
     const openLightbox = (image, info = null, isRefSheet = false, versionName = null) => {
         setLightboxImage(image);
         setLightboxInfo(info);
@@ -479,6 +523,11 @@ function CharacterGallery() {
     const hasVersions = selectedChar.versions && selectedChar.versions.length > 1;
     const currentCommissions = getCommissions(selectedChar, selectedVersion);
     const currentVersionName = selectedVersion?.name;
+
+    // Apply sorting to commissions
+    const sortedCommissions = sortOrder === 'random'
+        ? shuffleArray(currentCommissions)
+        : [...currentCommissions].sort((a, b) => b.id - a.id); // Sort by recency (higher IDs first)
 
     return (
         <div className="gallery-container">
@@ -561,8 +610,8 @@ function CharacterGallery() {
                             <span className="toggle-btn__icon">
                                 {showCommissions ? '◀' : '▶'}
                             </span>
-                            {showCommissions 
-                                ? 'View Reference Sheet' 
+                            {showCommissions
+                                ? 'View Reference Sheet'
                                 : `View Past Commissions (${currentCommissions.length})`
                             }
                         </button>
@@ -570,17 +619,19 @@ function CharacterGallery() {
 
                     {/* Reference Sheet or Commissions */}
                     {!showCommissions ? (
-                        <ReferenceSheet 
+                        <ReferenceSheet
                             character={selectedChar}
                             selectedVersion={selectedVersion}
                             onImageClick={openLightbox}
                         />
                     ) : (
-                        <CommissionsGrid 
+                        <CommissionsGrid
                             character={selectedChar}
-                            commissions={currentCommissions}
+                            commissions={sortedCommissions}
                             versionName={currentVersionName}
                             onImageClick={openLightbox}
+                            sortOrder={sortOrder}
+                            onSortChange={handleSortChange}
                         />
                     )}
                 </div>
