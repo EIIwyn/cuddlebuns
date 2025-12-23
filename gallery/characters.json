@@ -1,0 +1,246 @@
+{
+  "characters": [
+    {
+      "id": 1,
+      "name": "Ruri Tinytale",
+      "species": "Kobold",
+      "color": "#7be3f2",
+      "versions": [
+        {
+          "id": "default",
+          "name": "Ruri",
+          "refSheet": "referencesheets/ruri_reference.png",
+          "commissions": [
+            {
+              "id": 1,
+              "artist": "@puffiewaffles",
+              "image": "commissions/ruri_tinytale/ruri/@puffiewaffles.png",
+              "sourceUrl": "https://x.com/pufflewaffles/status/1840058890043699571/"
+            },
+			{
+              "id": 2,
+              "artist": "@puffiewaffles",
+              "image": "commissions/ruri_tinytale/ruri/@puffiewaffles-chibi.png",
+              "sourceUrl": "https://x.com/pufflewaffles/status/1859658039646650444/"
+            },
+			{
+              "id": 3,
+              "artist": "@puffiewaffles",
+              "image": "commissions/ruri_tinytale/ruri/@puffiewaffles-china.png",
+              "sourceUrl": "https://x.com/pufflewaffles/status/1884338157153362364/"
+            },
+            {
+              "id": 4,
+              "artist": "@keirono_",
+              "image": "commissions/ruri_tinytale/ruri/@keirono_.png",
+              "sourceUrl": "https://x.com/keirono_/status/1925688327719526729/"
+            },
+			{
+              "id": 5,
+              "artist": "@minamoto_0303",
+              "image": "commissions/ruri_tinytale/ruri/@minamoto_0303.png",
+			  "sourceUrl": "https://x.com/minamoto_0303/status/1926502531280077020"
+            },
+            {
+              "id": 6,
+              "artist": "@coffee_toranpu",
+              "image": "commissions/ruri_tinytale/ruri/@coffee_toranpu.png",
+			  "sourceUrl": "https://skeb.jp/@coffee_toranpu/works/26"
+            },
+			{
+              "id": 7,
+              "artist": "@puffiewaffles",
+              "image": "commissions/ruri_tinytale/ruri/@puffiewaffles-wupiper.png",
+			  "sourceUrl": "https://x.com/pufflewaffles/status/1931212540014457028/"
+            },
+			{
+              "id": 8,
+              "artist": "@usunahito",
+              "image": "commissions/ruri_tinytale/ruri/@usunahito.png",
+			  "sourceUrl": "https://skeb.jp/@usunahito/works/6"
+            },
+			{
+              "id": 9,
+              "artist": "@shark_waka",
+              "image": "commissions/ruri_tinytale/ruri/@shark_waka.png",
+			  "sourceUrl": "https://skeb.jp/@shark_waka/works/618"
+            },
+			{
+              "id": 10,
+              "artist": "@floralcanon",
+              "image": "commissions/ruri_tinytale/ruri/@floralcanon.png",
+			  "sourceUrl": "https://skeb.jp/@floralcanon/works/15"
+            },
+			{
+              "id": 11,
+              "artist": "@itouyou0304",
+              "image": "commissions/ruri_tinytale/ruri/@itouyou0304.png",
+			  "sourceUrl": "https://x.com/itouyou0304/status/1997612718019457218/"
+            },
+			{
+              "id": 12,
+              "artist": "@uni_nuko__",
+              "image": "commissions/ruri_tinytale/ruri/@uni_nuko__.png",
+			  "sourceUrl": "https://skeb.jp/@uni_nuko__/works/222"
+            },
+			{
+              "id": 13,
+              "artist": "@tsukishiro_za",
+              "image": "commissions/ruri_tinytale/ruri/@tsukishiro_za.png",
+			  "sourceUrl": "https://skeb.jp/@tsukishiro_za/works/79"
+            },
+			{
+              "id": 14,
+              "artist": "@Miso_ni_kom",
+              "image": "commissions/ruri_tinytale/ruri/@Miso_ni_kom.png",
+			  "sourceUrl": "https://skeb.jp/@Miso_ni_kom/works/273"
+            }
+          ]
+        },
+        {
+          "id": "wiwu",
+          "name": "Wiwu",
+          "refSheet": "referencesheets/wiwu_reference.png",
+          "commissions": [
+            {
+              "id": 1,
+              "artist": "@SS465",
+              "image": "commissions/ruri_tinytale/ruri/wiwu/@SS465.png",
+              "sourceUrl": "https://skeb.jp/@SS465/works/28"
+            },
+			{
+              "id": 2,
+              "artist": "@hasunohato_",
+              "image": "commissions/ruri_tinytale/ruri/wiwu/@hasunohato_.png",
+              "sourceUrl": "https://skeb.jp/@hasunohato_/works/993"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Nano Gure",
+      "species": "Cyber Princess",
+      "color": "#4ecdc4",
+      "versions": [
+        {
+          "id": "default",
+          "name": "Nano",
+          "refSheet": "referencesheets/nano_reference.png",
+          "commissions": [
+            {
+              "id": 1,
+              "artist": "@puffywaifus",
+              "image": "commissions/nano_gure/@puffywaifus.png",
+              "sourceUrl": "https://x.com/puffywaifus/status/1830667004614787434/"
+            },
+            {
+              "id": 2,
+              "artist": "@Garan0502",
+              "image": "commissions/nano_gure/@Garan0502.png",
+              "sourceUrl": "https://skeb.jp/@Garan0502/works/146"
+            },
+			{
+              "id": 3,
+              "artist": "@kyukyu_tata",
+              "image": "commissions/nano_gure/@kyukyu_tata.png",
+              "sourceUrl": "https://skeb.jp/@kyukyu_tata/works/77"
+            },
+			{
+              "id": 4,
+              "artist": "@illust_shika",
+              "image": "commissions/nano_gure/@illust_shika.png",
+              "sourceUrl": "https://skeb.jp/@illust_shika/works/217"
+            },
+			{
+              "id": 5,
+              "artist": "@sushi_umai",
+              "image": "commissions/nano_gure/@sushi_umai.png",
+              "sourceUrl": "https://skeb.jp/@sushi_umai/works/409"
+            }
+          ]
+        }        
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Ryenna",
+      "species": "PassingCatLoaf",
+      "color": "#ffd93d",
+      "versions": [
+        {
+          "id": "default",
+          "name": "Ryenna",
+          "refSheet": "referencesheets/ryenna_reference_sheet.jpg",
+          "commissions": [
+            {
+              "id": 1,
+              "artist": "@Arnolddayo",
+              "image": "commissions/ryenna/@Arnolddayo.png",
+              "sourceUrl": "https://skeb.jp/@Arnolddayo/works/3"
+            },
+			{
+              "id": 2,
+              "artist": "@immm86",
+              "image": "commissions/ryenna/@immm86.png",
+              "sourceUrl": "https://x.com/immmharu/status/1997686972232634592"
+            },
+			{
+              "id": 3,
+              "artist": "@Kenichi__art",
+              "image": "commissions/ryenna/@Kenichi__art.png",
+              "sourceUrl": "https://x.com/Kenichi__art/status/1999063681079120021/"
+            }
+          ]
+        },
+        {
+          "id": "casual",
+          "name": "Casual Outfit",
+          "refSheet": "referencesheets/ryenna_casual.png",
+          "commissions": [            
+          ]
+        }        
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Piper Permit",
+      "species": "Gloomy Librarian",
+      "color": "#a855f7",
+      "versions": [
+        {
+          "id": "default",
+          "name": "Piper",
+          "refSheet": "referencesheets/piper_reference_sheet.png",
+          "commissions": [
+            {
+              "id": 1,
+              "artist": "@keirono_",
+              "image": "commissions/piper_permit/@keirono_.png",
+              "sourceUrl": "https://x.com/keirono_/status/1936183599637864527/"
+            },
+			{
+              "id": 2,
+              "artist": "@imati_t",
+              "image": "commissions/piper_permit/@imati_t.png",
+              "sourceUrl": "https://skeb.jp/@imati_t/works/381"
+            },
+			{
+              "id": 3,
+              "artist": "@Soyokaze_E2021",
+              "image": "commissions/piper_permit/@Soyokaze_E2021.gif",
+              "sourceUrl": "https://x.com/Soyokaze_E2021/status/2002797740670218356"
+            },
+			{
+              "id": 4,
+              "artist": "@tomo0111",
+              "image": "commissions/piper_permit/@tomo0111.png",
+              "sourceUrl": "https://skeb.jp/@tomo0111/works/403"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
