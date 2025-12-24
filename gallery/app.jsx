@@ -131,31 +131,47 @@ function VersionSelector({ versions, selectedVersion, onSelectVersion, accentCol
 // ============================================
 // Reference Sheet Component
 // ============================================
-function ReferenceSheet({ character, selectedVersion, onImageClick }) {
+function ReferenceSheet({ character, selectedVersion, onImageClick, currentIndex, onIndexChange }) {
     const [isHovered, setIsHovered] = useState(false);
-    
-    const refSheet = selectedVersion?.refSheet || character.refSheet;
+
+    // Get ref sheets array, supporting both old and new format
+    const refSheets = selectedVersion?.refSheets
+        || (selectedVersion?.refSheet ? [selectedVersion.refSheet] : null)
+        || character.refSheets
+        || (character.refSheet ? [character.refSheet] : []);
     const versionName = selectedVersion?.name;
-    
+    const currentRefSheet = refSheets[currentIndex] || refSheets[0];
+    const hasMultipleSheets = refSheets.length > 1;
+
     const wrapperStyle = {
-        boxShadow: isHovered 
+        boxShadow: isHovered
             ? `0 24px 70px rgba(0,0,0,0.6), 0 0 40px ${character.color}20`
             : '0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.1)',
         transform: isHovered ? 'scale(1.01)' : 'scale(1)',
     };
-    
+
+    const handlePrevious = (e) => {
+        e.stopPropagation();
+        onIndexChange((currentIndex - 1 + refSheets.length) % refSheets.length);
+    };
+
+    const handleNext = (e) => {
+        e.stopPropagation();
+        onIndexChange((currentIndex + 1) % refSheets.length);
+    };
+
     return (
         <div className="ref-sheet-container">
-            <div 
+            <div
                 className="ref-sheet-wrapper"
                 style={wrapperStyle}
-                onClick={() => onImageClick(refSheet, null, true, versionName)}
+                onClick={() => onImageClick(currentRefSheet, null, true, versionName, refSheets, currentIndex)}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
             >
-                <img 
+                <img
                     className="ref-sheet-image"
-                    src={refSheet} 
+                    src={currentRefSheet}
                     alt={`${character.name} ${versionName ? `(${versionName})` : ''} Reference Sheet`}
                 />
                 <div className="ref-sheet-overlay">
@@ -168,6 +184,29 @@ function ReferenceSheet({ character, selectedVersion, onImageClick }) {
                     </p>
                 </div>
                 <div className="ref-sheet-hint">Click to enlarge</div>
+
+                {/* Navigation buttons for multiple ref sheets */}
+                {hasMultipleSheets && (
+                    <>
+                        <button
+                            className="ref-sheet-nav ref-sheet-nav--prev"
+                            onClick={handlePrevious}
+                            aria-label="Previous reference sheet"
+                        >
+                            ‹
+                        </button>
+                        <button
+                            className="ref-sheet-nav ref-sheet-nav--next"
+                            onClick={handleNext}
+                            aria-label="Next reference sheet"
+                        >
+                            ›
+                        </button>
+                        <div className="ref-sheet-indicator">
+                            {currentIndex + 1} / {refSheets.length}
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );
@@ -287,33 +326,74 @@ function CommissionsGrid({ character, commissions, versionName, onImageClick, so
 // ============================================
 // Lightbox Component
 // ============================================
-function Lightbox({ image, info, character, isRefSheet, versionName, onClose }) {
+function Lightbox({ image, info, character, isRefSheet, versionName, onClose, currentIndex, onIndexChange }) {
+    const refSheets = isRefSheet && info?.refSheets ? info.refSheets : null;
+    const hasMultipleSheets = refSheets && refSheets.length > 1;
+    const [currentImage, setCurrentImage] = React.useState(image);
+    const [currentIdx, setCurrentIdx] = React.useState(currentIndex || 0);
+
+    React.useEffect(() => {
+        setCurrentImage(image);
+        setCurrentIdx(currentIndex || 0);
+    }, [image, currentIndex]);
+
+    const handlePrevious = () => {
+        if (hasMultipleSheets && refSheets) {
+            setCurrentIdx(prevIdx => {
+                const newIdx = (prevIdx - 1 + refSheets.length) % refSheets.length;
+                setCurrentImage(refSheets[newIdx]);
+                if (onIndexChange) onIndexChange(newIdx);
+                return newIdx;
+            });
+        }
+    };
+
+    const handleNext = () => {
+        if (hasMultipleSheets && refSheets) {
+            setCurrentIdx(prevIdx => {
+                const newIdx = (prevIdx + 1) % refSheets.length;
+                setCurrentImage(refSheets[newIdx]);
+                if (onIndexChange) onIndexChange(newIdx);
+                return newIdx;
+            });
+        }
+    };
+
     useEffect(() => {
-        const handleEscape = (e) => {
-            if (e.key === 'Escape') onClose();
+        const handleKeydown = (e) => {
+            if (e.key === 'Escape') {
+                onClose();
+            } else if (hasMultipleSheets && e.key === 'ArrowLeft') {
+                handlePrevious();
+            } else if (hasMultipleSheets && e.key === 'ArrowRight') {
+                handleNext();
+            }
         };
-        window.addEventListener('keydown', handleEscape);
-        return () => window.removeEventListener('keydown', handleEscape);
-    }, [onClose]);
+        window.addEventListener('keydown', handleKeydown);
+        return () => {
+            window.removeEventListener('keydown', handleKeydown);
+        };
+    }, [onClose, hasMultipleSheets, refSheets]);
 
     // Handle download (only for ref sheets)
     const handleDownload = async (e) => {
         e.stopPropagation();
-        
+
         try {
-            const response = await fetch(image);
+            const response = await fetch(currentImage);
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            
+
             // Generate filename
-            const extension = image.split('.').pop().split('?')[0] || 'png';
-            const versionSlug = versionName && versionName !== 'Default' 
-                ? `-${versionName.toLowerCase().replace(/\s+/g, '-')}` 
+            const extension = currentImage.split('.').pop().split('?')[0] || 'png';
+            const versionSlug = versionName && versionName !== 'Default'
+                ? `-${versionName.toLowerCase().replace(/\s+/g, '-')}`
                 : '';
-            const filename = `${character.name.toLowerCase().replace(/\s+/g, '-')}${versionSlug}-reference-sheet.${extension}`;
-            
+            const sheetNumber = hasMultipleSheets ? `-${currentIdx + 1}` : '';
+            const filename = `${character.name.toLowerCase().replace(/\s+/g, '-')}${versionSlug}${sheetNumber}-reference-sheet.${extension}`;
+
             link.download = filename;
             document.body.appendChild(link);
             link.click();
@@ -321,7 +401,7 @@ function Lightbox({ image, info, character, isRefSheet, versionName, onClose }) 
             window.URL.revokeObjectURL(url);
         } catch (error) {
             // Fallback: open in new tab
-            window.open(image, '_blank');
+            window.open(currentImage, '_blank');
         }
     };
 
@@ -339,10 +419,31 @@ function Lightbox({ image, info, character, isRefSheet, versionName, onClose }) 
     return (
         <div className="lightbox" onClick={onClose}>
             <button className="lightbox__close" onClick={onClose}>✕</button>
+
+            {/* Navigation buttons for multiple ref sheets */}
+            {hasMultipleSheets && (
+                <>
+                    <button
+                        className="lightbox__nav lightbox__nav--prev"
+                        onClick={(e) => { e.stopPropagation(); handlePrevious(); }}
+                        aria-label="Previous reference sheet"
+                    >
+                        ‹
+                    </button>
+                    <button
+                        className="lightbox__nav lightbox__nav--next"
+                        onClick={(e) => { e.stopPropagation(); handleNext(); }}
+                        aria-label="Next reference sheet"
+                    >
+                        ›
+                    </button>
+                </>
+            )}
+
             <div className="lightbox__content" onClick={(e) => e.stopPropagation()}>
                 <img
                     className="lightbox__image"
-                    src={image}
+                    src={currentImage}
                     alt={info?.title || (isRefSheet ? `${character.name} Reference Sheet` : "Full size")}
                 />
                 
@@ -356,6 +457,7 @@ function Lightbox({ image, info, character, isRefSheet, versionName, onClose }) 
                             )}
                             <p className="lightbox__artist" style={{ color: character.color }}>
                                 Official Reference Sheet
+                                {hasMultipleSheets && ` (${currentIdx + 1}/${refSheets.length})`}
                             </p>
                         </>
                     ) : info && (
@@ -443,6 +545,8 @@ function CharacterGallery() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [sortOrder, setSortOrder] = useState('random'); // 'random' or 'recency'
+    const [refSheetIndex, setRefSheetIndex] = useState(0); // Index for multiple ref sheets
+    const [lightboxRefSheetIndex, setLightboxRefSheetIndex] = useState(0); // Index for lightbox ref sheets
 
     // Load character data from JSON
     useEffect(() => {
@@ -474,6 +578,7 @@ function CharacterGallery() {
     const handleSelectCharacter = (char) => {
         setSelectedChar(char);
         setShowCommissions(false);
+        setRefSheetIndex(0); // Reset ref sheet index
         // Set default version for new character
         if (char.versions && char.versions.length > 0) {
             setSelectedVersion(char.versions[0]);
@@ -485,6 +590,7 @@ function CharacterGallery() {
     // Handle version selection
     const handleSelectVersion = (version) => {
         setSelectedVersion(version);
+        setRefSheetIndex(0); // Reset ref sheet index
         // Reset to ref sheet view when changing versions
         setShowCommissions(false);
     };
@@ -494,11 +600,16 @@ function CharacterGallery() {
         setSortOrder(newSortOrder);
     };
 
-    const openLightbox = (image, info = null, isRefSheet = false, versionName = null) => {
+    const openLightbox = (image, info = null, isRefSheet = false, versionName = null, refSheets = null, currentIndex = 0) => {
         setLightboxImage(image);
         setLightboxInfo(info);
         setLightboxIsRefSheet(isRefSheet);
         setLightboxVersionName(versionName);
+        setLightboxRefSheetIndex(currentIndex);
+        // Store ref sheets array in info if it's a ref sheet
+        if (isRefSheet && refSheets) {
+            setLightboxInfo({ refSheets });
+        }
     };
 
     const closeLightbox = () => {
@@ -623,6 +734,8 @@ function CharacterGallery() {
                             character={selectedChar}
                             selectedVersion={selectedVersion}
                             onImageClick={openLightbox}
+                            currentIndex={refSheetIndex}
+                            onIndexChange={setRefSheetIndex}
                         />
                     ) : (
                         <CommissionsGrid
@@ -651,6 +764,8 @@ function CharacterGallery() {
                     isRefSheet={lightboxIsRefSheet}
                     versionName={lightboxVersionName}
                     onClose={closeLightbox}
+                    currentIndex={lightboxRefSheetIndex}
+                    onIndexChange={setLightboxRefSheetIndex}
                 />
             )}
         </div>

@@ -386,6 +386,61 @@ body {
     backdrop-filter: blur(8px);
 }
 
+/* Reference Sheet Navigation */
+.ref-sheet-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    cursor: pointer;
+    color: #fff;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    z-index: 10;
+}
+
+.ref-sheet-wrapper:hover .ref-sheet-nav {
+    opacity: 1;
+}
+
+.ref-sheet-nav:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.ref-sheet-nav--prev {
+    left: 16px;
+}
+
+.ref-sheet-nav--next {
+    right: 16px;
+}
+
+.ref-sheet-indicator {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 12px;
+    padding: 6px 16px;
+    font-size: 0.75rem;
+    font-family: var(--font-body);
+    color: #fff;
+    backdrop-filter: blur(8px);
+    z-index: 10;
+}
+
 /* ============================================
    Commissions Gallery Grid
    ============================================ */
@@ -540,6 +595,41 @@ body {
 
 .lightbox__close:hover {
     background: rgba(255, 255, 255, 0.2);
+}
+
+/* Lightbox Navigation */
+.lightbox__nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+    cursor: pointer;
+    color: #fff;
+    font-size: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+    backdrop-filter: blur(8px);
+    z-index: 1001;
+}
+
+.lightbox__nav:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.lightbox__nav--prev {
+    left: 24px;
+}
+
+.lightbox__nav--next {
+    right: 24px;
 }
 
 .lightbox__content {
@@ -832,6 +922,34 @@ body {
     .lightbox__btn {
         justify-content: center;
         width: 100%;
+    }
+
+    .ref-sheet-nav {
+        width: 40px;
+        height: 40px;
+        font-size: 1.5rem;
+    }
+
+    .ref-sheet-nav--prev {
+        left: 8px;
+    }
+
+    .ref-sheet-nav--next {
+        right: 8px;
+    }
+
+    .lightbox__nav {
+        width: 48px;
+        height: 48px;
+        font-size: 2rem;
+    }
+
+    .lightbox__nav--prev {
+        left: 12px;
+    }
+
+    .lightbox__nav--next {
+        right: 12px;
     }
 }
 

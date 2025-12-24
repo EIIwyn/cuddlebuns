@@ -9,7 +9,7 @@
         {
           "id": "default",
           "name": "Ruri",
-          "refSheet": "referencesheets/ruri_reference.png",
+          "refSheets": ["referencesheets/ruri_reference.png"],
           "commissions": [
             {
               "id": 1,
@@ -100,7 +100,7 @@
         {
           "id": "wiwu",
           "name": "Wiwu",
-          "refSheet": "referencesheets/wiwu_reference.png",
+          "refSheets": ["referencesheets/wiwu_reference.png"],
           "commissions": [
             {
               "id": 1,
@@ -119,8 +119,8 @@
         {
           "id": "wubold",
           "name": "Wubold",
-          "refSheet": "referencesheets/wubold.png",
-          "commissions": [            
+          "refSheets": ["referencesheets/wubold.png"],
+          "commissions": [
           ]
         }
       ]
@@ -134,7 +134,7 @@
         {
           "id": "default",
           "name": "Nano",
-          "refSheet": "referencesheets/nano_reference.png",
+          "refSheets": ["referencesheets/nano_reference.png"],
           "commissions": [
             {
               "id": 1,
@@ -179,7 +179,7 @@
         {
           "id": "default",
           "name": "Ryenna",
-          "refSheet": "referencesheets/ryenna_reference_sheet.jpg",
+          "refSheets": ["referencesheets/ryenna_reference_sheet.jpg"],
           "commissions": [
             {
               "id": 1,
@@ -204,8 +204,8 @@
         {
           "id": "casual",
           "name": "Casual Outfit",
-          "refSheet": "referencesheets/ryenna_casual.png",
-          "commissions": [            
+          "refSheets": ["referencesheets/ryenna_casual.png"],
+          "commissions": [
           ]
         }        
       ]
@@ -219,7 +219,11 @@
         {
           "id": "default",
           "name": "Piper",
-          "refSheet": "referencesheets/piper_reference_sheet.png",
+          "refSheets": [
+            "referencesheets/piper_reference_sheet.png",
+            "referencesheets/piper_reference.png",
+            "referencesheets/piper_reference2.png"
+          ],
           "commissions": [
             {
               "id": 1,
