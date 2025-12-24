@@ -8,24 +8,110 @@
 const { useState, useEffect } = React;
 
 // ============================================
+// Translation Dictionary
+// ============================================
+const translations = {
+    en: {
+        galleryTitle: "Reference Sheets & Commissions",
+        selectCharacter: ["Choose a character above to view their", "reference sheets and commission gallery"],
+        viewRefSheet: "View Reference Sheet",
+        viewCommissions: "View Past Commissions",
+        newest: "Newest",
+        randomize: "Randomize",
+        noCommissions: "No commissions yet for",
+        officialRefSheet: "Official Reference Sheet",
+        clickToEnlarge: "Click to enlarge",
+        downloadRefSheet: "Download Reference Sheet",
+        escToClose: "ESC to close",
+        arrowsToNavigate: "← → to navigate",
+        commissionedFrom: "Commissioned from",
+        viewOnTwitter: "View on Twitter",
+        viewOnVGen: "View on VGen",
+        viewOnSkeb: "View on Skeb",
+        viewSource: "View Source",
+        commissionTOS: "Commission ToS follow platform guidelines",
+        loadingGallery: "Loading gallery...",
+        unableToLoad: "Unable to load gallery",
+        makeSureJSON: "Make sure",
+        existsAndValid: "exists and is valid JSON.",
+        previousRefSheet: "Previous reference sheet",
+        nextRefSheet: "Next reference sheet",
+        // Character species translations
+        species: {
+            "Kobold": "Kobold",
+            "Cyber Princess": "Cyber Princess",
+            "PassingCatLoaf": "PassingCatLoaf",
+            "Gloomy Librarian": "Gloomy Librarian",
+            "Happy Robo": "Happy Robo",
+            "Delusional Artist": "Delusional Artist",
+            "Art Cute Student": "Art Cute Student",
+            "Devil Maid": "Devil Maid"
+        }
+    },
+    ja: {
+        galleryTitle: "リファレンスシート＆コミッション",
+        selectCharacter: ["上のキャラクターを選択して、", "リファレンスシートとコミッションギャラリーを表示します"],
+        viewRefSheet: "リファレンスシートを見る",
+        viewCommissions: "過去のコミッションを見る",
+        newest: "最新順",
+        randomize: "ランダム",
+        noCommissions: "まだコミッションがありません：",
+        officialRefSheet: "公式リファレンスシート",
+        clickToEnlarge: "クリックして拡大",
+        downloadRefSheet: "リファレンスシートをダウンロード",
+        escToClose: "ESCで閉じる",
+        arrowsToNavigate: "← →でナビゲート",
+        commissionedFrom: "コミッション元：",
+        viewOnTwitter: "Twitterで見る",
+        viewOnVGen: "VGenで見る",
+        viewOnSkeb: "Skebで見る",
+        viewSource: "ソースを見る",
+        commissionTOS: "コミッション利用規約はプラットフォームのガイドラインに従います",
+        loadingGallery: "ギャラリーを読み込み中...",
+        unableToLoad: "ギャラリーを読み込めません",
+        makeSureJSON: "確認してください：",
+        existsAndValid: "が存在し、有効なJSONであること。",
+        previousRefSheet: "前のリファレンスシート",
+        nextRefSheet: "次のリファレンスシート",
+        // Character species translations
+        species: {
+            "Kobold": "コボルド",
+            "Cyber Princess": "サイバープリンセス",
+            "PassingCatLoaf": "パッシングキャットローフ",
+            "Gloomy Librarian": "陰気な司書",
+            "Happy Robo": "ハッピーロボ",
+            "Delusional Artist": "妄想アーティスト",
+            "Art Cute Student": "アートな学生",
+            "Devil Maid": "悪魔メイド"
+        }
+    }
+};
+
+// Helper function to translate species
+function translateSpecies(species, lang = 'en') {
+    return translations[lang]?.species?.[species] || species;
+}
+
+// ============================================
 // Platform Detection Utility
 // ============================================
-function getSourcePlatform(url) {
+function getSourcePlatform(url, lang = 'en') {
     if (!url) return null;
     const lowerUrl = url.toLowerCase();
+    const t = translations[lang];
 
     if (lowerUrl.includes('twitter.com') || lowerUrl.includes('x.com')) {
-        return { type: 'twitter', label: 'View on Twitter', icon: '𝕏' };
+        return { type: 'twitter', label: t.viewOnTwitter, icon: '𝕏' };
     }
     if (lowerUrl.includes('vgen.co')) {
-        return { type: 'vgen', label: 'View on VGen', icon: 'V' };
+        return { type: 'vgen', label: t.viewOnVGen, icon: 'V' };
     }
     if (lowerUrl.includes('skeb.jp')) {
-        return { type: 'skeb', label: 'View on Skeb', icon: 'S' };
+        return { type: 'skeb', label: t.viewOnSkeb, icon: 'S' };
     }
 
     // Generic source
-    return { type: 'source', label: 'View Source', icon: '🔗' };
+    return { type: 'source', label: t.viewSource, icon: '🔗' };
 }
 
 // ============================================
@@ -72,22 +158,55 @@ function shuffleArray(array) {
 }
 
 // ============================================
+// Shared download utility for reference sheets
+// ============================================
+async function downloadReferenceSheet(imageUrl, characterName, versionName = null, sheetIndex = 0, totalSheets = 1) {
+    try {
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+
+        // Generate filename
+        const extension = imageUrl.split('.').pop().split('?')[0] || 'png';
+        const versionSlug = versionName && versionName !== 'Default'
+            ? `-${versionName.toLowerCase().replace(/\s+/g, '-')}`
+            : '';
+        const sheetNumber = totalSheets > 1 ? `-${sheetIndex + 1}` : '';
+        const filename = `${characterName.toLowerCase().replace(/\s+/g, '-')}${versionSlug}${sheetNumber}-reference-sheet.${extension}`;
+
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+
+        return { success: true, filename };
+    } catch (error) {
+        // Fallback: open in new tab
+        window.open(imageUrl, '_blank');
+        return { success: false, error };
+    }
+}
+
+// ============================================
 // Character Button Component
 // ============================================
-function CharacterButton({ character, isSelected, onClick }) {
+function CharacterButton({ character, isSelected, onClick, lang = 'en' }) {
     const [isHovered, setIsHovered] = useState(false);
-    
+
     const buttonStyle = {
-        background: isSelected 
+        background: isSelected
             ? `linear-gradient(135deg, ${character.color}40, ${character.color}20)`
             : 'rgba(255,255,255,0.03)',
         borderColor: isSelected ? character.color : (isHovered ? `${character.color}80` : 'rgba(255,255,255,0.1)'),
         transform: isSelected ? 'scale(1.05)' : (isHovered ? 'scale(1.02)' : 'scale(1)'),
-        boxShadow: isSelected 
+        boxShadow: isSelected
             ? `0 8px 32px ${character.color}30, inset 0 1px 0 rgba(255,255,255,0.1)`
             : '0 4px 16px rgba(0,0,0,0.2)',
     };
-    
+
     return (
         <button
             className="character-btn"
@@ -96,15 +215,15 @@ function CharacterButton({ character, isSelected, onClick }) {
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            <div 
+            <div
                 className="character-btn__indicator"
-                style={{ 
+                style={{
                     background: character.color,
                     boxShadow: `0 0 12px ${character.color}80`
                 }}
             />
             <div className="character-btn__name">{character.name}</div>
-            <div className="character-btn__species">{character.species}</div>
+            <div className="character-btn__species">{translateSpecies(character.species, lang)}</div>
         </button>
     );
 }
@@ -180,8 +299,9 @@ function SocialLinks({ character }) {
 // ============================================
 // Reference Sheet Component
 // ============================================
-function ReferenceSheet({ character, selectedVersion, onImageClick, currentIndex, onIndexChange }) {
+function ReferenceSheet({ character, selectedVersion, onImageClick, currentIndex, onIndexChange, lang = 'en' }) {
     const [isHovered, setIsHovered] = useState(false);
+    const t = translations[lang];
 
     // Get ref sheets array, supporting both old and new format
     const refSheets = selectedVersion?.refSheets
@@ -209,6 +329,17 @@ function ReferenceSheet({ character, selectedVersion, onImageClick, currentIndex
         onIndexChange((currentIndex + 1) % refSheets.length);
     };
 
+    const handleDownload = async (e) => {
+        e.stopPropagation();
+        await downloadReferenceSheet(
+            currentRefSheet,
+            character.name,
+            versionName,
+            currentIndex,
+            refSheets.length
+        );
+    };
+
     return (
         <div className="ref-sheet-container">
             <div
@@ -229,10 +360,20 @@ function ReferenceSheet({ character, selectedVersion, onImageClick, currentIndex
                         <p className="ref-sheet-version">{versionName}</p>
                     )}
                     <p className="ref-sheet-label" style={{ color: character.color }}>
-                        Official Reference Sheet
+                        {t.officialRefSheet}
                     </p>
                 </div>
-                <div className="ref-sheet-hint">Click to enlarge</div>
+                <div className="ref-sheet-hint">{t.clickToEnlarge}</div>
+
+                {/* Quick download button */}
+                <button
+                    className="ref-sheet-download"
+                    onClick={handleDownload}
+                    aria-label={t.downloadRefSheet}
+                    title={t.downloadRefSheet}
+                >
+                    <span className="ref-sheet-download__icon">⬇</span>
+                </button>
 
                 {/* Navigation buttons for multiple ref sheets */}
                 {hasMultipleSheets && (
@@ -240,14 +381,14 @@ function ReferenceSheet({ character, selectedVersion, onImageClick, currentIndex
                         <button
                             className="ref-sheet-nav ref-sheet-nav--prev"
                             onClick={handlePrevious}
-                            aria-label="Previous reference sheet"
+                            aria-label={t.previousRefSheet}
                         >
                             ‹
                         </button>
                         <button
                             className="ref-sheet-nav ref-sheet-nav--next"
                             onClick={handleNext}
-                            aria-label="Next reference sheet"
+                            aria-label={t.nextRefSheet}
                         >
                             ›
                         </button>
@@ -264,28 +405,31 @@ function ReferenceSheet({ character, selectedVersion, onImageClick, currentIndex
 // ============================================
 // Commission Card Component
 // ============================================
-function CommissionCard({ commission, character, index, onImageClick }) {
+function CommissionCard({ commission, character, index, onImageClick, lang = 'en' }) {
     const [isHovered, setIsHovered] = useState(false);
-    
+
     const cardStyle = {
         animation: `slideUp 0.4s ease ${index * 0.1}s both`,
-        boxShadow: isHovered 
+        boxShadow: isHovered
             ? `0 20px 40px rgba(0,0,0,0.4), 0 0 30px ${character.color}20`
             : 'none',
         transform: isHovered ? 'translateY(-8px) scale(1.02)' : 'translateY(0) scale(1)',
     };
-    
+
     const imageStyle = {
         transform: isHovered ? 'scale(1.1)' : 'scale(1)',
     };
-    
-    const formattedDate = commission.date 
-        ? new Date(commission.date).toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'short' 
+
+    const formattedDate = commission.date
+        ? new Date(commission.date).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short'
           })
         : null;
-    
+
+    // Get platform info from source URL
+    const platform = commission.sourceUrl ? getSourcePlatform(commission.sourceUrl, lang) : null;
+
     return (
         <div
             className="commission-card"
@@ -294,12 +438,21 @@ function CommissionCard({ commission, character, index, onImageClick }) {
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            <img 
+            <img
                 className="commission-image"
                 style={imageStyle}
                 src={commission.image}
                 alt={commission.title}
             />
+
+            {/* Platform badge - visible on hover */}
+            {platform && (
+                <div className="commission-platform-badge">
+                    <span className="commission-platform-icon">{platform.icon}</span>
+                    <span className="commission-platform-label">{platform.type}</span>
+                </div>
+            )}
+
             <div className="commission-overlay">
                 <h3 className="commission-title">{commission.title}</h3>
                 <p className="commission-artist" style={{ color: character.color }}>
@@ -316,13 +469,15 @@ function CommissionCard({ commission, character, index, onImageClick }) {
 // ============================================
 // Commissions Grid Component
 // ============================================
-function CommissionsGrid({ character, commissions, versionName, onImageClick, sortOrder, onSortChange }) {
+function CommissionsGrid({ character, commissions, versionName, onImageClick, sortOrder, onSortChange, lang = 'en' }) {
+    const t = translations[lang];
+
     if (commissions.length === 0) {
         return (
             <div className="empty-state">
                 <p className="empty-state__icon">🎨</p>
                 <p>
-                    No commissions yet for {character.name}
+                    {t.noCommissions} {character.name}
                     {versionName && versionName !== 'Default' && ` (${versionName})`}
                 </p>
             </div>
@@ -342,7 +497,7 @@ function CommissionsGrid({ character, commissions, versionName, onImageClick, so
                     }}
                     onClick={() => onSortChange('recency')}
                 >
-                    Newest
+                    {t.newest}
                 </button>
                 <button
                     className={`sort-btn ${sortOrder === 'random' ? 'sort-btn--active' : ''}`}
@@ -353,7 +508,7 @@ function CommissionsGrid({ character, commissions, versionName, onImageClick, so
                     }}
                     onClick={() => onSortChange('random')}
                 >
-                    Randomize
+                    {t.randomize}
                 </button>
             </div>
 
@@ -365,6 +520,7 @@ function CommissionsGrid({ character, commissions, versionName, onImageClick, so
                         character={character}
                         index={index}
                         onImageClick={onImageClick}
+                        lang={lang}
                     />
                 ))}
             </div>
@@ -375,7 +531,8 @@ function CommissionsGrid({ character, commissions, versionName, onImageClick, so
 // ============================================
 // Lightbox Component
 // ============================================
-function Lightbox({ image, info, character, isRefSheet, versionName, onClose, currentIndex, onIndexChange }) {
+function Lightbox({ image, info, character, isRefSheet, versionName, onClose, currentIndex, onIndexChange, lang = 'en' }) {
+    const t = translations[lang];
     const refSheets = isRefSheet && info?.refSheets ? info.refSheets : null;
     const hasMultipleSheets = refSheets && refSheets.length > 1;
     const [currentImage, setCurrentImage] = React.useState(image);
@@ -440,31 +597,14 @@ function Lightbox({ image, info, character, isRefSheet, versionName, onClose, cu
     // Handle download (only for ref sheets)
     const handleDownload = async (e) => {
         e.stopPropagation();
-
-        try {
-            const response = await fetch(currentImage);
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-
-            // Generate filename
-            const extension = currentImage.split('.').pop().split('?')[0] || 'png';
-            const versionSlug = versionName && versionName !== 'Default'
-                ? `-${versionName.toLowerCase().replace(/\s+/g, '-')}`
-                : '';
-            const sheetNumber = hasMultipleSheets ? `-${currentIdx + 1}` : '';
-            const filename = `${character.name.toLowerCase().replace(/\s+/g, '-')}${versionSlug}${sheetNumber}-reference-sheet.${extension}`;
-
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-        } catch (error) {
-            // Fallback: open in new tab
-            window.open(currentImage, '_blank');
-        }
+        const sheets = refSheetsRef.current;
+        await downloadReferenceSheet(
+            currentImage,
+            character.name,
+            versionName,
+            currentIdx,
+            sheets?.length || 1
+        );
     };
 
     // Handle opening source URL
@@ -476,11 +616,17 @@ function Lightbox({ image, info, character, isRefSheet, versionName, onClose, cu
     };
 
     // Get platform info for source button
-    const platform = info?.sourceUrl ? getSourcePlatform(info.sourceUrl) : null;
-    
+    const platform = info?.sourceUrl ? getSourcePlatform(info.sourceUrl, lang) : null;
+
     return (
         <div className="lightbox" onClick={onClose}>
             <button className="lightbox__close" onClick={onClose}>✕</button>
+
+            {/* Keyboard shortcuts hint */}
+            <div className="lightbox__shortcuts-hint" aria-live="polite">
+                {t.escToClose}
+                {hasMultipleSheets && ` • ${t.arrowsToNavigate}`}
+            </div>
 
             {/* Navigation buttons for multiple ref sheets */}
             {hasMultipleSheets && (
@@ -488,14 +634,14 @@ function Lightbox({ image, info, character, isRefSheet, versionName, onClose, cu
                     <button
                         className="lightbox__nav lightbox__nav--prev"
                         onClick={(e) => { e.stopPropagation(); handlePrevious(); }}
-                        aria-label="Previous reference sheet"
+                        aria-label={t.previousRefSheet}
                     >
                         ‹
                     </button>
                     <button
                         className="lightbox__nav lightbox__nav--next"
                         onClick={(e) => { e.stopPropagation(); handleNext(); }}
-                        aria-label="Next reference sheet"
+                        aria-label={t.nextRefSheet}
                     >
                         ›
                     </button>
@@ -508,7 +654,7 @@ function Lightbox({ image, info, character, isRefSheet, versionName, onClose, cu
                     src={currentImage}
                     alt={info?.title || (isRefSheet ? `${character.name} Reference Sheet` : "Full size")}
                 />
-                
+
                 {/* Info section */}
                 <div className="lightbox__info">
                     {isRefSheet ? (
@@ -518,7 +664,7 @@ function Lightbox({ image, info, character, isRefSheet, versionName, onClose, cu
                                 <p className="lightbox__version">{versionName}</p>
                             )}
                             <p className="lightbox__artist" style={{ color: character.color }}>
-                                Official Reference Sheet
+                                {t.officialRefSheet}
                                 {hasMultipleSheets && ` (${currentIdx + 1}/${refSheets.length})`}
                             </p>
                         </>
@@ -526,7 +672,7 @@ function Lightbox({ image, info, character, isRefSheet, versionName, onClose, cu
                         <>
                             <h3 className="lightbox__title">{info.title}</h3>
                             <p className="lightbox__artist" style={{ color: character.color }}>
-                                Commissioned from {info.artist}
+                                {t.commissionedFrom} {info.artist}
                             </p>
                             {info.notes && (
                                 <p className="lightbox__notes">"{info.notes}"</p>
@@ -539,7 +685,7 @@ function Lightbox({ image, info, character, isRefSheet, versionName, onClose, cu
                 <div className="lightbox__actions">
                     {/* Source button - only for commissions with sourceUrl */}
                     {!isRefSheet && platform && (
-                        <button 
+                        <button
                             className={`lightbox__btn lightbox__btn--${platform.type}`}
                             onClick={handleViewSource}
                         >
@@ -547,15 +693,15 @@ function Lightbox({ image, info, character, isRefSheet, versionName, onClose, cu
                             {platform.label}
                         </button>
                     )}
-                    
+
                     {/* Download button - only for reference sheets */}
                     {isRefSheet && (
-                        <button 
+                        <button
                             className="lightbox__btn lightbox__btn--download"
                             onClick={handleDownload}
                         >
                             <span className="lightbox__btn-icon">⬇️</span>
-                            Download Reference Sheet
+                            {t.downloadRefSheet}
                         </button>
                     )}
                 </div>
@@ -567,11 +713,12 @@ function Lightbox({ image, info, character, isRefSheet, versionName, onClose, cu
 // ============================================
 // Loading Component
 // ============================================
-function LoadingScreen() {
+function LoadingScreen({ lang = 'en' }) {
+    const t = translations[lang];
     return (
         <div className="loading-container">
             <div className="loading-spinner"></div>
-            <p className="loading-text">Loading gallery...</p>
+            <p className="loading-text">{t.loadingGallery}</p>
         </div>
     );
 }
@@ -579,14 +726,15 @@ function LoadingScreen() {
 // ============================================
 // Error Component
 // ============================================
-function ErrorScreen({ message }) {
+function ErrorScreen({ message, lang = 'en' }) {
+    const t = translations[lang];
     return (
         <div className="error-container">
             <div className="error-icon">😕</div>
-            <h2>Unable to load gallery</h2>
+            <h2>{t.unableToLoad}</h2>
             <p className="error-message">{message}</p>
             <p className="error-message" style={{ marginTop: '20px' }}>
-                Make sure <code>characters.json</code> exists and is valid JSON.
+                {t.makeSureJSON} <code>characters.json</code> {t.existsAndValid}
             </p>
         </div>
     );
@@ -609,6 +757,10 @@ function CharacterGallery() {
     const [sortOrder, setSortOrder] = useState('random'); // 'random' or 'recency'
     const [refSheetIndex, setRefSheetIndex] = useState(0); // Index for multiple ref sheets
     const [lightboxRefSheetIndex, setLightboxRefSheetIndex] = useState(0); // Index for lightbox ref sheets
+    const [language, setLanguage] = useState('en'); // 'en' or 'ja'
+
+    // Get translations for current language
+    const t = translations[language];
 
     // Load character data from JSON
     useEffect(() => {
@@ -621,12 +773,7 @@ function CharacterGallery() {
             })
             .then(data => {
                 setCharacters(data.characters);
-                const firstChar = data.characters[0];
-                setSelectedChar(firstChar);
-                // Set default version if versions exist
-                if (firstChar.versions && firstChar.versions.length > 0) {
-                    setSelectedVersion(firstChar.versions[0]);
-                }
+                // Don't select any character on load - wait for user interaction
                 setLoading(false);
             })
             .catch(err => {
@@ -682,19 +829,16 @@ function CharacterGallery() {
     };
 
     if (loading) {
-        return <LoadingScreen />;
+        return <LoadingScreen lang={language} />;
     }
 
     if (error) {
-        return <ErrorScreen message={error} />;
+        return <ErrorScreen message={error} lang={language} />;
     }
 
-    if (!selectedChar) {
-        return <ErrorScreen message="No characters found in data file." />;
-    }
-
-    const hasVersions = selectedChar.versions && selectedChar.versions.length > 1;
-    const currentCommissions = getCommissions(selectedChar, selectedVersion);
+    // Get character-specific data only if a character is selected
+    const hasVersions = selectedChar?.versions && selectedChar.versions.length > 1;
+    const currentCommissions = selectedChar ? getCommissions(selectedChar, selectedVersion) : [];
     const currentVersionName = selectedVersion?.name;
 
     // Apply sorting to commissions
@@ -705,35 +849,38 @@ function CharacterGallery() {
     return (
         <div className="gallery-container">
             {/* Decorative Background */}
-            <div className="bg-decorations">
-                <div 
-                    className="bg-glow bg-glow--top"
-                    style={{ 
-                        background: `radial-gradient(circle, ${selectedChar.color}25 0%, transparent 70%)` 
-                    }}
-                />
-                <div 
-                    className="bg-glow bg-glow--bottom"
-                    style={{ 
-                        background: `radial-gradient(circle, ${selectedChar.color}15 0%, transparent 70%)` 
-                    }}
-                />
-            </div>
+            {selectedChar && (
+                <div className="bg-decorations">
+                    <div
+                        className="bg-glow bg-glow--top"
+                        style={{
+                            background: `radial-gradient(circle, ${selectedChar.color}25 0%, transparent 70%)`
+                        }}
+                    />
+                    <div
+                        className="bg-glow bg-glow--bottom"
+                        style={{
+                            background: `radial-gradient(circle, ${selectedChar.color}15 0%, transparent 70%)`
+                        }}
+                    />
+                </div>
+            )}
 
             <div className="gallery-content">
                 {/* Header */}
                 <header className="gallery-header">
-                    <h1 
-                        className="gallery-title"
-                        style={{
-                            background: `linear-gradient(135deg, #fff 30%, ${selectedChar.color} 100%)`,
-                            WebkitBackgroundClip: 'text',
-                            backgroundClip: 'text',
-                        }}
-                    >
-                        CHARACTER GALLERY
+                    <h1 className="gallery-title">
+                        {t.galleryTitle}
                     </h1>
-                    <p className="gallery-subtitle">Reference Sheets & Commissions</p>
+                    {/* Language Switch Button */}
+                    <button
+                        className="lang-switch"
+                        onClick={() => setLanguage(language === 'en' ? 'ja' : 'en')}
+                        aria-label="Switch language"
+                        title={language === 'en' ? 'Switch to Japanese' : 'Switch to English'}
+                    >
+                        {language === 'en' ? '日本語' : 'English'}
+                    </button>
                 </header>
 
                 {/* Character Selector */}
@@ -742,17 +889,32 @@ function CharacterGallery() {
                         <CharacterButton
                             key={char.id}
                             character={char}
-                            isSelected={selectedChar.id === char.id}
+                            isSelected={selectedChar?.id === char.id}
                             onClick={() => handleSelectCharacter(char)}
+                            lang={language}
                         />
                     ))}
                 </nav>
 
                 {/* Main Content */}
+                {!selectedChar ? (
+                    <div className="content-card">
+                        <div className="character-select-prompt">
+                            <p className="character-select-prompt__text">
+                                {Array.isArray(t.selectCharacter) ? (
+                                    <>
+                                        {t.selectCharacter[0]}
+                                        <br />
+                                        {t.selectCharacter[1]}
+                                    </>
+                                ) : (
+                                    t.selectCharacter
+                                )}
+                            </p>
+                        </div>
+                    </div>
+                ) : (
                 <div className="content-card">
-                    {/* Social Links - Above everything */}
-                    <SocialLinks character={selectedChar} />
-
                     {/* Version Selector - Always visible when versions exist */}
                     {hasVersions && (
                         <VersionSelector
@@ -762,6 +924,9 @@ function CharacterGallery() {
                             accentColor={selectedChar.color}
                         />
                     )}
+
+                    {/* Social Links */}
+                    <SocialLinks character={selectedChar} />
 
                     {/* Toggle Button */}
                     <div className="toggle-container">
@@ -787,8 +952,8 @@ function CharacterGallery() {
                                 {showCommissions ? '◀' : '▶'}
                             </span>
                             {showCommissions
-                                ? 'View Reference Sheet'
-                                : `View Past Commissions (${currentCommissions.length})`
+                                ? t.viewRefSheet
+                                : `${t.viewCommissions} (${currentCommissions.length})`
                             }
                         </button>
                     </div>
@@ -801,6 +966,7 @@ function CharacterGallery() {
                             onImageClick={openLightbox}
                             currentIndex={refSheetIndex}
                             onIndexChange={setRefSheetIndex}
+                            lang={language}
                         />
                     ) : (
                         <CommissionsGrid
@@ -810,13 +976,15 @@ function CharacterGallery() {
                             onImageClick={openLightbox}
                             sortOrder={sortOrder}
                             onSortChange={handleSortChange}
+                            lang={language}
                         />
                     )}
                 </div>
+                )}
 
                 {/* Footer */}
                 <footer className="gallery-footer">
-                    <p>Click any image to view full size</p>
+                    <p className="social-links-disclaimer">{t.commissionTOS}</p>
                 </footer>
             </div>
 
@@ -831,6 +999,7 @@ function CharacterGallery() {
                     onClose={closeLightbox}
                     currentIndex={lightboxRefSheetIndex}
                     onIndexChange={setLightboxRefSheetIndex}
+                    lang={language}
                 />
             )}
         </div>
