@@ -777,6 +777,15 @@ function CharacterGallery() {
     // Get translations for current language
     const t = translations[language];
 
+    // Helper function to read URL parameters
+    const getUrlParams = () => {
+        const params = new URLSearchParams(window.location.search);
+        return {
+            characterId: params.get('character'),
+            versionId: params.get('version')
+        };
+    };
+
     // Load character data from JSON
     useEffect(() => {
         fetch('characters.json')
@@ -788,7 +797,43 @@ function CharacterGallery() {
             })
             .then(data => {
                 setCharacters(data.characters);
-                // Don't select any character on load - wait for user interaction
+
+                // Check for URL parameters
+                const { characterId, versionId } = getUrlParams();
+
+                if (characterId) {
+                    // Find character by ID (numeric) or by slug (lowercase name)
+                    const foundChar = data.characters.find(char =>
+                        char.id.toString() === characterId ||
+                        char.name.toLowerCase().replace(/\s+/g, '-') === characterId.toLowerCase()
+                    );
+
+                    if (foundChar) {
+                        setSelectedChar(foundChar);
+                        setShowCommissions(false);
+                        setRefSheetIndex(0);
+
+                        // Handle version selection
+                        if (foundChar.versions && foundChar.versions.length > 0) {
+                            if (versionId) {
+                                // Find specific version
+                                const foundVersion = foundChar.versions.find(v =>
+                                    v.id === versionId ||
+                                    v.name.toLowerCase().replace(/\s+/g, '-') === versionId.toLowerCase()
+                                );
+                                setSelectedVersion(foundVersion || foundChar.versions[0]);
+                            } else {
+                                // Default to first version
+                                setSelectedVersion(foundChar.versions[0]);
+                            }
+                        } else {
+                            setSelectedVersion(null);
+                        }
+                    }
+                    // If character not found, fall through to normal behavior (no selection)
+                }
+                // If no URL params, don't select any character (existing behavior)
+
                 setLoading(false);
             })
             .catch(err => {
@@ -798,17 +843,69 @@ function CharacterGallery() {
             });
     }, []);
 
+    // Handle browser back/forward buttons
+    useEffect(() => {
+        const handlePopState = () => {
+            const { characterId, versionId } = getUrlParams();
+
+            if (!characterId) {
+                // No character in URL - return to gallery home
+                setSelectedChar(null);
+                setSelectedVersion(null);
+            } else if (characters.length > 0) {
+                // Find and select character from URL
+                const foundChar = characters.find(char =>
+                    char.id.toString() === characterId ||
+                    char.name.toLowerCase().replace(/\s+/g, '-') === characterId.toLowerCase()
+                );
+
+                if (foundChar) {
+                    setSelectedChar(foundChar);
+                    setShowCommissions(false);
+                    setRefSheetIndex(0);
+
+                    if (foundChar.versions && foundChar.versions.length > 0) {
+                        if (versionId) {
+                            const foundVersion = foundChar.versions.find(v =>
+                                v.id === versionId ||
+                                v.name.toLowerCase().replace(/\s+/g, '-') === versionId.toLowerCase()
+                            );
+                            setSelectedVersion(foundVersion || foundChar.versions[0]);
+                        } else {
+                            setSelectedVersion(foundChar.versions[0]);
+                        }
+                    }
+                }
+            }
+        };
+
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, [characters]); // Re-run when characters change
+
     // Handle character selection
     const handleSelectCharacter = (char) => {
         setSelectedChar(char);
         setShowCommissions(false);
         setRefSheetIndex(0); // Reset ref sheet index
+
+        // Update URL parameter
+        const characterSlug = char.name.toLowerCase().replace(/\s+/g, '-');
+        const newUrl = new URL(window.location);
+        newUrl.searchParams.set('character', characterSlug);
+
         // Set default version for new character
         if (char.versions && char.versions.length > 0) {
             setSelectedVersion(char.versions[0]);
+            const versionSlug = char.versions[0].id;
+            newUrl.searchParams.set('version', versionSlug);
         } else {
             setSelectedVersion(null);
+            newUrl.searchParams.delete('version');
         }
+
+        // Update URL without page reload
+        window.history.pushState({}, '', newUrl);
     };
 
     // Handle version selection
@@ -817,6 +914,16 @@ function CharacterGallery() {
         setRefSheetIndex(0); // Reset ref sheet index
         // Reset to ref sheet view when changing versions
         setShowCommissions(false);
+
+        // Update URL parameter to preserve version when sharing
+        if (selectedChar) {
+            const characterSlug = selectedChar.name.toLowerCase().replace(/\s+/g, '-');
+            const versionSlug = version.id;
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('character', characterSlug);
+            newUrl.searchParams.set('version', versionSlug);
+            window.history.pushState({}, '', newUrl);
+        }
     };
 
     // Handle sort order change
