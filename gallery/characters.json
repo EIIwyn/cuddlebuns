@@ -115,6 +115,13 @@
               "sourceUrl": "https://skeb.jp/@hasunohato_/works/993"
             }
           ]
+        },
+        {
+          "id": "wubold",
+          "name": "Wubold",
+          "refSheet": "referencesheets/wubold.png",
+          "commissions": [            
+          ]
         }
       ]
     },
