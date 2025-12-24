@@ -19,6 +19,7 @@ const translations = {
         newest: "Newest",
         randomize: "Randomize",
         noCommissions: "No commissions yet for",
+        noRefSheet: "No reference sheet yet",
         officialRefSheet: "Official Reference Sheet",
         clickToEnlarge: "Click to enlarge",
         downloadRefSheet: "Download Reference Sheet",
@@ -40,12 +41,16 @@ const translations = {
         species: {
             "Kobold": "Kobold",
             "Cyber Princess": "Cyber Princess",
-            "PassingCatLoaf": "PassingCatLoaf",
             "Gloomy Librarian": "Gloomy Librarian",
             "Happy Robo": "Happy Robo",
             "Delusional Artist": "Delusional Artist",
             "Art Cute Student": "Art Cute Student",
-            "Devil Maid": "Devil Maid"
+            "Devil Maid": "Devil Maid",
+            "Pretty Derby": "Pretty Derby",
+            "Mostly Video Games": "Mostly Video Games"
+        },
+        characterNames: {
+            "UmaMusume": "UmaMusume"
         }
     },
     ja: {
@@ -56,6 +61,7 @@ const translations = {
         newest: "最新順",
         randomize: "ランダム",
         noCommissions: "まだコミッションがありません：",
+        noRefSheet: "リファレンスシートはまだありません",
         officialRefSheet: "公式リファレンスシート",
         clickToEnlarge: "クリックして拡大",
         downloadRefSheet: "リファレンスシートをダウンロード",
@@ -77,12 +83,16 @@ const translations = {
         species: {
             "Kobold": "コボルド",
             "Cyber Princess": "サイバープリンセス",
-            "PassingCatLoaf": "パッシングキャットローフ",
             "Gloomy Librarian": "陰気な司書",
             "Happy Robo": "ハッピーロボ",
             "Delusional Artist": "妄想アーティスト",
-            "Art Cute Student": "アートな学生",
-            "Devil Maid": "悪魔メイド"
+            "Art Cute Student": "カワイイを専門とする美術学生",
+            "Devil Maid": "悪魔メイド",
+            "Pretty Derby": "プリティーダービー",
+            "Mostly Video Games": "主にビデオゲーム"
+        },
+        characterNames: {
+            "UmaMusume": "ウマ娘"
         }
     }
 };
@@ -90,6 +100,11 @@ const translations = {
 // Helper function to translate species
 function translateSpecies(species, lang = 'en') {
     return translations[lang]?.species?.[species] || species;
+}
+
+// Helper function to translate character names
+function translateCharacterName(name, lang = 'en') {
+    return translations[lang]?.characterNames?.[name] || name;
 }
 
 // ============================================
@@ -222,7 +237,7 @@ function CharacterButton({ character, isSelected, onClick, lang = 'en' }) {
                     boxShadow: `0 0 12px ${character.color}80`
                 }}
             />
-            <div className="character-btn__name">{character.name}</div>
+            <div className="character-btn__name">{translateCharacterName(character.name, lang)}</div>
             <div className="character-btn__species">{translateSpecies(character.species, lang)}</div>
         </button>
     );
@@ -841,6 +856,14 @@ function CharacterGallery() {
     const currentCommissions = selectedChar ? getCommissions(selectedChar, selectedVersion) : [];
     const currentVersionName = selectedVersion?.name;
 
+    // Check if reference sheet exists for current selection
+    const hasRefSheet = selectedChar && (
+        (selectedVersion?.refSheets && selectedVersion.refSheets.length > 0) ||
+        selectedVersion?.refSheet ||
+        (selectedChar.refSheets && selectedChar.refSheets.length > 0) ||
+        selectedChar.refSheet
+    );
+
     // Apply sorting to commissions
     const sortedCommissions = sortOrder === 'random'
         ? shuffleArray(currentCommissions)
@@ -928,38 +951,40 @@ function CharacterGallery() {
                     {/* Social Links */}
                     <SocialLinks character={selectedChar} />
 
-                    {/* Toggle Button */}
-                    <div className="toggle-container">
-                        <button
-                            className="toggle-btn"
-                            style={{
-                                background: showCommissions
-                                    ? `linear-gradient(135deg, ${selectedChar.color}, ${selectedChar.color}cc)`
-                                    : 'transparent',
-                                borderColor: selectedChar.color,
-                                color: showCommissions ? '#fff' : selectedChar.color,
-                                boxShadow: 'none',
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.boxShadow = `0 8px 24px ${selectedChar.color}40`;
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.boxShadow = 'none';
-                            }}
-                            onClick={() => setShowCommissions(!showCommissions)}
-                        >
-                            <span className="toggle-btn__icon">
-                                {showCommissions ? '◀' : '▶'}
-                            </span>
-                            {showCommissions
-                                ? t.viewRefSheet
-                                : `${t.viewCommissions} (${currentCommissions.length})`
-                            }
-                        </button>
-                    </div>
+                    {/* Toggle Button - only show if there's a reference sheet */}
+                    {hasRefSheet && (
+                        <div className="toggle-container">
+                            <button
+                                className="toggle-btn"
+                                style={{
+                                    background: showCommissions
+                                        ? `linear-gradient(135deg, ${selectedChar.color}, ${selectedChar.color}cc)`
+                                        : 'transparent',
+                                    borderColor: selectedChar.color,
+                                    color: showCommissions ? '#fff' : selectedChar.color,
+                                    boxShadow: 'none',
+                                }}
+                                onMouseEnter={(e) => {
+                                    e.currentTarget.style.boxShadow = `0 8px 24px ${selectedChar.color}40`;
+                                }}
+                                onMouseLeave={(e) => {
+                                    e.currentTarget.style.boxShadow = 'none';
+                                }}
+                                onClick={() => setShowCommissions(!showCommissions)}
+                            >
+                                <span className="toggle-btn__icon">
+                                    {showCommissions ? '◀' : '▶'}
+                                </span>
+                                {showCommissions
+                                    ? t.viewRefSheet
+                                    : `${t.viewCommissions} (${currentCommissions.length})`
+                                }
+                            </button>
+                        </div>
+                    )}
 
                     {/* Reference Sheet or Commissions */}
-                    {!showCommissions ? (
+                    {!showCommissions && hasRefSheet ? (
                         <ReferenceSheet
                             character={selectedChar}
                             selectedVersion={selectedVersion}

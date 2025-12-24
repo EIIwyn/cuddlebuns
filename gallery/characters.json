@@ -269,7 +269,7 @@
       {
               "id": 5,
               "artist": "@puffiewaffles",
-              "image": "commissions/ruri_tinytale/ruri/@puffiewaffles-wupiper.png",
+              "image": "commissions/ruri_tinytale/@puffiewaffles-wupiper.png",
 			  "sourceUrl": "https://x.com/pufflewaffles/status/1931212540014457028/"
             }
           ]
@@ -366,6 +366,70 @@
           "name": "C4 Idol",
           "refSheets": ["referencesheets/yukiko_reference2.png"],
           "commissions": [            
+          ]
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "name": "UmaMusume",
+      "species": "Pretty Derby",
+      "color": "#8b3a62",
+      "versions": [
+        {
+          "id": "mihono bourbon",
+          "name": "Bourbon",
+          "commissions": [            
+            {
+              "id": 1,
+              "artist": "@puffywaifus",
+              "image": "commissions/umamusume/mihono_bourbon.png",
+              "sourceUrl": "https://x.com/puffywaifus/status/1998452589265039598/"
+            }
+          ]
+        },
+        {
+          "id": "sakura chiyono",
+          "name": "Sakura Chiyono O",
+          "commissions": [
+            {
+              "id": 1,
+              "artist": "@floralcanon",
+              "image": "commissions/umamusume/sakura_chiyonoO.png",
+              "sourceUrl": "https://skeb.jp/@floralcanon/works/18"
+            }            
+          ]
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Miscellaneous",
+      "species": "Mostly Video Games",
+      "color": "#8b3a62",      
+      "versions": [
+        {
+          "id": "eve",
+          "name": "Eve",          
+          "commissions": [
+            {
+              "id": 1,
+              "artist": "@puffywaifus",
+              "image": "commissions/miscellaneous/eve.png",
+              "sourceUrl": "https://x.com/puffywaifus/status/1811098060359159942/"
+            }              
+          ]
+        },
+        {
+          "id": "raziel",
+          "name": "Raziel",
+          "commissions": [
+            {
+              "id": 1,
+              "artist": "@puffywaifus",
+              "image": "commissions/miscellaneous/raziel.png",
+              "sourceUrl": "https://x.com/puffywaifus/status/1813997161358725278/"
+            }            
           ]
         }
       ]
