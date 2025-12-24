@@ -13,7 +13,7 @@ const { useState, useEffect } = React;
 function getSourcePlatform(url) {
     if (!url) return null;
     const lowerUrl = url.toLowerCase();
-    
+
     if (lowerUrl.includes('twitter.com') || lowerUrl.includes('x.com')) {
         return { type: 'twitter', label: 'View on Twitter', icon: '𝕏' };
     }
@@ -23,9 +23,28 @@ function getSourcePlatform(url) {
     if (lowerUrl.includes('skeb.jp')) {
         return { type: 'skeb', label: 'View on Skeb', icon: 'S' };
     }
-    
+
     // Generic source
     return { type: 'source', label: 'View Source', icon: '🔗' };
+}
+
+// ============================================
+// Social Link Utility
+// ============================================
+function getLinkInfo(type) {
+    const linkTypes = {
+        twitter: { label: 'Twitter', icon: '𝕏', className: 'twitter' },
+        vgen: { label: 'VGen', icon: 'V', className: 'vgen' },
+        vsona: { label: 'VSona', icon: 'VS', className: 'vsona' },
+        carrd: { label: 'Carrd', icon: '🔗', className: 'carrd' },
+        twitch: { label: 'Twitch', icon: '📺', className: 'twitch' },
+        youtube: { label: 'YouTube', icon: '▶', className: 'youtube' },
+        discord: { label: 'Discord', icon: '💬', className: 'discord' },
+        linktree: { label: 'Linktree', icon: '🌳', className: 'linktree' },
+        website: { label: 'Website', icon: '🌐', className: 'website' },
+    };
+
+    return linkTypes[type] || { label: type, icon: '🔗', className: 'generic' };
 }
 
 // ============================================
@@ -124,6 +143,36 @@ function VersionSelector({ versions, selectedVersion, onSelectVersion, accentCol
                     </button>
                 );
             })}
+        </div>
+    );
+}
+
+// ============================================
+// Social Links Component
+// ============================================
+function SocialLinks({ character }) {
+    if (!character.links || character.links.length === 0) return null;
+
+    return (
+        <div className="social-links-container">
+            <div className="social-links">
+                {character.links.map((link, index) => {
+                    const linkInfo = getLinkInfo(link.type);
+                    return (
+                        <a
+                            key={index}
+                            href={link.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className={`social-link-btn social-link-btn--${linkInfo.className}`}
+                            title={linkInfo.label}
+                        >
+                            <span className="social-link-icon">{linkInfo.icon}</span>
+                            <span className="social-link-label">{linkInfo.label}</span>
+                        </a>
+                    );
+                })}
+            </div>
         </div>
     );
 }
@@ -337,35 +386,48 @@ function Lightbox({ image, info, character, isRefSheet, versionName, onClose, cu
         setCurrentIdx(currentIndex || 0);
     }, [image, currentIndex]);
 
-    const handlePrevious = () => {
-        if (hasMultipleSheets && refSheets) {
-            setCurrentIdx(prevIdx => {
-                const newIdx = (prevIdx - 1 + refSheets.length) % refSheets.length;
-                setCurrentImage(refSheets[newIdx]);
-                if (onIndexChange) onIndexChange(newIdx);
-                return newIdx;
-            });
-        }
-    };
+    // Use refs to avoid stale closures in event handlers
+    const refSheetsRef = React.useRef(refSheets);
+    const hasMultipleSheetsRef = React.useRef(hasMultipleSheets);
+    const onIndexChangeRef = React.useRef(onIndexChange);
 
-    const handleNext = () => {
-        if (hasMultipleSheets && refSheets) {
+    React.useEffect(() => {
+        refSheetsRef.current = refSheets;
+        hasMultipleSheetsRef.current = hasMultipleSheets;
+        onIndexChangeRef.current = onIndexChange;
+    }, [refSheets, hasMultipleSheets, onIndexChange]);
+
+    const handlePrevious = React.useCallback(() => {
+        const sheets = refSheetsRef.current;
+        if (hasMultipleSheetsRef.current && sheets) {
             setCurrentIdx(prevIdx => {
-                const newIdx = (prevIdx + 1) % refSheets.length;
-                setCurrentImage(refSheets[newIdx]);
-                if (onIndexChange) onIndexChange(newIdx);
+                const newIdx = (prevIdx - 1 + sheets.length) % sheets.length;
+                setCurrentImage(sheets[newIdx]);
+                if (onIndexChangeRef.current) onIndexChangeRef.current(newIdx);
                 return newIdx;
             });
         }
-    };
+    }, []);
+
+    const handleNext = React.useCallback(() => {
+        const sheets = refSheetsRef.current;
+        if (hasMultipleSheetsRef.current && sheets) {
+            setCurrentIdx(prevIdx => {
+                const newIdx = (prevIdx + 1) % sheets.length;
+                setCurrentImage(sheets[newIdx]);
+                if (onIndexChangeRef.current) onIndexChangeRef.current(newIdx);
+                return newIdx;
+            });
+        }
+    }, []);
 
     useEffect(() => {
         const handleKeydown = (e) => {
             if (e.key === 'Escape') {
                 onClose();
-            } else if (hasMultipleSheets && e.key === 'ArrowLeft') {
+            } else if (hasMultipleSheetsRef.current && e.key === 'ArrowLeft') {
                 handlePrevious();
-            } else if (hasMultipleSheets && e.key === 'ArrowRight') {
+            } else if (hasMultipleSheetsRef.current && e.key === 'ArrowRight') {
                 handleNext();
             }
         };
@@ -373,7 +435,7 @@ function Lightbox({ image, info, character, isRefSheet, versionName, onClose, cu
         return () => {
             window.removeEventListener('keydown', handleKeydown);
         };
-    }, [onClose, hasMultipleSheets, refSheets]);
+    }, [onClose, handlePrevious, handleNext]);
 
     // Handle download (only for ref sheets)
     const handleDownload = async (e) => {
@@ -688,6 +750,9 @@ function CharacterGallery() {
 
                 {/* Main Content */}
                 <div className="content-card">
+                    {/* Social Links - Above everything */}
+                    <SocialLinks character={selectedChar} />
+
                     {/* Version Selector - Always visible when versions exist */}
                     {hasVersions && (
                         <VersionSelector
@@ -703,7 +768,7 @@ function CharacterGallery() {
                         <button
                             className="toggle-btn"
                             style={{
-                                background: showCommissions 
+                                background: showCommissions
                                     ? `linear-gradient(135deg, ${selectedChar.color}, ${selectedChar.color}cc)`
                                     : 'transparent',
                                 borderColor: selectedChar.color,
