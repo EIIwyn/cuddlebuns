@@ -1,2 +1,9 @@
 dev/*
 repo/*
+
+# Gallery v2 (Vite project)
+gallery-v2/node_modules/
+gallery-v2/dist/
+gallery-v2/.env
+gallery-v2/.env.local
+*.log
