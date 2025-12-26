@@ -1,5 +1,6 @@
 dev/*
 repo/*
+repos/
 
 # Gallery v2 (Vite project)
 gallery-v2/node_modules/
