@@ -18,12 +18,12 @@ export function Hub() {
 
           {/* Placeholder for future sections */}
           <div className="hub-card hub-card-disabled">
-            <h2>Movies</h2>
+            <h2>Such n such</h2>
             <p>Coming soon</p>
           </div>
 
           <div className="hub-card hub-card-disabled">
-            <h2>Series</h2>
+            <h2>Such n such</h2>
             <p>Coming soon</p>
           </div>
         </nav>
