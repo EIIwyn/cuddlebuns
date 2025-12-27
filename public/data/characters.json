@@ -6,127 +6,287 @@
       "species": "Kobold",
       "color": "#7be3f2",
       "links": [
-        {"type": "twitter", "url": "https://twitter.com/RuriTinytale"},        
-        {"type": "vsona", "url": "https://vsona.co/ruri-tinytale"},
-        {"type": "carrd", "url": "https://ruritinytale.carrd.co/"}
+        {
+          "type": "twitter",
+          "url": "https://twitter.com/RuriTinytale"
+        },
+        {
+          "type": "vsona",
+          "url": "https://vsona.co/ruri-tinytale"
+        },
+        {
+          "type": "carrd",
+          "url": "https://ruritinytale.carrd.co/"
+        }
       ],
       "versions": [
         {
           "id": "default",
           "name": "Ruri",
-          "refSheets": ["/assets/referencesheets/ruri_reference.png"],
+          "refSheets": [
+            "/assets/referencesheets/ruri_reference.png"
+          ],
           "commissions": [
             {
               "id": 1,
               "artist": "@puffiewaffles",
               "image": "/assets/commissions/ruri_tinytale/@puffiewaffles.png",
-              "sourceUrl": "https://x.com/pufflewaffles/status/1840058890043699571/"
+              "sourceUrl": "https://x.com/pufflewaffles/status/1840058890043699571/",
+              "metadata": {
+                "fileSize": 3046255,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.383Z"
+              }
             },
-			{
+            {
               "id": 2,
               "artist": "@puffiewaffles",
               "image": "/assets/commissions/ruri_tinytale/@puffiewaffles-chibi.png",
-              "sourceUrl": "https://x.com/pufflewaffles/status/1859658039646650444/"
+              "sourceUrl": "https://x.com/pufflewaffles/status/1859658039646650444/",
+              "metadata": {
+                "fileSize": 286013,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.377Z"
+              }
             },
-			{
+            {
               "id": 3,
               "artist": "@puffiewaffles",
               "image": "/assets/commissions/ruri_tinytale/@puffiewaffles-china.png",
-              "sourceUrl": "https://x.com/pufflewaffles/status/1884338157153362364/"
+              "sourceUrl": "https://x.com/pufflewaffles/status/1884338157153362364/",
+              "metadata": {
+                "fileSize": 4208134,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.379Z"
+              }
             },
             {
               "id": 4,
               "artist": "@keirono_",
               "image": "/assets/commissions/ruri_tinytale/@keirono_.png",
-              "sourceUrl": "https://x.com/keirono_/status/1925688327719526729/"
+              "sourceUrl": "https://x.com/keirono_/status/1925688327719526729/",
+              "metadata": {
+                "fileSize": 2312104,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.364Z"
+              }
             },
-			{
+            {
               "id": 5,
               "artist": "@minamoto_0303",
               "image": "/assets/commissions/ruri_tinytale/@minamoto_0303.png",
-			  "sourceUrl": "https://x.com/minamoto_0303/status/1926502531280077020"
+              "sourceUrl": "https://x.com/minamoto_0303/status/1926502531280077020",
+              "metadata": {
+                "fileSize": 2836210,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.366Z"
+              }
             },
             {
               "id": 6,
               "artist": "@coffee_toranpu",
               "image": "/assets/commissions/ruri_tinytale/@coffee_toranpu.png",
-			  "sourceUrl": "https://skeb.jp/@coffee_toranpu/works/26"
+              "sourceUrl": "https://skeb.jp/@coffee_toranpu/works/26",
+              "metadata": {
+                "fileSize": 3379212,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.356Z"
+              }
             },
-			{
+            {
               "id": 7,
               "artist": "@puffiewaffles",
               "image": "/assets/commissions/ruri_tinytale/@puffiewaffles-wupiper.png",
-			  "sourceUrl": "https://x.com/pufflewaffles/status/1931212540014457028/"
+              "sourceUrl": "https://x.com/pufflewaffles/status/1931212540014457028/",
+              "metadata": {
+                "fileSize": 4008028,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.381Z"
+              }
             },
-			{
+            {
               "id": 8,
               "artist": "@usunahito",
               "image": "/assets/commissions/ruri_tinytale/@usunahito.png",
-			  "sourceUrl": "https://skeb.jp/@usunahito/works/6"
+              "sourceUrl": "https://skeb.jp/@usunahito/works/6",
+              "metadata": {
+                "fileSize": 15922960,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.391Z"
+              }
             },
-			{
+            {
               "id": 9,
               "artist": "@shark_waka",
               "image": "/assets/commissions/ruri_tinytale/@shark_waka.png",
-			  "sourceUrl": "https://skeb.jp/@shark_waka/works/618"
+              "sourceUrl": "https://skeb.jp/@shark_waka/works/618",
+              "metadata": {
+                "fileSize": 2403697,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.385Z"
+              }
             },
-			{
+            {
               "id": 10,
               "artist": "@floralcanon",
               "image": "/assets/commissions/ruri_tinytale/@floralcanon.png",
-			  "sourceUrl": "https://skeb.jp/@floralcanon/works/15"
+              "sourceUrl": "https://skeb.jp/@floralcanon/works/15",
+              "metadata": {
+                "fileSize": 4845530,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.359Z"
+              }
             },
-			{
+            {
               "id": 11,
               "artist": "@itouyou0304",
               "image": "/assets/commissions/ruri_tinytale/@itouyou0304.png",
-			  "sourceUrl": "https://x.com/itouyou0304/status/1997612718019457218/"
+              "sourceUrl": "https://x.com/itouyou0304/status/1997612718019457218/",
+              "metadata": {
+                "fileSize": 8935435,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.361Z"
+              }
             },
-			{
+            {
               "id": 12,
               "artist": "@uni_nuko__",
               "image": "/assets/commissions/ruri_tinytale/@uni_nuko__.png",
-			  "sourceUrl": "https://skeb.jp/@uni_nuko__/works/222"
+              "sourceUrl": "https://skeb.jp/@uni_nuko__/works/222",
+              "metadata": {
+                "fileSize": 4921247,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.388Z"
+              }
             },
-			{
+            {
               "id": 13,
               "artist": "@tsukishiro_za",
               "image": "/assets/commissions/ruri_tinytale/@tsukishiro_za.png",
-			  "sourceUrl": "https://skeb.jp/@tsukishiro_za/works/79"
+              "sourceUrl": "https://skeb.jp/@tsukishiro_za/works/79",
+              "metadata": {
+                "fileSize": 1051189,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.386Z"
+              }
             },
-			{
+            {
               "id": 14,
               "artist": "@Miso_ni_kom",
               "image": "/assets/commissions/ruri_tinytale/@Miso_ni_kom.png",
-			  "sourceUrl": "https://skeb.jp/@Miso_ni_kom/works/273"
+              "sourceUrl": "https://skeb.jp/@Miso_ni_kom/works/273",
+              "metadata": {
+                "fileSize": 32840361,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.369Z"
+              }
+            },
+            {
+              "id": 15,
+              "artist": "@ambicore_",
+              "image": "/assets/commissions/ruri_tinytale/@ambicore_.png",
+              "sourceUrl": "https://x.com/ambicore_",
+              "metadata": {
+                "fileSize": 261403,
+                "format": "png",
+                "addedDate": "2025-12-27T04:48:53.225Z"
+              }
+            },
+            {
+              "id": 16,
+              "artist": "@mirm_zatakunt",
+              "image": "/assets/commissions/ruri_tinytale/@mirm_zatakunt.png",
+              "sourceUrl": "https://skeb.jp/@mirm_zatakunt/works/25",
+              "metadata": {
+                "fileSize": 4165086,
+                "format": "png",
+                "addedDate": "2025-12-27T04:49:04.988Z"
+              }
+            },
+            {
+              "id": 17,
+              "artist": "@MRcrunchy456",
+              "image": "/assets/commissions/ruri_tinytale/@MRcrunchy456.jpg",
+              "sourceUrl": "https://x.com/MRcrunchy456/status/1927157004793000021",
+              "metadata": {
+                "fileSize": 2620927,
+                "format": "jpg",
+                "addedDate": "2025-12-27T04:48:53.227Z"
+              }
+            },
+            {
+              "id": 18,
+              "artist": "@shuwachii",
+              "image": "/assets/commissions/ruri_tinytale/@shuwachii.gif",
+              "sourceUrl": "https://vgen.co/shuwachii",
+              "metadata": {
+                "fileSize": 903277,
+                "format": "gif",
+                "addedDate": "2025-12-27T04:48:53.231Z"
+              }
+            },
+            {
+              "id": 19,
+              "artist": "@Waywardwiggly",
+              "image": "/assets/commissions/ruri_tinytale/@Waywardwiggly.gif",
+              "sourceUrl": "https://x.com/Waywardwiggly/status/1880482514768392628/",
+              "metadata": {
+                "fileSize": 479072,
+                "format": "gif",
+                "addedDate": "2025-12-27T04:48:53.217Z"
+              }
             }
           ]
         },
         {
           "id": "wiwu",
           "name": "Wiwu",
-          "refSheets": ["/assets/referencesheets/wiwu_reference.png"],
+          "refSheets": [
+            "/assets/referencesheets/wiwu_reference.png"
+          ],
           "commissions": [
             {
               "id": 1,
               "artist": "@SS465",
               "image": "/assets/commissions/ruri_tinytale/wiwu/@SS465.png",
-              "sourceUrl": "https://skeb.jp/@SS465/works/28"
+              "sourceUrl": "https://skeb.jp/@SS465/works/28",
+              "metadata": {
+                "fileSize": 2775124,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.399Z"
+              }
             },
-			{
+            {
               "id": 2,
               "artist": "@hasunohato_",
               "image": "/assets/commissions/ruri_tinytale/wiwu/@hasunohato_.png",
-              "sourceUrl": "https://skeb.jp/@hasunohato_/works/993"
+              "sourceUrl": "https://skeb.jp/@hasunohato_/works/993",
+              "metadata": {
+                "fileSize": 1556702,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.397Z"
+              }
+            },
+            {
+              "id": 3,
+              "artist": "@hillnihil",
+              "image": "/assets/commissions/ruri_tinytale/wiwu/@hillnihil.png",
+              "sourceUrl": "https://skeb.jp/@hillnihil/works/2",
+              "metadata": {
+                "fileSize": 753677,
+                "format": "png",
+                "addedDate": "2025-12-27T04:49:16.931Z"
+              }
             }
           ]
         },
         {
           "id": "wubold",
           "name": "Wubold",
-          "refSheets": ["/assets/referencesheets/wubold.png"],
-          "commissions": [
-          ]
+          "refSheets": [
+            "/assets/referencesheets/wubold.png"
+          ],
+          "commissions": []
         }
       ]
     },
@@ -136,47 +296,80 @@
       "species": "Cyber Princess",
       "color": "#c4a0b0",
       "links": [
-        {"type": "twitter", "url": "https://twitter.com/NanoGure"},
-        {"type": "carrd", "url": "https://nanogure.carrd.co/"}
+        {
+          "type": "twitter",
+          "url": "https://twitter.com/NanoGure"
+        },
+        {
+          "type": "carrd",
+          "url": "https://nanogure.carrd.co/"
+        }
       ],
       "versions": [
         {
           "id": "default",
           "name": "Nano",
-          "refSheets": ["/assets/referencesheets/nano_reference.png"],
+          "refSheets": [
+            "/assets/referencesheets/nano_reference.png"
+          ],
           "commissions": [
             {
               "id": 1,
               "artist": "@puffywaifus",
               "image": "/assets/commissions/nano_gure/@puffywaifus.png",
-              "sourceUrl": "https://x.com/puffywaifus/status/1830667004614787434/"
+              "sourceUrl": "https://x.com/puffywaifus/status/1830667004614787434/",
+              "metadata": {
+                "fileSize": 4163083,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.321Z"
+              }
             },
             {
               "id": 2,
               "artist": "@Garan0502",
               "image": "/assets/commissions/nano_gure/@Garan0502.png",
-              "sourceUrl": "https://skeb.jp/@Garan0502/works/146"
+              "sourceUrl": "https://skeb.jp/@Garan0502/works/146",
+              "metadata": {
+                "fileSize": 3837441,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.316Z"
+              }
             },
-			{
+            {
               "id": 3,
               "artist": "@kyukyu_tata",
               "image": "/assets/commissions/nano_gure/@kyukyu_tata.png",
-              "sourceUrl": "https://skeb.jp/@kyukyu_tata/works/77"
+              "sourceUrl": "https://skeb.jp/@kyukyu_tata/works/77",
+              "metadata": {
+                "fileSize": 244706,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.320Z"
+              }
             },
-			{
+            {
               "id": 4,
               "artist": "@illust_shika",
               "image": "/assets/commissions/nano_gure/@illust_shika.png",
-              "sourceUrl": "https://skeb.jp/@illust_shika/works/217"
+              "sourceUrl": "https://skeb.jp/@illust_shika/works/217",
+              "metadata": {
+                "fileSize": 2746598,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.318Z"
+              }
             },
-			{
+            {
               "id": 5,
               "artist": "@sushi_umai",
               "image": "/assets/commissions/nano_gure/@sushi_umai.png",
-              "sourceUrl": "https://skeb.jp/@sushi_umai/works/409"
+              "sourceUrl": "https://skeb.jp/@sushi_umai/works/409",
+              "metadata": {
+                "fileSize": 3143782,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.324Z"
+              }
             }
           ]
-        }        
+        }
       ]
     },
     {
@@ -185,42 +378,66 @@
       "species": "PassingCatLoaf",
       "color": "#ffd93d",
       "links": [
-        {"type": "twitter", "url": "https://twitter.com/PassingCatLoaf"},
-        {"type": "carrd", "url": "https://passingcatloaf.carrd.co/"}
+        {
+          "type": "twitter",
+          "url": "https://twitter.com/PassingCatLoaf"
+        },
+        {
+          "type": "carrd",
+          "url": "https://passingcatloaf.carrd.co/"
+        }
       ],
       "versions": [
         {
           "id": "default",
           "name": "Ryenna",
-          "refSheets": ["/assets/referencesheets/ryenna_reference_sheet.png"],
+          "refSheets": [
+            "/assets/referencesheets/ryenna_reference_sheet.png"
+          ],
           "commissions": [
             {
               "id": 1,
               "artist": "@Arnolddayo",
               "image": "/assets/commissions/ryenna/@Arnolddayo.png",
-              "sourceUrl": "https://skeb.jp/@Arnolddayo/works/3"
+              "sourceUrl": "https://skeb.jp/@Arnolddayo/works/3",
+              "metadata": {
+                "fileSize": 4128319,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.405Z"
+              }
             },
-			{
+            {
               "id": 2,
               "artist": "@immm86",
               "image": "/assets/commissions/ryenna/@immm86.png",
-              "sourceUrl": "https://x.com/immmharu/status/1997686972232634592"
+              "sourceUrl": "https://x.com/immmharu/status/1997686972232634592",
+              "metadata": {
+                "fileSize": 5114569,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.408Z"
+              }
             },
-			{
+            {
               "id": 3,
               "artist": "@Kenichi__art",
               "image": "/assets/commissions/ryenna/@Kenichi__art.png",
-              "sourceUrl": "https://x.com/Kenichi__art/status/1999063681079120021/"
+              "sourceUrl": "https://x.com/Kenichi__art/status/1999063681079120021/",
+              "metadata": {
+                "fileSize": 6447363,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.411Z"
+              }
             }
           ]
         },
         {
           "id": "casual",
           "name": "Casual Outfit",
-          "refSheets": ["/assets/referencesheets/ryenna_casual.png"],
-          "commissions": [
-          ]
-        }        
+          "refSheets": [
+            "/assets/referencesheets/ryenna_casual.png"
+          ],
+          "commissions": []
+        }
       ]
     },
     {
@@ -229,8 +446,14 @@
       "species": "Gloomy Librarian",
       "color": "#4a5f8f",
       "links": [
-        {"type": "twitter", "url": "https://twitter.com/PiperPermit"},
-        {"type": "carrd", "url": "https://piperpermit.carrd.co/"}
+        {
+          "type": "twitter",
+          "url": "https://twitter.com/PiperPermit"
+        },
+        {
+          "type": "carrd",
+          "url": "https://piperpermit.carrd.co/"
+        }
       ],
       "versions": [
         {
@@ -246,31 +469,56 @@
               "id": 1,
               "artist": "@keirono_",
               "image": "/assets/commissions/piper_permit/@keirono_.png",
-              "sourceUrl": "https://x.com/keirono_/status/1936183599637864527/"
+              "sourceUrl": "https://x.com/keirono_/status/1936183599637864527/",
+              "metadata": {
+                "fileSize": 3165877,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.335Z"
+              }
             },
-			{
+            {
               "id": 2,
               "artist": "@imati_t",
               "image": "/assets/commissions/piper_permit/@imati_t.png",
-              "sourceUrl": "https://skeb.jp/@imati_t/works/381"
+              "sourceUrl": "https://skeb.jp/@imati_t/works/381",
+              "metadata": {
+                "fileSize": 24544216,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.328Z"
+              }
             },
-			{
+            {
               "id": 3,
               "artist": "@Soyokaze_E2021",
               "image": "/assets/commissions/piper_permit/@Soyokaze_E2021.gif",
-              "sourceUrl": "https://x.com/Soyokaze_E2021/status/2002797740670218356"
+              "sourceUrl": "https://x.com/Soyokaze_E2021/status/2002797740670218356",
+              "metadata": {
+                "fileSize": 26611953,
+                "format": "gif",
+                "addedDate": "2025-12-27T02:19:06.337Z"
+              }
             },
-			{
+            {
               "id": 4,
               "artist": "@tomo0111",
               "image": "/assets/commissions/piper_permit/@tomo0111.png",
-              "sourceUrl": "https://skeb.jp/@tomo0111/works/403"
+              "sourceUrl": "https://skeb.jp/@tomo0111/works/403",
+              "metadata": {
+                "fileSize": 3793090,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.346Z"
+              }
             },
-      {
+            {
               "id": 5,
               "artist": "@puffiewaffles",
               "image": "/assets/commissions/ruri_tinytale/@puffiewaffles-wupiper.png",
-			  "sourceUrl": "https://x.com/pufflewaffles/status/1931212540014457028/"
+              "sourceUrl": "https://x.com/pufflewaffles/status/1931212540014457028/",
+              "metadata": {
+                "fileSize": 4008028,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.381Z"
+              }
             }
           ]
         }
@@ -282,20 +530,33 @@
       "species": "Happy Robo",
       "color": "#ff69b4",
       "links": [
-        {"type": "twitter", "url": "https://twitter.com/RixxyBrightful"},
-        {"type": "linktree", "url": "https://linktr.ee/rixxybrightful"}
+        {
+          "type": "twitter",
+          "url": "https://twitter.com/RixxyBrightful"
+        },
+        {
+          "type": "linktree",
+          "url": "https://linktr.ee/rixxybrightful"
+        }
       ],
       "versions": [
         {
           "id": "default",
           "name": "Rixxy",
-          "refSheets": ["/assets/referencesheets/rixxy_reference.png"],
+          "refSheets": [
+            "/assets/referencesheets/rixxy_reference.png"
+          ],
           "commissions": [
             {
               "id": 1,
               "artist": "@amaoto_35",
               "image": "/assets/commissions/rixxy_brightful/@amaoto_35.png",
-              "sourceUrl": "https://x.com/amaoto_35/status/1997272075967623242/"
+              "sourceUrl": "https://x.com/amaoto_35/status/1997272075967623242/",
+              "metadata": {
+                "fileSize": 4802379,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.350Z"
+              }
             }
           ]
         }
@@ -307,19 +568,29 @@
       "species": "Hall Monitor",
       "color": "#4db8c4",
       "links": [
-        {"type": "twitter", "url": "https://twitter.com/ManonMerope"}
+        {
+          "type": "twitter",
+          "url": "https://twitter.com/ManonMerope"
+        }
       ],
       "versions": [
         {
           "id": "default",
           "name": "Manon",
-          "refSheets": ["/assets/referencesheets/manon_reference.png"],
+          "refSheets": [
+            "/assets/referencesheets/manon_reference.png"
+          ],
           "commissions": [
             {
               "id": 1,
               "artist": "@keirono_",
               "image": "/assets/commissions/manon_merope/@keirono_.png",
-              "sourceUrl": "https://x.com/keirono_/status/1992880545253244986/"
+              "sourceUrl": "https://x.com/keirono_/status/1992880545253244986/",
+              "metadata": {
+                "fileSize": 1788074,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.303Z"
+              }
             }
           ]
         }
@@ -331,16 +602,23 @@
       "species": "Art Cute Student",
       "color": "#ff9ec9",
       "links": [
-        {"type": "twitter", "url": "https://x.com/PyonPhelix"},
-        {"type": "linktree", "url": "https://linktr.ee/pyonphelix"}
+        {
+          "type": "twitter",
+          "url": "https://x.com/PyonPhelix"
+        },
+        {
+          "type": "linktree",
+          "url": "https://linktr.ee/pyonphelix"
+        }
       ],
       "versions": [
         {
           "id": "default",
           "name": "Pyon",
-          "refSheets": ["/assets/referencesheets/pyon_reference.png"],
-          "commissions": [            
-          ]
+          "refSheets": [
+            "/assets/referencesheets/pyon_reference.png"
+          ],
+          "commissions": []
         }
       ]
     },
@@ -350,23 +628,31 @@
       "species": "Devil Maid",
       "color": "#8b3a62",
       "links": [
-        {"type": "twitter", "url": "https://x.com/YukikoYasashi"},
-        {"type": "carrd", "url": "https://yukikoyasashi.carrd.co/"}
+        {
+          "type": "twitter",
+          "url": "https://x.com/YukikoYasashi"
+        },
+        {
+          "type": "carrd",
+          "url": "https://yukikoyasashi.carrd.co/"
+        }
       ],
       "versions": [
         {
           "id": "default",
           "name": "Yukiko",
-          "refSheets": ["/assets/referencesheets/yukiko_reference.png"],
-          "commissions": [            
-          ]
+          "refSheets": [
+            "/assets/referencesheets/yukiko_reference.png"
+          ],
+          "commissions": []
         },
         {
           "id": "idol",
           "name": "C4 Idol",
-          "refSheets": ["/assets/referencesheets/yukiko_reference2.png"],
-          "commissions": [            
-          ]
+          "refSheets": [
+            "/assets/referencesheets/yukiko_reference2.png"
+          ],
+          "commissions": []
         }
       ]
     },
@@ -379,12 +665,17 @@
         {
           "id": "mihono bourbon",
           "name": "Mihono Bourbon",
-          "commissions": [            
+          "commissions": [
             {
               "id": 1,
               "artist": "@puffywaifus",
               "image": "/assets/commissions/umamusume/mihono_bourbon.png",
-              "sourceUrl": "https://x.com/puffywaifus/status/1998452589265039598/"
+              "sourceUrl": "https://x.com/puffywaifus/status/1998452589265039598/",
+              "metadata": {
+                "fileSize": 2569458,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.416Z"
+              }
             }
           ]
         },
@@ -396,8 +687,13 @@
               "id": 1,
               "artist": "@floralcanon",
               "image": "/assets/commissions/umamusume/sakura_chiyonoO.png",
-              "sourceUrl": "https://skeb.jp/@floralcanon/works/18"
-            }            
+              "sourceUrl": "https://skeb.jp/@floralcanon/works/18",
+              "metadata": {
+                "fileSize": 6158274,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.419Z"
+              }
+            }
           ]
         }
       ]
@@ -406,18 +702,23 @@
       "id": 10,
       "name": "Miscellaneous",
       "species": "Mostly Video Games",
-      "color": "#8b3a62",      
+      "color": "#8b3a62",
       "versions": [
         {
           "id": "eve",
-          "name": "Eve",          
+          "name": "Eve",
           "commissions": [
             {
               "id": 1,
               "artist": "@puffywaifus",
               "image": "/assets/commissions/miscellaneous/eve.png",
-              "sourceUrl": "https://x.com/puffywaifus/status/1811098060359159942/"
-            }              
+              "sourceUrl": "https://x.com/puffywaifus/status/1811098060359159942/",
+              "metadata": {
+                "fileSize": 3266051,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.307Z"
+              }
+            }
           ]
         },
         {
@@ -428,11 +729,21 @@
               "id": 1,
               "artist": "@puffywaifus",
               "image": "/assets/commissions/miscellaneous/raziel.png",
-              "sourceUrl": "https://x.com/puffywaifus/status/1813997161358725278/"
-            }            
+              "sourceUrl": "https://x.com/puffywaifus/status/1813997161358725278/",
+              "metadata": {
+                "fileSize": 5811472,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.309Z"
+              }
+            }
           ]
         }
       ]
     }
-  ]
+  ],
+  "meta": {
+    "generated": "2025-12-27T13:00:42.518Z",
+    "totalCharacters": 10,
+    "totalCommissions": 41
+  }
 }
