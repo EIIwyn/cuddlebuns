@@ -6,7 +6,7 @@ export function Hub() {
     <div className="hub-container">
       <div className="hub-content">
         <h1 className="hub-title">Cuddlebuns</h1>
-        <p className="hub-subtitle">Character Gallery & Collections</p>
+        <p className="hub-subtitle">A personal website and craziness</p>
 
         <nav className="hub-nav">
           <Link to="/gallery" className="hub-link">
