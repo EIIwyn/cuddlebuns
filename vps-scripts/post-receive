@@ -19,7 +19,7 @@ git config core.sparseCheckout true
 cat > "$GIT_DIR/info/sparse-checkout" << 'SPARSE_EOF'
 # Only checkout production-ready files
 public/
-site1.caddy
+cuddlebuns.caddy
 vps-scripts/
 
 # Exclude development files
