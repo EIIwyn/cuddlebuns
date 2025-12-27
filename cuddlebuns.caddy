@@ -3,11 +3,10 @@ cuddlebuns.moe {
     root * /var/www/cuddlebuns/public
 
     # ========================================
-    # SPA ROUTING
+    # COMPRESSION
     # ========================================
-    # Enable client-side routing for the React app (/, /gallery, future routes)
-    # Try to serve the file, fallback to index.html for React Router
-    try_files {path} /index.html
+    # Compress responses for faster loading
+    encode gzip zstd
 
     # ========================================
     # ASSET PROTECTION
@@ -30,6 +29,13 @@ cuddlebuns.moe {
     # respond @hotlink "Hotlinking not permitted. Please visit cuddlebuns.moe" 403
 
     # ========================================
+    # SPA ROUTING
+    # ========================================
+    # Enable client-side routing for the React app (/, /gallery, future routes)
+    # Try to serve the file, fallback to index.html for React Router
+    try_files {path} /index.html
+
+    # ========================================
     # FILE SERVER
     # ========================================
     file_server {
@@ -38,12 +44,6 @@ cuddlebuns.moe {
         # Disable directory browsing (prevents listing /assets/commissions/)
         # Note: Individual files still accessible, just can't browse folders
     }
-
-    # ========================================
-    # COMPRESSION
-    # ========================================
-    # Compress responses for faster loading
-    encode gzip zstd
 
     # ========================================
     # CACHING HEADERS
