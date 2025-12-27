@@ -1,0 +1,24 @@
+{
+  "id": 6,
+  "name": "Manon Merope",
+  "species": "Hall Monitor",
+  "color": "#4db8c4",
+  "links": [
+    {"type": "twitter", "url": "https://twitter.com/ManonMerope"}
+  ],
+  "versions": [
+    {
+      "id": "default",
+      "name": "Manon",
+      "refSheets": ["/assets/referencesheets/manon_reference.png"],
+      "commissions": [
+        {
+          "id": 1,
+          "artist": "@keirono_",
+          "image": "/assets/commissions/manon_merope/@keirono_.png",
+          "sourceUrl": "https://x.com/keirono_/status/1992880545253244986/"
+        }
+      ]
+    }
+  ]
+}

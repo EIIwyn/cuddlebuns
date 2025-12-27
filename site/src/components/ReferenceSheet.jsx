@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { translations, downloadReferenceSheet } from '../translations';
+import { ModernImage } from './ModernImage';
 
 export function ReferenceSheet({ character, selectedVersion, onImageClick, currentIndex, onIndexChange, lang = 'en' }) {
     const [isHovered, setIsHovered] = useState(false);
@@ -51,10 +52,11 @@ export function ReferenceSheet({ character, selectedVersion, onImageClick, curre
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={() => setIsHovered(false)}
             >
-                <img
+                <ModernImage
                     className="ref-sheet-image"
                     src={currentRefSheet}
                     alt={`${character.name} ${versionName ? `(${versionName})` : ''} Reference Sheet`}
+                    loading="eager"
                 />
                 <div className="ref-sheet-overlay">
                     <h2 className="ref-sheet-name">{character.name}</h2>

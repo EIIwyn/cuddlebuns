@@ -1,0 +1,43 @@
+{
+  "id": 3,
+  "name": "Ryenna",
+  "species": "PassingCatLoaf",
+  "color": "#ffd93d",
+  "links": [
+    {"type": "twitter", "url": "https://twitter.com/PassingCatLoaf"},
+    {"type": "carrd", "url": "https://passingcatloaf.carrd.co/"}
+  ],
+  "versions": [
+    {
+      "id": "default",
+      "name": "Ryenna",
+      "refSheets": ["/assets/referencesheets/ryenna_reference_sheet.png"],
+      "commissions": [
+        {
+          "id": 1,
+          "artist": "@Arnolddayo",
+          "image": "/assets/commissions/ryenna/@Arnolddayo.png",
+          "sourceUrl": "https://skeb.jp/@Arnolddayo/works/3"
+        },
+        {
+          "id": 2,
+          "artist": "@immm86",
+          "image": "/assets/commissions/ryenna/@immm86.png",
+          "sourceUrl": "https://x.com/immmharu/status/1997686972232634592"
+        },
+        {
+          "id": 3,
+          "artist": "@Kenichi__art",
+          "image": "/assets/commissions/ryenna/@Kenichi__art.png",
+          "sourceUrl": "https://x.com/Kenichi__art/status/1999063681079120021/"
+        }
+      ]
+    },
+    {
+      "id": "casual",
+      "name": "Casual Outfit",
+      "refSheets": ["/assets/referencesheets/ryenna_casual.png"],
+      "commissions": []
+    }
+  ]
+}

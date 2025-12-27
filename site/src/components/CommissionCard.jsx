@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { getSourcePlatform } from '../translations';
+import { ModernImage } from './ModernImage';
 
 export function CommissionCard({ commission, character, index, onImageClick, lang = 'en' }) {
     const [isHovered, setIsHovered] = useState(false);
@@ -34,7 +35,7 @@ export function CommissionCard({ commission, character, index, onImageClick, lan
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            <img
+            <ModernImage
                 className="commission-image"
                 style={imageStyle}
                 src={commission.image}

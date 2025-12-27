@@ -1,0 +1,24 @@
+{
+  "id": 8,
+  "name": "Yukiko Yasashi",
+  "species": "Devil Maid",
+  "color": "#8b3a62",
+  "links": [
+    {"type": "twitter", "url": "https://x.com/YukikoYasashi"},
+    {"type": "carrd", "url": "https://yukikoyasashi.carrd.co/"}
+  ],
+  "versions": [
+    {
+      "id": "default",
+      "name": "Yukiko",
+      "refSheets": ["/assets/referencesheets/yukiko_reference.png"],
+      "commissions": []
+    },
+    {
+      "id": "idol",
+      "name": "C4 Idol",
+      "refSheets": ["/assets/referencesheets/yukiko_reference2.png"],
+      "commissions": []
+    }
+  ]
+}

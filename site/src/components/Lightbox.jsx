@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { translations, getSourcePlatform, downloadReferenceSheet } from '../translations';
+import { ModernImage } from './ModernImage';
 
 export function Lightbox({ image, info, character, isRefSheet, versionName, onClose, currentIndex, onIndexChange, lang = 'en' }) {
     const t = translations[lang];
@@ -119,10 +120,12 @@ export function Lightbox({ image, info, character, isRefSheet, versionName, onCl
             )}
 
             <div className="lightbox__content" onClick={(e) => e.stopPropagation()}>
-                <img
+                <ModernImage
                     className="lightbox__image"
                     src={currentImage}
                     alt={info?.title || (isRefSheet ? `${character.name} Reference Sheet` : "Full size")}
+                    loading="eager"
+                    lazy={false}
                 />
 
                 {/* Info section */}

@@ -1,0 +1,18 @@
+{
+  "id": 7,
+  "name": "Pyon Phelix",
+  "species": "Art Cute Student",
+  "color": "#ff9ec9",
+  "links": [
+    {"type": "twitter", "url": "https://x.com/PyonPhelix"},
+    {"type": "linktree", "url": "https://linktr.ee/pyonphelix"}
+  ],
+  "versions": [
+    {
+      "id": "default",
+      "name": "Pyon",
+      "refSheets": ["/assets/referencesheets/pyon_reference.png"],
+      "commissions": []
+    }
+  ]
+}

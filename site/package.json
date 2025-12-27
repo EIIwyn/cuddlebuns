@@ -5,7 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/build-characters.js && vite build",
+    "build:data": "node scripts/build-characters.js",
+    "add": "node scripts/add-commissions.js",
+    "convert:images": "node scripts/convert-images.js",
+    "convert:images:force": "node scripts/convert-images.js --force",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -23,6 +27,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "sharp": "^0.33.5",
     "vite": "^7.2.4",
     "vite-plugin-static-copy": "^3.1.4"
   }

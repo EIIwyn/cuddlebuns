@@ -1,0 +1,53 @@
+{
+  "id": 4,
+  "name": "Piper Permit",
+  "species": "Gloomy Librarian",
+  "color": "#4a5f8f",
+  "links": [
+    {"type": "twitter", "url": "https://twitter.com/PiperPermit"},
+    {"type": "carrd", "url": "https://piperpermit.carrd.co/"}
+  ],
+  "versions": [
+    {
+      "id": "default",
+      "name": "Piper",
+      "refSheets": [
+        "/assets/referencesheets/piper_reference_sheet.png",
+        "/assets/referencesheets/piper_reference.png",
+        "/assets/referencesheets/piper_reference2.png"
+      ],
+      "commissions": [
+        {
+          "id": 1,
+          "artist": "@keirono_",
+          "image": "/assets/commissions/piper_permit/@keirono_.png",
+          "sourceUrl": "https://x.com/keirono_/status/1936183599637864527/"
+        },
+        {
+          "id": 2,
+          "artist": "@imati_t",
+          "image": "/assets/commissions/piper_permit/@imati_t.png",
+          "sourceUrl": "https://skeb.jp/@imati_t/works/381"
+        },
+        {
+          "id": 3,
+          "artist": "@Soyokaze_E2021",
+          "image": "/assets/commissions/piper_permit/@Soyokaze_E2021.gif",
+          "sourceUrl": "https://x.com/Soyokaze_E2021/status/2002797740670218356"
+        },
+        {
+          "id": 4,
+          "artist": "@tomo0111",
+          "image": "/assets/commissions/piper_permit/@tomo0111.png",
+          "sourceUrl": "https://skeb.jp/@tomo0111/works/403"
+        },
+        {
+          "id": 5,
+          "artist": "@puffiewaffles",
+          "image": "/assets/commissions/ruri_tinytale/@puffiewaffles-wupiper.png",
+          "sourceUrl": "https://x.com/pufflewaffles/status/1931212540014457028/"
+        }
+      ]
+    }
+  ]
+}
