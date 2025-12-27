@@ -31,7 +31,7 @@ export function Gallery() {
 
   // Load characters data
   useEffect(() => {
-    fetch('./characters.json')
+    fetch('/data/characters.json')
       .then(response => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
