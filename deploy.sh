@@ -52,7 +52,11 @@ fi
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M')
 git commit -m "Deploy site - $TIMESTAMP"
 
-# Push to VPS
+# Push to GitHub and VPS
+echo -e "${BLUE}Pushing to GitHub...${NC}"
+git push origin main
+
+echo -e "${BLUE}Pushing to VPS...${NC}"
 git push vps main
 
 echo -e "${GREEN}✅ Deployment complete!${NC}"
