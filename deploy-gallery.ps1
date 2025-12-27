@@ -65,8 +65,9 @@ Write-Host "📊 Step 5: Checking git status..." -ForegroundColor Yellow
 git status --short
 
 Write-Host ""
+Write-Host "Adding changes to git..." -ForegroundColor Cyan
+git add public/gallery assets/
 Write-Host "Changes to be committed:" -ForegroundColor Cyan
-git add public/gallery
 git status --short
 
 Write-Host ""
