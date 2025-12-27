@@ -9,3 +9,18 @@ gallery-v2/dist/
 gallery-v2/.env
 gallery-v2/.env.local
 *.log
+
+# Assets (large image files - deploy separately via rsync)
+# Images are managed outside git for performance
+assets/
+public/assets/
+
+# Keep .gitkeep files to preserve folder structure
+!assets/.gitkeep
+!public/assets/.gitkeep
+
+# Gallery backups
+public/gallery-backup-*/
+
+# Built gallery files are committed for deployment
+# public/gallery/ is tracked

@@ -45,20 +45,19 @@ export default defineConfig({
   plugins: [
     react(),
     serveAssetsPlugin(), // Serve assets from parent dir in dev mode
-    // Copy shared assets from root /assets folder to dist/assets during build
-    viteStaticCopy({
-      targets: [
-        {
-          src: '../assets/commissions',
-          dest: 'assets'
-        },
-        {
-          src: '../assets/referencesheets',
-          dest: 'assets'
-        }
-      ]
-    })
+    // NOTE: Assets are NOT copied during build
+    // They are synced separately to VPS at /var/www/cuddlebuns/public/assets/
+    // This keeps the build output clean and allows shared /assets folder
   ],
+
+  // Build configuration
+  build: {
+    // Use 'gallery-static' for Vite's built JS/CSS files
+    // This prevents conflict with /assets/ (which is for images)
+    assetsDir: 'gallery-static',
+    // Output directory
+    outDir: 'dist',
+  },
 
   // Development server configuration
   server: {

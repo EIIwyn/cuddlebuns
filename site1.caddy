@@ -1,6 +1,3 @@
-# Production Caddyfile for cuddlebuns.moe
-# Upload this to your VPS at /etc/caddy/Caddyfile
-
 cuddlebuns.moe {
     # Root directory for the website
     root * /var/www/cuddlebuns/public
