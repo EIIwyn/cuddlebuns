@@ -43,11 +43,10 @@ chmod -R 755 "$WORK_TREE/public/gallery" 2>/dev/null || true
 
 echo "✓ Permissions set"
 
-# Restart Caddy (if needed)
-if systemctl is-active --quiet caddy 2>/dev/null; then
+# Reload Caddy (if needed)
+if sudo systemctl is-active --quiet caddy 2>/dev/null; then
     echo "🔄 Reloading Caddy..."
-    systemctl reload caddy 2>/dev/null || true
-    echo "✓ Caddy reloaded"
+    sudo systemctl reload caddy 2>/dev/null && echo "✓ Caddy reloaded" || echo "⚠ Caddy reload failed (check sudo permissions)"
 fi
 
 echo "✅ Deployment complete!"
