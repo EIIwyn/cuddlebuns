@@ -28,8 +28,12 @@ export function ModernImage({
     return null;
   }
 
+  // Skip modern formats for reference sheets (they're not converted)
+  const isReferenceSheet = src.includes('/referencesheets/');
+
   // Generate modern format paths
   const getModernSrc = (originalSrc, format) => {
+    if (isReferenceSheet) return null; // Don't try modern formats for ref sheets
     const ext = originalSrc.match(/\.(png|jpg|jpeg|gif)$/i);
     if (!ext) return null;
     return originalSrc.replace(ext[0], `.${format}`);

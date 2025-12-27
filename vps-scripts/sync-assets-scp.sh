@@ -2,8 +2,6 @@
 # Script to sync assets from local to VPS using SCP
 # Run this locally to upload new images
 #
-# RECOMMENDED FOR WINDOWS: More reliable than rsync on Windows Git Bash
-# NOTE: Slower than rsync (uploads all files, not just changes)
 
 set -e
 

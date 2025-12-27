@@ -2,8 +2,6 @@
 # Script to sync assets from local to VPS using rsync
 # Run this locally to upload new images
 #
-# NOTE: cwRsync on Windows Git Bash has known issues with "dup() failed" errors.
-# If this script fails, use sync-assets-scp.sh instead (slower but more reliable on Windows)
 
 set -e
 
