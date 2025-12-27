@@ -54,10 +54,19 @@ if (Test-Path "public\gallery") {
 Write-Host "✅ Old gallery cleared" -ForegroundColor Green
 Write-Host ""
 
-# Step 4: Copy new build
-Write-Host "📤 Step 4: Copying new build to public/gallery..." -ForegroundColor Yellow
-Copy-Item "gallery-v2\dist\*" -Destination "public\gallery\" -Recurse
-Write-Host "✅ New build copied" -ForegroundColor Green
+# Step 4: Deploy assets to root public folder
+Write-Host "📁 Step 4a: Copying shared assets to public/assets..." -ForegroundColor Yellow
+if (Test-Path "public\assets") {
+    Remove-Item "public\assets" -Recurse -Force -ErrorAction SilentlyContinue
+}
+Copy-Item "assets" -Destination "public\assets" -Recurse
+Write-Host "✅ Assets copied to public/assets" -ForegroundColor Green
+Write-Host ""
+
+# Step 4b: Copy gallery build (excluding assets since they're at root)
+Write-Host "📤 Step 4b: Copying gallery build to public/gallery..." -ForegroundColor Yellow
+Copy-Item "gallery-v2\dist\*" -Destination "public\gallery\" -Recurse -Exclude "assets"
+Write-Host "✅ Gallery build copied" -ForegroundColor Green
 Write-Host ""
 
 # Step 5: Git status check

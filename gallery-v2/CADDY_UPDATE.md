@@ -113,12 +113,20 @@ cuddlebuns.moe {
     file_server
     encode gzip zstd
 
-    # Cache headers
+    # Cache headers for static assets (images, fonts, etc)
     @static {
-        path *.jpg *.jpeg *.png *.gif *.webp *.svg *.ico *.css *.js
+        path *.jpg *.jpeg *.png *.gif *.webp *.svg *.ico *.woff *.woff2 *.ttf
+        path /assets/*
     }
     header @static Cache-Control "public, max-age=31536000, immutable"
 
+    # Cache CSS/JS with shorter duration (can be updated more frequently)
+    @scripts {
+        path *.css *.js
+    }
+    header @scripts Cache-Control "public, max-age=2592000"
+
+    # Don't cache HTML
     @html path *.html
     header @html Cache-Control "no-cache, no-store, must-revalidate"
 
@@ -136,3 +144,11 @@ cuddlebuns.moe {
     respond @options 204
 }
 ```
+
+## Important: Assets at Root Level
+
+With the new deployment structure, assets are served from:
+- **Local dev**: `http://localhost:5173/assets/...` (served from `../assets/`)
+- **Production**: `https://cuddlebuns.moe/assets/...` (served from `/var/www/cuddlebuns/public/assets/`)
+
+This allows other parts of your website (not just the gallery) to reference shared assets!
