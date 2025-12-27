@@ -12,20 +12,27 @@ GIT_DIR="/var/www/cuddlebuns/repos/cuddlebuns.git"
 echo "🚀 Deploying to cuddlebuns.moe..."
 
 # Checkout the latest code to the work tree
+# Use sparse-checkout to exclude assets folder (managed separately)
 git --work-tree="$WORK_TREE" --git-dir="$GIT_DIR" checkout -f main
+
+# Restore assets if they were deleted by git checkout
+# (Assets are managed separately and should not be touched by git)
+if [ ! -d "$WORK_TREE/public/assets/commissions" ]; then
+    echo "⚠ Assets were deleted by checkout - they should be synced separately via rsync"
+fi
 
 echo "✓ Code deployed to $WORK_TREE"
 
-# Set correct permissions
-chown -R masterpyon:www-cuddlebuns "$WORK_TREE/public"
-chmod -R 755 "$WORK_TREE/public"
+# Set correct permissions ONLY for gallery (not assets or other folders)
+chown -R masterpyon:www-cuddlebuns "$WORK_TREE/public/gallery" 2>/dev/null || true
+chmod -R 755 "$WORK_TREE/public/gallery" 2>/dev/null || true
 
 echo "✓ Permissions set"
 
 # Restart Caddy (if needed)
-if systemctl is-active --quiet caddy; then
+if systemctl is-active --quiet caddy 2>/dev/null; then
     echo "🔄 Reloading Caddy..."
-    systemctl reload caddy
+    systemctl reload caddy 2>/dev/null || true
     echo "✓ Caddy reloaded"
 fi
 
