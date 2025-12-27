@@ -8,6 +8,7 @@ echo "📤 Syncing assets to VPS..."
 
 # Sync assets folder to VPS
 rsync -avz --progress \
+  -e "ssh -p 2222" \
   --exclude='.gitkeep' \
   ./assets/ \
   masterpyon@cuddlebuns.moe:/var/www/cuddlebuns/public/assets/
