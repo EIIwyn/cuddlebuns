@@ -7,11 +7,13 @@ set -e
 
 echo "📤 Syncing assets to VPS using SCP..."
 
-# Use scp to recursively copy assets
+# Use scp to recursively copy the entire assets folder
 # -r = recursive
 # -P = port (capital P for scp)
+# Note: Copying ./assets/ instead of ./assets/* to preserve directory structure
 scp -r -P 2222 \
-  ./assets/* \
+  ./assets/commissions \
+  ./assets/referencesheets \
   masterpyon@cuddlebuns.moe:/var/www/cuddlebuns/public/assets/
 
 echo "✅ Assets synced successfully!"
