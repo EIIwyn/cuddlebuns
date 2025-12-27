@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { translations, getCommissions, shuffleArray } from '../translations';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { ErrorScreen } from '../components/ErrorScreen';
@@ -10,6 +11,7 @@ import { CommissionsGrid } from '../components/CommissionsGrid';
 import { Lightbox } from '../components/Lightbox';
 
 export function Gallery() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [characters, setCharacters] = useState([]);
   const [selectedChar, setSelectedChar] = useState(null);
   const [selectedVersion, setSelectedVersion] = useState(null);
@@ -49,22 +51,86 @@ export function Gallery() {
       });
   }, []);
 
+  // Handle URL parameters on initial load
+  useEffect(() => {
+    if (characters.length === 0) return;
+
+    const characterParam = searchParams.get('character');
+    const versionParam = searchParams.get('version');
+
+    if (characterParam) {
+      // Try to find by slug (name converted to lowercase-kebab-case) or by ID
+      const character = characters.find(c => {
+        const slug = c.name.toLowerCase().replace(/\s+/g, '-');
+        return slug === characterParam || c.id.toString() === characterParam;
+      });
+
+      if (character) {
+        // Setting state here is intentional - we're syncing with URL parameters
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setSelectedChar(character);
+        setShowCommissions(false);
+        setRefSheetIndex(0);
+
+        // Find and set the version
+        if (versionParam && character.versions) {
+          const version = character.versions.find(v => {
+            const versionSlug = v.name.toLowerCase().replace(/\s+/g, '-');
+            return versionSlug === versionParam || v.name === versionParam || v.id === versionParam;
+          });
+          if (version) {
+            setSelectedVersion(version);
+          } else if (character.versions.length > 0) {
+            setSelectedVersion(character.versions[0]);
+          }
+        } else if (character.versions && character.versions.length > 0) {
+          setSelectedVersion(character.versions[0]);
+        } else {
+          setSelectedVersion(null);
+        }
+      }
+    }
+  }, [characters, searchParams]);
+
   // Handle character selection
   const handleCharacterSelect = (character) => {
     setSelectedChar(character);
     setShowCommissions(false);
     setRefSheetIndex(0);
+
+    let newVersion = null;
     if (character.versions && character.versions.length > 0) {
-      setSelectedVersion(character.versions[0]);
+      newVersion = character.versions[0];
+      setSelectedVersion(newVersion);
     } else {
       setSelectedVersion(null);
     }
+
+    // Update URL parameters using slug
+    const newParams = new URLSearchParams();
+    const characterSlug = character.name.toLowerCase().replace(/\s+/g, '-');
+    newParams.set('character', characterSlug);
+    if (newVersion) {
+      const versionSlug = newVersion.name.toLowerCase().replace(/\s+/g, '-');
+      newParams.set('version', versionSlug);
+    }
+    setSearchParams(newParams);
   };
 
   // Handle version selection
   const handleVersionSelect = (version) => {
     setSelectedVersion(version);
     setRefSheetIndex(0);
+
+    // Update URL parameters using slug
+    if (selectedChar) {
+      const newParams = new URLSearchParams();
+      const characterSlug = selectedChar.name.toLowerCase().replace(/\s+/g, '-');
+      const versionSlug = version.name.toLowerCase().replace(/\s+/g, '-');
+      newParams.set('character', characterSlug);
+      newParams.set('version', versionSlug);
+      setSearchParams(newParams);
+    }
   };
 
   // Toggle language
@@ -87,15 +153,21 @@ export function Gallery() {
     setLightboxInfo(null);
   };
 
-  // Get commissions for selected character/version
-  const commissions = selectedChar && selectedVersion
-    ? getCommissions(selectedChar, selectedVersion)
-    : [];
+  // Get commissions for selected character/version - memoized to prevent unnecessary recalculations
+  const commissions = useMemo(() => {
+    if (selectedChar && selectedVersion) {
+      return getCommissions(selectedChar, selectedVersion);
+    }
+    return [];
+  }, [selectedChar, selectedVersion]);
 
-  // Sort commissions
-  const sortedCommissions = sortOrder === 'random'
-    ? shuffleArray(commissions)
-    : [...commissions].reverse();
+  // Sort commissions - memoize to prevent re-shuffling on every render
+  const sortedCommissions = useMemo(() => {
+    if (sortOrder === 'random') {
+      return shuffleArray(commissions);
+    }
+    return [...commissions].reverse();
+  }, [commissions, sortOrder]);
 
   // Check if reference sheet exists
   const hasRefSheet = selectedChar && selectedVersion && (

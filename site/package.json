@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/build-characters.js && vite build",
+    "build": "node scripts/renumber-ids.js && node scripts/build-characters.js && vite build",
     "build:data": "node scripts/build-characters.js",
+    "build:renumber": "node scripts/renumber-ids.js",
     "add": "node scripts/add-commissions.js",
     "convert:images": "node scripts/convert-images.js",
     "convert:images:force": "node scripts/convert-images.js --force",

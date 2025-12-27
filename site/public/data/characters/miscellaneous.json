@@ -1,8 +1,8 @@
 {
   "id": 10,
   "name": "Miscellaneous",
-  "species": "Mostly Video Games",
-  "color": "#8b3a62",
+  "species": "Other",
+  "color": "#9370db",
   "versions": [
     {
       "id": "eve",

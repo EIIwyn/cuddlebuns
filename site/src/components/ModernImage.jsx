@@ -28,13 +28,14 @@ export function ModernImage({
     return null;
   }
 
-  // Skip modern formats for reference sheets (they're not converted)
+  // Skip modern formats for reference sheets (they're not converted) and GIFs (to preserve animation)
   const isReferenceSheet = src.includes('/referencesheets/');
+  const isGif = src.toLowerCase().endsWith('.gif');
 
   // Generate modern format paths
   const getModernSrc = (originalSrc, format) => {
-    if (isReferenceSheet) return null; // Don't try modern formats for ref sheets
-    const ext = originalSrc.match(/\.(png|jpg|jpeg|gif)$/i);
+    if (isReferenceSheet || isGif) return null; // Don't try modern formats for ref sheets or GIFs
+    const ext = originalSrc.match(/\.(png|jpg|jpeg)$/i);
     if (!ext) return null;
     return originalSrc.replace(ext[0], `.${format}`);
   };

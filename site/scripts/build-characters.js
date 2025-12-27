@@ -62,7 +62,9 @@ function scanAssets() {
 
           if (fs.statSync(itemPath).isDirectory()) {
             scanCharFolder(itemPath, relativeItemPath);
-          } else if (/\.(png|jpg|jpeg|gif|webp|avif)$/i.test(item)) {
+          } else if (/\.(png|jpg|jpeg|gif)$/i.test(item)) {
+            // Only scan source images (png, jpg, jpeg, gif)
+            // Skip modern format variants (webp, avif) - these are auto-generated
             const metadata = getImageMetadata(itemPath);
             const artist = extractArtistFromFilename(item);
 
@@ -87,7 +89,9 @@ function scanAssets() {
     const files = fs.readdirSync(refSheetsDir);
 
     files.forEach(file => {
-      if (/\.(png|jpg|jpeg|gif|webp|avif)$/i.test(file)) {
+      if (/\.(png|jpg|jpeg|gif)$/i.test(file)) {
+        // Only scan source images (png, jpg, jpeg, gif)
+        // Skip modern format variants (webp, avif) - these are not used for ref sheets
         const filePath = path.join(refSheetsDir, file);
         const metadata = getImageMetadata(filePath);
 
@@ -185,7 +189,7 @@ function enrichCharacterData(characters, discovered) {
             const imagePath = commission.image;
 
             // Find metadata from discovered assets
-            for (const [charFolder, images] of Object.entries(discovered.commissions)) {
+            for (const [_charFolder, images] of Object.entries(discovered.commissions)) {
               const match = images.find(img => img.path === imagePath);
               if (match && match.metadata) {
                 return {

@@ -209,23 +209,15 @@ async function convertImages(options = {}) {
   return { success: true, results };
 }
 
-// Generate report
+// Generate report (disabled to prevent unnecessary commits)
 function generateReport(results) {
-  const reportPath = path.join(__dirname, '../public/data/image-optimization-report.json');
-
-  const report = {
-    generated: new Date().toISOString(),
-    summary: {
-      totalConverted: results.converted,
-      totalSkipped: results.skipped,
-      totalErrors: results.errors,
-      totalSavingsMB: (results.totalSavings / 1024 / 1024).toFixed(2)
-    },
-    details: results.details
-  };
-
-  fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
-  console.log(`\n📄 Report saved to ${path.relative(process.cwd(), reportPath)}`);
+  // Report generation disabled - timestamps cause unnecessary git commits
+  // All relevant information is already shown in console output
+  console.log('\n📊 Summary:');
+  console.log(`   Converted: ${results.converted}`);
+  console.log(`   Skipped: ${results.skipped}`);
+  console.log(`   Errors: ${results.errors}`);
+  console.log(`   Total savings: ${(results.totalSavings / 1024 / 1024).toFixed(2)} MB`);
 }
 
 // CLI interface

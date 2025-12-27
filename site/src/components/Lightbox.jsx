@@ -10,6 +10,8 @@ export function Lightbox({ image, info, character, isRefSheet, versionName, onCl
     const [currentIdx, setCurrentIdx] = useState(currentIndex || 0);
 
     useEffect(() => {
+        // Setting state here is intentional - syncing with props changes
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setCurrentImage(image);
         setCurrentIdx(currentIndex || 0);
     }, [image, currentIndex]);
