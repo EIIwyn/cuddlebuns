@@ -42,6 +42,9 @@ function serveAssetsPlugin() {
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Base path for production (app is served from /gallery/)
+  base: '/gallery/',
+
   plugins: [
     react(),
     serveAssetsPlugin(), // Serve assets from parent dir in dev mode
