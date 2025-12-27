@@ -6,13 +6,16 @@ set -e
 
 echo "📤 Syncing assets to VPS..."
 
-# Convert Windows path to WSL path
-WINDOWS_PATH="/mnt/e/Code Stuff/cuddlebuns/assets/"
+# Get the current directory in WSL format
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ASSETS_PATH="$(dirname "$SCRIPT_DIR")/assets/"
+
+echo "Syncing from: $ASSETS_PATH"
 
 # Sync assets folder to VPS
 rsync -avz --progress \
   --exclude='.gitkeep' \
-  "$WINDOWS_PATH" \
+  "$ASSETS_PATH" \
   masterpyon@cuddlebuns.moe:/var/www/cuddlebuns/public/assets/
 
 echo "✅ Assets synced successfully!"
