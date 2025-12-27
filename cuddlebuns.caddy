@@ -3,15 +3,11 @@ cuddlebuns.moe {
     root * /var/www/cuddlebuns/public
 
     # ========================================
-    # GALLERY SPA ROUTING
+    # SPA ROUTING
     # ========================================
-    # Enable client-side routing for the React gallery
-    @gallery {
-        path /gallery /gallery/*
-    }
-    handle @gallery {
-        try_files {path} /gallery/index.html
-    }
+    # Enable client-side routing for the React app (/, /gallery, future routes)
+    # Try to serve the file, fallback to index.html for React Router
+    try_files {path} /index.html
 
     # ========================================
     # ASSET PROTECTION

@@ -3,11 +3,11 @@ repo/*
 repos/
 backups/*
 
-# Gallery v2 (Vite project)
-gallery-v2/node_modules/
-gallery-v2/dist/
-gallery-v2/.env
-gallery-v2/.env.local
+# Site (React/Vite project)
+site/node_modules/
+site/dist/
+site/.env
+site/.env.local
 *.log
 
 # Assets (large image files - deploy separately via rsync)
@@ -19,8 +19,5 @@ public/assets/
 !assets/.gitkeep
 !public/assets/.gitkeep
 
-# Gallery backups
-public/gallery-backup-*/
-
-# Built gallery files are committed for deployment
-# public/gallery/ is tracked
+# Built site files are committed for deployment to public/
+# public/*.html, public/*.js, public/*.css, public/static/ are tracked

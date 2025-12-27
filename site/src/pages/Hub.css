@@ -1,0 +1,97 @@
+.hub-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.hub-content {
+  max-width: 1200px;
+  width: 100%;
+  text-align: center;
+}
+
+.hub-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 4rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 1rem;
+  text-shadow: 0 2px 20px rgba(255, 255, 255, 0.1);
+}
+
+.hub-subtitle {
+  font-family: 'Source Sans Pro', sans-serif;
+  font-size: 1.5rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 4rem;
+}
+
+.hub-nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 3rem;
+}
+
+.hub-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.hub-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.hub-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.hub-card h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  color: #ffffff;
+  margin-bottom: 0.5rem;
+}
+
+.hub-card p {
+  font-family: 'Source Sans Pro', sans-serif;
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.hub-card-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.hub-card-disabled:hover {
+  transform: none;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 768px) {
+  .hub-title {
+    font-size: 2.5rem;
+  }
+
+  .hub-subtitle {
+    font-size: 1.2rem;
+  }
+
+  .hub-nav {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { viteStaticCopy } from 'vite-plugin-static-copy'
 import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -42,8 +41,8 @@ function serveAssetsPlugin() {
 
 // https://vite.dev/config/
 export default defineConfig({
-  // Base path for production (app is served from /gallery/)
-  base: '/gallery/',
+  // Base path for production (app is served from root /)
+  base: '/',
 
   plugins: [
     react(),
@@ -55,9 +54,9 @@ export default defineConfig({
 
   // Build configuration
   build: {
-    // Use 'gallery-static' for Vite's built JS/CSS files
+    // Use 'static' for Vite's built JS/CSS files
     // This prevents conflict with /assets/ (which is for images)
-    assetsDir: 'gallery-static',
+    assetsDir: 'static',
     // Output directory
     outDir: 'dist',
   },

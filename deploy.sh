@@ -1,6 +1,6 @@
 #!/bin/bash
 # Deployment script for cuddlebuns.moe
-# This script builds the React app locally and deploys to VPS
+# This script builds the React app locally and deploys the full site to VPS
 
 set -e  # Exit on any error
 
@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 
 # Step 1: Build React app locally
 echo -e "${BLUE}📦 Building React app...${NC}"
-cd gallery-v2
+cd site
 npm run build
 cd ..
 
@@ -23,20 +23,24 @@ echo -e "${GREEN}✓ Build completed${NC}"
 # Step 2: Stage built files for git
 echo -e "${BLUE}📋 Preparing deployment files...${NC}"
 
-# Remove old public/gallery if it exists
-rm -rf public/gallery
+# Backup existing public files that shouldn't be deleted
+# (assets folder is synced separately, .gitignore, etc.)
 
-# Copy built files to public/gallery
-mkdir -p public/gallery
-cp -r gallery-v2/dist/* public/gallery/
+# Remove old built files (but keep assets, .gitignore, etc.)
+find public -type f \( -name "*.html" -o -name "*.js" -o -name "*.css" \) -delete 2>/dev/null || true
+rm -rf public/static 2>/dev/null || true
+rm -rf public/gallery 2>/dev/null || true
 
-echo -e "${GREEN}✓ Files staged in public/gallery${NC}"
+# Copy built files to public/ root
+cp -r site/dist/* public/
+
+echo -e "${GREEN}✓ Files staged in public/${NC}"
 
 # Step 3: Commit and push
 echo -e "${BLUE}📤 Deploying to VPS...${NC}"
 
 # Add the built files
-git add public/gallery/
+git add public/
 
 # Check if there are changes to commit
 if git diff --staged --quiet; then
@@ -46,10 +50,10 @@ fi
 
 # Commit with timestamp
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M')
-git commit -m "Deploy gallery v2 - $TIMESTAMP"
+git commit -m "Deploy site - $TIMESTAMP"
 
 # Push to VPS
 git push vps main
 
 echo -e "${GREEN}✅ Deployment complete!${NC}"
-echo -e "${BLUE}🌐 Visit: https://cuddlebuns.moe/gallery${NC}"
+echo -e "${BLUE}🌐 Visit: https://cuddlebuns.moe${NC}"

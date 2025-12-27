@@ -23,7 +23,7 @@ cuddlebuns.caddy
 vps-scripts/
 
 # Exclude development files
-!gallery-v2/
+!site/
 SPARSE_EOF
 
 # Checkout the latest code to the work tree
@@ -51,4 +51,4 @@ if systemctl is-active --quiet caddy 2>/dev/null; then
 fi
 
 echo "✅ Deployment complete!"
-echo "🌐 Live at: https://cuddlebuns.moe/gallery"
+echo "🌐 Live at: https://cuddlebuns.moe"

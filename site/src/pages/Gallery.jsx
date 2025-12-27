@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react';
-import { translations, getCommissions, shuffleArray } from './translations';
-// Testing deployment with sparse checkout
-import { LoadingScreen } from './components/LoadingScreen';
-import { ErrorScreen } from './components/ErrorScreen';
-import { CharacterButton } from './components/CharacterButton';
-import { VersionSelector } from './components/VersionSelector';
-import { SocialLinks } from './components/SocialLinks';
-import { ReferenceSheet } from './components/ReferenceSheet';
-import { CommissionsGrid } from './components/CommissionsGrid';
-import { Lightbox } from './components/Lightbox';
+import { translations, getCommissions, shuffleArray } from '../translations';
+import { LoadingScreen } from '../components/LoadingScreen';
+import { ErrorScreen } from '../components/ErrorScreen';
+import { CharacterButton } from '../components/CharacterButton';
+import { VersionSelector } from '../components/VersionSelector';
+import { SocialLinks } from '../components/SocialLinks';
+import { ReferenceSheet } from '../components/ReferenceSheet';
+import { CommissionsGrid } from '../components/CommissionsGrid';
+import { Lightbox } from '../components/Lightbox';
 
-function App() {
+export function Gallery() {
   const [characters, setCharacters] = useState([]);
   const [selectedChar, setSelectedChar] = useState(null);
   const [selectedVersion, setSelectedVersion] = useState(null);
@@ -261,4 +260,4 @@ function App() {
   );
 }
 
-export default App;
+// Exported as named export above
