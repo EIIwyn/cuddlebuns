@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { translations, getCommissions, shuffleArray } from './translations';
+// Testing deployment with sparse checkout
 import { LoadingScreen } from './components/LoadingScreen';
 import { ErrorScreen } from './components/ErrorScreen';
 import { CharacterButton } from './components/CharacterButton';
