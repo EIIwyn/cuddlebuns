@@ -265,7 +265,6 @@ function buildCharacters() {
   const output = {
     characters: enrichedCharacters,
     meta: {
-      generated: new Date().toISOString(),
       totalCharacters: enrichedCharacters.length,
       totalCommissions: enrichedCharacters.reduce((sum, char) => {
         return sum + (char.versions || []).reduce((vSum, ver) => {
