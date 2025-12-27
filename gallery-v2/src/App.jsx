@@ -31,7 +31,7 @@ function App() {
 
   // Load characters data
   useEffect(() => {
-    fetch('/characters.json')
+    fetch('./characters.json')
       .then(response => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
