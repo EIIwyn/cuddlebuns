@@ -1,0 +1,15 @@
+{
+  "id": 7,
+  "name": "Puri",
+  "species": "Shrimp Cat",
+  "color": "#F88C83",
+  "versions": [
+    {
+      "id": "default",
+      "name": "Puri",
+      "refSheets": ["/assets/referencesheets/puri_reference.png"],
+      "commissions": [        
+      ]
+    }
+  ]
+}
