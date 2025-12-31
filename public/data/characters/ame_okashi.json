@@ -1,0 +1,29 @@
+{
+  "id": 11,
+  "name": "Ame Okashi",
+  "species": "Uma Confectioner",
+  "color": "#a94064",
+  "versions": [
+    {
+      "id": "default",
+      "name": "Ame",
+      "refSheets": ["/assets/referencesheets/ame_okashi_reference.png"],
+      "commissions": [
+        
+      ]
+    },
+    {
+      "id": "cozy",
+      "name": "Cozy",
+      "refSheets": ["/assets/referencesheets/ame_okashi_reference2.png"],
+      "commissions": [
+        {
+          "id": 1,
+          "artist": "@sa_na_517",
+          "image": "/assets/commissions/ame_okashi/@sa_na_517.png",
+          "sourceUrl": "https://x.com/sa_na_517/status/2000915787935269017/"
+        }
+      ]
+    }    
+  ]
+}

@@ -11,7 +11,7 @@
     {
       "id": "default",
       "name": "Nano",
-      "refSheets": ["/assets/referencesheets/nano_reference.png"],
+      "refSheets": ["/assets/referencesheets/nano_gure_reference.png"],
       "commissions": [
         {
           "id": 1,

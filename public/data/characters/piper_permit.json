@@ -12,9 +12,9 @@
       "id": "default",
       "name": "Piper",
       "refSheets": [
-        "/assets/referencesheets/piper_reference_sheet.png",
-        "/assets/referencesheets/piper_reference.png",
-        "/assets/referencesheets/piper_reference2.png"
+        "/assets/referencesheets/piper_permit_reference.png",
+        "/assets/referencesheets/piper_permit_reference2.png",
+        "/assets/referencesheets/piper_permit_reference3.png"
       ],
       "commissions": [
         {

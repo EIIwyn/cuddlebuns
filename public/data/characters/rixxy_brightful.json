@@ -1,5 +1,5 @@
 {
-  "id": 5,
+  "id": 9,
   "name": "Rixxy Brightful",
   "species": "Happy Robo",
   "color": "#ff69b4",
@@ -11,7 +11,7 @@
     {
       "id": "default",
       "name": "Rixxy",
-      "refSheets": ["/assets/referencesheets/rixxy_reference.png"],
+      "refSheets": ["/assets/referencesheets/rixxy_brightful_reference.png"],
       "commissions": [
         {
           "id": 1,

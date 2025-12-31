@@ -24,7 +24,7 @@
           "id": "default",
           "name": "Ruri",
           "refSheets": [
-            "/assets/referencesheets/ruri_reference.png"
+            "/assets/referencesheets/ruri_tinytale_reference.png"
           ],
           "commissions": [
             {
@@ -235,6 +235,28 @@
                 "format": "png",
                 "addedDate": "2025-12-27T04:49:04.988Z"
               }
+            },
+            {
+              "id": 20,
+              "artist": "@miosochika",
+              "image": "/assets/commissions/ruri_tinytale/@miosochika.png",
+              "sourceUrl": "https://skeb.jp/@miosochika/works/93",
+              "metadata": {
+                "fileSize": 5508176,
+                "format": "png",
+                "addedDate": "2025-12-31T00:34:17.243Z"
+              }
+            },
+            {
+              "id": 21,
+              "artist": "@puffiewaffles",
+              "image": "/assets/commissions/ruri_tinytale/@puffiewaffles-wuwitengu.png",
+              "sourceUrl": "https://x.com/pufflewaffles/status/2005730540843081765",
+              "metadata": {
+                "fileSize": 3251472,
+                "format": "png",
+                "addedDate": "2025-12-27T03:53:25.714Z"
+              }
             }
           ]
         },
@@ -242,7 +264,7 @@
           "id": "wiwu",
           "name": "Wiwu",
           "refSheets": [
-            "/assets/referencesheets/wiwu_reference.png"
+            "/assets/referencesheets/ruri_tinytale_reference2.png"
           ],
           "commissions": [
             {
@@ -277,6 +299,17 @@
                 "format": "png",
                 "addedDate": "2025-12-27T04:49:16.931Z"
               }
+            },
+            {
+              "id": 4,
+              "artist": "@puffiewaffles",
+              "image": "/assets/commissions/ruri_tinytale/wiwu/@puffiewaffles-wiwutengu.png",
+              "sourceUrl": "https://x.com/pufflewaffles/status/2005730540843081765",
+              "metadata": {
+                "fileSize": 3107385,
+                "format": "png",
+                "addedDate": "2025-12-27T03:53:25.720Z"
+              }
             }
           ]
         },
@@ -284,7 +317,7 @@
           "id": "wubold",
           "name": "Wubold",
           "refSheets": [
-            "/assets/referencesheets/wubold.png"
+            "/assets/referencesheets/ruri_tinytale_reference3.png"
           ],
           "commissions": []
         }
@@ -310,7 +343,7 @@
           "id": "default",
           "name": "Nano",
           "refSheets": [
-            "/assets/referencesheets/nano_reference.png"
+            "/assets/referencesheets/nano_gure_reference.png"
           ],
           "commissions": [
             {
@@ -392,7 +425,7 @@
           "id": "default",
           "name": "Ryenna",
           "refSheets": [
-            "/assets/referencesheets/ryenna_reference_sheet.png"
+            "/assets/referencesheets/ryenna_reference.png"
           ],
           "commissions": [
             {
@@ -434,7 +467,7 @@
           "id": "casual",
           "name": "Casual Outfit",
           "refSheets": [
-            "/assets/referencesheets/ryenna_casual.png"
+            "/assets/referencesheets/ryenna_reference2.png"
           ],
           "commissions": []
         }
@@ -460,9 +493,9 @@
           "id": "default",
           "name": "Piper",
           "refSheets": [
-            "/assets/referencesheets/piper_reference_sheet.png",
-            "/assets/referencesheets/piper_reference.png",
-            "/assets/referencesheets/piper_reference2.png"
+            "/assets/referencesheets/piper_permit_reference.png",
+            "/assets/referencesheets/piper_permit_reference2.png",
+            "/assets/referencesheets/piper_permit_reference3.png"
           ],
           "commissions": [
             {
@@ -526,36 +559,40 @@
     },
     {
       "id": 5,
-      "name": "Rixxy Brightful",
-      "species": "Happy Robo",
-      "color": "#ff69b4",
-      "links": [
-        {
-          "type": "twitter",
-          "url": "https://twitter.com/RixxyBrightful"
-        },
-        {
-          "type": "linktree",
-          "url": "https://linktr.ee/rixxybrightful"
-        }
-      ],
+      "name": "UmaMusume",
+      "species": "Pretty Derby",
+      "color": "#e85d75",
       "versions": [
         {
-          "id": "default",
-          "name": "Rixxy",
-          "refSheets": [
-            "/assets/referencesheets/rixxy_reference.png"
-          ],
+          "id": "mihono bourbon",
+          "name": "Mihono Bourbon",
           "commissions": [
             {
               "id": 1,
-              "artist": "@amaoto_35",
-              "image": "/assets/commissions/rixxy_brightful/@amaoto_35.png",
-              "sourceUrl": "https://x.com/amaoto_35/status/1997272075967623242/",
+              "artist": "@puffywaifus",
+              "image": "/assets/commissions/umamusume/mihono_bourbon.png",
+              "sourceUrl": "https://x.com/puffywaifus/status/1998452589265039598/",
               "metadata": {
-                "fileSize": 4802379,
+                "fileSize": 2569458,
                 "format": "png",
-                "addedDate": "2025-12-27T02:19:06.350Z"
+                "addedDate": "2025-12-27T02:19:06.416Z"
+              }
+            }
+          ]
+        },
+        {
+          "id": "sakura chiyono O",
+          "name": "Sakura Chiyono O",
+          "commissions": [
+            {
+              "id": 1,
+              "artist": "@floralcanon",
+              "image": "/assets/commissions/umamusume/sakura_chiyonoO.png",
+              "sourceUrl": "https://skeb.jp/@floralcanon/works/18",
+              "metadata": {
+                "fileSize": 6158274,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.419Z"
               }
             }
           ]
@@ -578,7 +615,7 @@
           "id": "default",
           "name": "Manon",
           "refSheets": [
-            "/assets/referencesheets/manon_reference.png"
+            "/assets/referencesheets/manon_merope_reference.png"
           ],
           "commissions": [
             {
@@ -616,7 +653,7 @@
           "id": "default",
           "name": "Pyon",
           "refSheets": [
-            "/assets/referencesheets/pyon_reference.png"
+            "/assets/referencesheets/pyon_phelix_reference.png"
           ],
           "commissions": []
         }
@@ -642,7 +679,7 @@
           "id": "default",
           "name": "Yukiko",
           "refSheets": [
-            "/assets/referencesheets/yukiko_reference.png"
+            "/assets/referencesheets/yukiko_yasashi_reference.png"
           ],
           "commissions": []
         },
@@ -650,7 +687,7 @@
           "id": "idol",
           "name": "C4 Idol",
           "refSheets": [
-            "/assets/referencesheets/yukiko_reference2.png"
+            "/assets/referencesheets/yukiko_yasashi_reference2.png"
           ],
           "commissions": []
         }
@@ -658,40 +695,36 @@
     },
     {
       "id": 9,
-      "name": "UmaMusume",
-      "species": "Pretty Derby",
-      "color": "#e85d75",
-      "versions": [
+      "name": "Rixxy Brightful",
+      "species": "Happy Robo",
+      "color": "#ff69b4",
+      "links": [
         {
-          "id": "mihono bourbon",
-          "name": "Mihono Bourbon",
-          "commissions": [
-            {
-              "id": 1,
-              "artist": "@puffywaifus",
-              "image": "/assets/commissions/umamusume/mihono_bourbon.png",
-              "sourceUrl": "https://x.com/puffywaifus/status/1998452589265039598/",
-              "metadata": {
-                "fileSize": 2569458,
-                "format": "png",
-                "addedDate": "2025-12-27T02:19:06.416Z"
-              }
-            }
-          ]
+          "type": "twitter",
+          "url": "https://twitter.com/RixxyBrightful"
         },
         {
-          "id": "sakura chiyono O",
-          "name": "Sakura Chiyono O",
+          "type": "linktree",
+          "url": "https://linktr.ee/rixxybrightful"
+        }
+      ],
+      "versions": [
+        {
+          "id": "default",
+          "name": "Rixxy",
+          "refSheets": [
+            "/assets/referencesheets/rixxy_brightful_reference.png"
+          ],
           "commissions": [
             {
               "id": 1,
-              "artist": "@floralcanon",
-              "image": "/assets/commissions/umamusume/sakura_chiyonoO.png",
-              "sourceUrl": "https://skeb.jp/@floralcanon/works/18",
+              "artist": "@amaoto_35",
+              "image": "/assets/commissions/rixxy_brightful/@amaoto_35.png",
+              "sourceUrl": "https://x.com/amaoto_35/status/1997272075967623242/",
               "metadata": {
-                "fileSize": 6158274,
+                "fileSize": 4802379,
                 "format": "png",
-                "addedDate": "2025-12-27T02:19:06.419Z"
+                "addedDate": "2025-12-27T02:19:06.350Z"
               }
             }
           ]
@@ -739,10 +772,87 @@
           ]
         }
       ]
+    },
+    {
+      "id": 11,
+      "name": "Ame Okashi",
+      "species": "Uma Confectioner",
+      "color": "#a94064",
+      "versions": [
+        {
+          "id": "default",
+          "name": "Ame",
+          "refSheets": [
+            "/assets/referencesheets/ame_okashi_reference.png"
+          ],
+          "commissions": []
+        },
+        {
+          "id": "cozy",
+          "name": "Cozy",
+          "refSheets": [
+            "/assets/referencesheets/ame_okashi_reference2.png"
+          ],
+          "commissions": [
+            {
+              "id": 1,
+              "artist": "@sa_na_517",
+              "image": "/assets/commissions/ame_okashi/@sa_na_517.png",
+              "sourceUrl": "https://x.com/sa_na_517/status/2000915787935269017/",
+              "metadata": {
+                "fileSize": 7762306,
+                "format": "png",
+                "addedDate": "2025-12-30T23:35:30.360Z"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Elise Thornheart",
+      "species": "Magic Swordswoman",
+      "color": "#c4463a",
+      "versions": [
+        {
+          "id": "default",
+          "name": "Elise",
+          "refSheets": [
+            "/assets/referencesheets/elise_thornheart_reference.png",
+            "/assets/referencesheets/elise_thornheart_reference2.png"
+          ],
+          "commissions": []
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "name": "Arane Purnama",
+      "species": "Fallen Sorceress",
+      "color": "#2d7a7f",
+      "versions": [
+        {
+          "id": "default",
+          "name": "Arane",
+          "refSheets": [
+            "/assets/referencesheets/arane_purnama_reference.png"
+          ],
+          "commissions": []
+        },
+        {
+          "id": "dress",
+          "name": "Dress",
+          "refSheets": [
+            "/assets/referencesheets/arane_purnama_reference2.png"
+          ],
+          "commissions": []
+        }
+      ]
     }
   ],
   "meta": {
-    "totalCharacters": 10,
-    "totalCommissions": 41
+    "totalCharacters": 13,
+    "totalCommissions": 45
   }
 }
