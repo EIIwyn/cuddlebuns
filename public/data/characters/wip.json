@@ -1,0 +1,14 @@
+{
+  "id": 14,
+  "name": "Coming Soon",
+  "species": "WIP",
+  "color": "#6a6a6a",
+  "versions": [
+    {
+      "id": "default",
+      "name": "default",
+      "commissions": [        
+      ]
+    }
+  ]
+}
