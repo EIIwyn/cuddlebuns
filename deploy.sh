@@ -1,6 +1,24 @@
 #!/bin/bash
+# ============================================
 # Deployment script for cuddlebuns.moe
+# ============================================
 # This script builds the React app locally and deploys the full site to VPS
+#
+# Prerequisites:
+# 1. SSH keys configured for GitHub (git@github.com)
+# 2. SSH keys configured for VPS (if deploying to VPS)
+# 3. Git remotes configured:
+#    - origin: GitHub repository
+#    - vps: VPS deployment repository (optional)
+#
+# The script will automatically:
+# - Start SSH agent and load your default SSH keys
+# - Build the React app
+# - Commit built files
+# - Push to configured remotes
+#
+# For collaborators: Ensure your SSH keys are in ~/.ssh/ and added to ssh-agent
+# ============================================
 
 set -e  # Exit on any error
 
@@ -11,6 +29,18 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
+
+# Initialize SSH agent and add keys
+echo -e "${BLUE}🔑 Setting up SSH authentication...${NC}"
+eval "$(ssh-agent -s)" > /dev/null
+
+# Try to add SSH keys - use default keys or SSH config
+# This will work for most users without modification
+ssh-add 2>/dev/null || {
+    echo -e "${YELLOW}⚠ Note: Using existing SSH agent or ssh-agent may not be running${NC}"
+    echo -e "${YELLOW}  If push fails, ensure your SSH keys are set up correctly${NC}"
+}
+echo -e "${GREEN}✓ SSH authentication ready${NC}"
 
 # Step 1: Build React app locally
 echo -e "${BLUE}📦 Building React app...${NC}"
@@ -56,8 +86,17 @@ git commit -m "Deploy site - $TIMESTAMP"
 echo -e "${BLUE}Pushing to GitHub...${NC}"
 git push origin main
 
-echo -e "${BLUE}Pushing to VPS...${NC}"
-git push vps main
+# Push to VPS if remote exists
+if git remote | grep -q "^vps$"; then
+    echo -e "${BLUE}Pushing to VPS...${NC}"
+    git push vps main
+else
+    echo -e "${YELLOW}⚠ VPS remote not configured, skipping VPS deployment${NC}"
+    echo -e "${YELLOW}  (This is normal for collaborators without VPS access)${NC}"
+fi
 
 echo -e "${GREEN}✅ Deployment complete!${NC}"
 echo -e "${BLUE}🌐 Visit: https://cuddlebuns.moe${NC}"
+
+# Cleanup: Kill the SSH agent we started
+kill $SSH_AGENT_PID 2>/dev/null || true
