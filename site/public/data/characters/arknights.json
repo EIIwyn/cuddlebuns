@@ -1,0 +1,14 @@
+{
+  "id": 5,
+  "name": "Arknights",
+  "species": "+ Endfield",
+  "color": "#00b5cc",
+  "versions": [
+    {
+      "id": "default",
+      "name": "In Progress",
+      "commissions": [        
+      ]
+    }
+  ]
+}

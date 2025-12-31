@@ -559,43 +559,14 @@
     },
     {
       "id": 5,
-      "name": "UmaMusume",
-      "species": "Pretty Derby",
-      "color": "#e85d75",
+      "name": "Arknights",
+      "species": "+ Endfield",
+      "color": "#00b5cc",
       "versions": [
         {
-          "id": "mihono bourbon",
-          "name": "Mihono Bourbon",
-          "commissions": [
-            {
-              "id": 1,
-              "artist": "@puffywaifus",
-              "image": "/assets/commissions/umamusume/mihono_bourbon.png",
-              "sourceUrl": "https://x.com/puffywaifus/status/1998452589265039598/",
-              "metadata": {
-                "fileSize": 2569458,
-                "format": "png",
-                "addedDate": "2025-12-27T02:19:06.416Z"
-              }
-            }
-          ]
-        },
-        {
-          "id": "sakura chiyono O",
-          "name": "Sakura Chiyono O",
-          "commissions": [
-            {
-              "id": 1,
-              "artist": "@floralcanon",
-              "image": "/assets/commissions/umamusume/sakura_chiyonoO.png",
-              "sourceUrl": "https://skeb.jp/@floralcanon/works/18",
-              "metadata": {
-                "fileSize": 6158274,
-                "format": "png",
-                "addedDate": "2025-12-27T02:19:06.419Z"
-              }
-            }
-          ]
+          "id": "default",
+          "name": "In Progress",
+          "commissions": []
         }
       ]
     },
@@ -733,40 +704,40 @@
     },
     {
       "id": 10,
-      "name": "Miscellaneous",
-      "species": "Other",
-      "color": "#9370db",
+      "name": "UmaMusume",
+      "species": "Pretty Derby",
+      "color": "#e85d75",
       "versions": [
         {
-          "id": "eve",
-          "name": "Eve",
+          "id": "mihono bourbon",
+          "name": "Mihono Bourbon",
           "commissions": [
             {
               "id": 1,
               "artist": "@puffywaifus",
-              "image": "/assets/commissions/miscellaneous/eve.png",
-              "sourceUrl": "https://x.com/puffywaifus/status/1811098060359159942/",
+              "image": "/assets/commissions/umamusume/mihono_bourbon.png",
+              "sourceUrl": "https://x.com/puffywaifus/status/1998452589265039598/",
               "metadata": {
-                "fileSize": 3266051,
+                "fileSize": 2569458,
                 "format": "png",
-                "addedDate": "2025-12-27T02:19:06.307Z"
+                "addedDate": "2025-12-27T02:19:06.416Z"
               }
             }
           ]
         },
         {
-          "id": "raziel",
-          "name": "Raziel",
+          "id": "sakura chiyono O",
+          "name": "Sakura Chiyono O",
           "commissions": [
             {
               "id": 1,
-              "artist": "@puffywaifus",
-              "image": "/assets/commissions/miscellaneous/raziel.png",
-              "sourceUrl": "https://x.com/puffywaifus/status/1813997161358725278/",
+              "artist": "@floralcanon",
+              "image": "/assets/commissions/umamusume/sakura_chiyonoO.png",
+              "sourceUrl": "https://skeb.jp/@floralcanon/works/18",
               "metadata": {
-                "fileSize": 5811472,
+                "fileSize": 6158274,
                 "format": "png",
-                "addedDate": "2025-12-27T02:19:06.309Z"
+                "addedDate": "2025-12-27T02:19:06.419Z"
               }
             }
           ]
@@ -849,10 +820,65 @@
           "commissions": []
         }
       ]
+    },
+    {
+      "id": 14,
+      "name": "Coming Soon",
+      "species": "WIP",
+      "color": "#6a6a6a",
+      "versions": [
+        {
+          "id": "default",
+          "name": "default",
+          "commissions": []
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "name": "Miscellaneous",
+      "species": "Other",
+      "color": "#9370db",
+      "versions": [
+        {
+          "id": "eve",
+          "name": "Eve",
+          "commissions": [
+            {
+              "id": 1,
+              "artist": "@puffywaifus",
+              "image": "/assets/commissions/miscellaneous/eve.png",
+              "sourceUrl": "https://x.com/puffywaifus/status/1811098060359159942/",
+              "metadata": {
+                "fileSize": 3266051,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.307Z"
+              }
+            }
+          ]
+        },
+        {
+          "id": "raziel",
+          "name": "Raziel",
+          "commissions": [
+            {
+              "id": 1,
+              "artist": "@puffywaifus",
+              "image": "/assets/commissions/miscellaneous/raziel.png",
+              "sourceUrl": "https://x.com/puffywaifus/status/1813997161358725278/",
+              "metadata": {
+                "fileSize": 5811472,
+                "format": "png",
+                "addedDate": "2025-12-27T02:19:06.309Z"
+              }
+            }
+          ]
+        }
+      ]
     }
   ],
   "meta": {
-    "totalCharacters": 13,
+    "totalCharacters": 15,
     "totalCommissions": 45
   }
 }

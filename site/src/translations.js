@@ -41,10 +41,12 @@ export const translations = {
             "Uma Confectioner": "Uma Confectioner",
             "Magic Swordswoman": "Magic Swordswoman",
             "Fallen Sorceress": "Fallen Sorceress",
+            "Endfield": "+ Endfield",
             "Other": "Other"
         },
         characterNames: {
-            "UmaMusume": "UmaMusume"
+            "UmaMusume": "UmaMusume",
+            "Arknights": "Arknights"
         }
     },
     ja: {
@@ -86,10 +88,12 @@ export const translations = {
             "Uma Confectioner": "ウマ菓子職人",
             "Magic Swordswoman": "魔法剣士",
             "Fallen Sorceress": "堕ちた魔術師",
+            "+ Endfield": "+ エンドフィールド",
             "Other": "その他"
         },
         characterNames: {
-            "UmaMusume": "ウマ娘"
+            "UmaMusume": "ウマ娘",
+            "Arknights": "アークナイツ"
         }
     }
 };
