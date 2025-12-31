@@ -1,0 +1,28 @@
+{
+  "id": 13,
+  "name": "Arane Purnama",
+  "species": "Fallen Sorceress",
+  "color": "#2d7a7f",
+  "versions": [
+    {
+      "id": "default",
+      "name": "Arane",
+      "refSheets": [
+        "/assets/referencesheets/arane_purnama_reference.png"
+      ],
+      "commissions": [
+        
+      ]
+    },
+    {
+      "id": "dress",
+      "name": "Dress",
+      "refSheets": [
+        "/assets/referencesheets/arane_purnama_reference2.png"
+      ],
+      "commissions": [
+        
+      ]
+    }
+  ]
+}

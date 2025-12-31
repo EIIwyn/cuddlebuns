@@ -11,7 +11,7 @@
     {
       "id": "default",
       "name": "Pyon",
-      "refSheets": ["/assets/referencesheets/pyon_reference.png"],
+      "refSheets": ["/assets/referencesheets/pyon_phelix_reference.png"],
       "commissions": []
     }
   ]

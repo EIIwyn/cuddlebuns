@@ -11,13 +11,13 @@
     {
       "id": "default",
       "name": "Yukiko",
-      "refSheets": ["/assets/referencesheets/yukiko_reference.png"],
+      "refSheets": ["/assets/referencesheets/yukiko_yasashi_reference.png"],
       "commissions": []
     },
     {
       "id": "idol",
       "name": "C4 Idol",
-      "refSheets": ["/assets/referencesheets/yukiko_reference2.png"],
+      "refSheets": ["/assets/referencesheets/yukiko_yasashi_reference2.png"],
       "commissions": []
     }
   ]

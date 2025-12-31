@@ -10,7 +10,7 @@
     {
       "id": "default",
       "name": "Manon",
-      "refSheets": ["/assets/referencesheets/manon_reference.png"],
+      "refSheets": ["/assets/referencesheets/manon_merope_reference.png"],
       "commissions": [
         {
           "id": 1,

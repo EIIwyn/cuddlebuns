@@ -22,7 +22,7 @@
       "id": "default",
       "name": "Ruri",
       "refSheets": [
-        "/assets/referencesheets/ruri_reference.png"
+        "/assets/referencesheets/ruri_tinytale_reference.png"
       ],
       "commissions": [
         {
@@ -138,6 +138,18 @@
           "artist": "@mirm_zatakunt",
           "image": "/assets/commissions/ruri_tinytale/@mirm_zatakunt.png",
           "sourceUrl": "https://skeb.jp/@mirm_zatakunt/works/25"
+        },
+        {
+          "id": 20,
+          "artist": "@miosochika",
+          "image": "/assets/commissions/ruri_tinytale/@miosochika.png",
+          "sourceUrl": "https://skeb.jp/@miosochika/works/93"
+        },
+        {
+          "id": 21,
+          "artist": "@puffiewaffles",
+          "image": "/assets/commissions/ruri_tinytale/@puffiewaffles-wuwitengu.png",
+          "sourceUrl": "https://x.com/pufflewaffles/status/2005730540843081765"
         }
       ]
     },
@@ -145,7 +157,7 @@
       "id": "wiwu",
       "name": "Wiwu",
       "refSheets": [
-        "/assets/referencesheets/wiwu_reference.png"
+        "/assets/referencesheets/ruri_tinytale_reference2.png"
       ],
       "commissions": [
         {
@@ -165,6 +177,12 @@
           "artist": "@hillnihil",
           "image": "/assets/commissions/ruri_tinytale/wiwu/@hillnihil.png",
           "sourceUrl": "https://skeb.jp/@hillnihil/works/2"
+        },       
+        {
+          "id": 4,
+          "artist": "@puffiewaffles",
+          "image": "/assets/commissions/ruri_tinytale/wiwu/@puffiewaffles-wiwutengu.png",
+          "sourceUrl": "https://x.com/pufflewaffles/status/2005730540843081765"
         }
       ]
     },
@@ -172,7 +190,7 @@
       "id": "wubold",
       "name": "Wubold",
       "refSheets": [
-        "/assets/referencesheets/wubold.png"
+        "/assets/referencesheets/ruri_tinytale_reference3.png"
       ],
       "commissions": []
     }

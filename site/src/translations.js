@@ -38,6 +38,9 @@ export const translations = {
             "Art Cute Student": "Art Cute Student",
             "Devil Maid": "Devil Maid",
             "Pretty Derby": "Pretty Derby",
+            "Uma Confectioner": "Uma Confectioner",
+            "Magic Swordswoman": "Magic Swordswoman",
+            "Fallen Sorceress": "Fallen Sorceress",
             "Other": "Other"
         },
         characterNames: {
@@ -80,6 +83,9 @@ export const translations = {
             "Art Cute Student": "カワイイを専門とする美術学生",
             "Devil Maid": "悪魔メイド",
             "Pretty Derby": "プリティーダービー",
+            "Uma Confectioner": "ウマ菓子職人",
+            "Magic Swordswoman": "魔法剣士",
+            "Fallen Sorceress": "堕ちた魔術師",
             "Other": "その他"
         },
         characterNames: {

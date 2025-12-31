@@ -1,0 +1,19 @@
+{
+  "id": 12,
+  "name": "Elise Thornheart",
+  "species": "Magic Swordswoman",
+  "color": "#c4463a",
+  "versions": [
+    {
+      "id": "default",
+      "name": "Elise",
+      "refSheets": [
+        "/assets/referencesheets/elise_thornheart_reference.png",
+        "/assets/referencesheets/elise_thornheart_reference2.png"
+      ],
+      "commissions": [
+        
+      ]
+    }
+  ]
+}
