@@ -606,25 +606,15 @@
     },
     {
       "id": 7,
-      "name": "Pyon Phelix",
-      "species": "Art Cute Student",
-      "color": "#ff9ec9",
-      "links": [
-        {
-          "type": "twitter",
-          "url": "https://x.com/PyonPhelix"
-        },
-        {
-          "type": "linktree",
-          "url": "https://linktr.ee/pyonphelix"
-        }
-      ],
+      "name": "Puri",
+      "species": "Shrimp Cat",
+      "color": "#F88C83",
       "versions": [
         {
           "id": "default",
-          "name": "Pyon",
+          "name": "Puri",
           "refSheets": [
-            "/assets/referencesheets/pyon_phelix_reference.png"
+            "/assets/referencesheets/puri_reference.png"
           ],
           "commissions": []
         }
@@ -783,7 +773,7 @@
     {
       "id": 12,
       "name": "Elise Thornheart",
-      "species": "Magic Swordswoman",
+      "species": "Magic Swordsman",
       "color": "#c4463a",
       "versions": [
         {
@@ -823,13 +813,26 @@
     },
     {
       "id": 14,
-      "name": "Coming Soon",
-      "species": "WIP",
-      "color": "#6a6a6a",
+      "name": "Pyon Phelix",
+      "species": "Art Cute Student",
+      "color": "#ff9ec9",
+      "links": [
+        {
+          "type": "twitter",
+          "url": "https://x.com/PyonPhelix"
+        },
+        {
+          "type": "linktree",
+          "url": "https://linktr.ee/pyonphelix"
+        }
+      ],
       "versions": [
         {
           "id": "default",
-          "name": "default",
+          "name": "Pyon",
+          "refSheets": [
+            "/assets/referencesheets/pyon_phelix_reference.png"
+          ],
           "commissions": []
         }
       ]

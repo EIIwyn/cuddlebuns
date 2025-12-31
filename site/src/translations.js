@@ -39,9 +39,10 @@ export const translations = {
             "Devil Maid": "Devil Maid",
             "Pretty Derby": "Pretty Derby",
             "Uma Confectioner": "Uma Confectioner",
-            "Magic Swordswoman": "Magic Swordswoman",
+            "Magic Swordsman": "Magic Swordsman",
             "Fallen Sorceress": "Fallen Sorceress",
             "Endfield": "+ Endfield",
+            "Shrimp Cat": "Shrimp Cat",
             "Other": "Other"
         },
         characterNames: {
@@ -86,9 +87,10 @@ export const translations = {
             "Devil Maid": "悪魔メイド",
             "Pretty Derby": "プリティーダービー",
             "Uma Confectioner": "ウマ菓子職人",
-            "Magic Swordswoman": "魔法剣士",
+            "Magic Swordsman": "魔法剣士",
             "Fallen Sorceress": "堕ちた魔術師",
             "+ Endfield": "+ エンドフィールド",
+            "Shrimp Cat": "エビ猫",
             "Other": "その他"
         },
         characterNames: {
