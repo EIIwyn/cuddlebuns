@@ -4,14 +4,22 @@
   "species": "Cyber Princess",
   "color": "#c4a0b0",
   "links": [
-    {"type": "twitter", "url": "https://twitter.com/NanoGure"},
-    {"type": "carrd", "url": "https://nanogure.carrd.co/"}
+    {
+      "type": "twitter",
+      "url": "https://twitter.com/NanoGure"
+    },
+    {
+      "type": "carrd",
+      "url": "https://nanogure.carrd.co/"
+    }
   ],
   "versions": [
     {
       "id": "default",
       "name": "Nano",
-      "refSheets": ["/assets/referencesheets/nano_gure_reference.png"],
+      "refSheets": [
+        "/assets/referencesheets/nano_gure_reference.png"
+      ],
       "commissions": [
         {
           "id": 1,
@@ -42,6 +50,18 @@
           "artist": "@sushi_umai",
           "image": "/assets/commissions/nano_gure/@sushi_umai.png",
           "sourceUrl": "https://skeb.jp/@sushi_umai/works/409"
+        },
+        {
+          "id": 6,
+          "artist": "@mino_031",
+          "image": "/assets/commissions/nano_gure/@mino_031.jpg",
+          "sourceUrl": "https://skeb.jp/@mino_031"
+        },
+        {
+          "id": 7,
+          "artist": "@okayy_u",
+          "image": "/assets/commissions/nano_gure/@okayy_u.png",
+          "sourceUrl": "https://skeb.jp/@okayy_u"
         }
       ]
     }

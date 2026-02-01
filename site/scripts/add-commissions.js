@@ -81,7 +81,7 @@ function scanAssets() {
 
         if (fs.statSync(itemPath).isDirectory()) {
           scanCharFolder(itemPath, relativeItemPath);
-        } else if (/\.(png|jpg|jpeg|gif|webp|avif)$/i.test(item)) {
+        } else if (/\.(png|jpg|jpeg|gif)$/i.test(item)) {
           const stats = fs.statSync(itemPath);
           const match = item.match(/^@([^.-]+)/);
           const artist = match ? `@${match[1]}` : null;
