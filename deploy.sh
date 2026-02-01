@@ -34,12 +34,26 @@ NC='\033[0m' # No Color
 echo -e "${BLUE}🔑 Setting up SSH authentication...${NC}"
 eval "$(ssh-agent -s)" > /dev/null
 
-# Try to add SSH keys - use default keys or SSH config
-# This will work for most users without modification
-ssh-add 2>/dev/null || {
-    echo -e "${YELLOW}⚠ Note: Using existing SSH agent or ssh-agent may not be running${NC}"
+# Determine SSH directory (handles Windows Git Bash vs Linux/Mac)
+if [[ -n "$USERPROFILE" ]]; then
+    # Windows - convert backslashes and use Windows home
+    SSH_DIR="$(cygpath -u "$USERPROFILE")/.ssh"
+else
+    SSH_DIR="$HOME/.ssh"
+fi
+
+# Try to add SSH keys from detected directory
+SSH_LOADED=false
+for key in "$SSH_DIR"/id_ed25519 "$SSH_DIR"/id_rsa "$SSH_DIR"/github_ed25519; do
+    if [[ -f "$key" ]]; then
+        ssh-add "$key" 2>/dev/null && SSH_LOADED=true
+    fi
+done
+
+if [[ "$SSH_LOADED" == "false" ]]; then
+    echo -e "${YELLOW}⚠ Note: No SSH keys found in $SSH_DIR${NC}"
     echo -e "${YELLOW}  If push fails, ensure your SSH keys are set up correctly${NC}"
-}
+fi
 echo -e "${GREEN}✓ SSH authentication ready${NC}"
 
 # Step 1: Build React app locally
