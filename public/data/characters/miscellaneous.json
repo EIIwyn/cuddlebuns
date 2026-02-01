@@ -5,26 +5,26 @@
   "color": "#9370db",
   "versions": [
     {
-      "id": "eve",
-      "name": "Eve",
-      "commissions": [
-        {
-          "id": 1,
-          "artist": "@puffywaifus",
-          "image": "/assets/commissions/miscellaneous/eve.png",
-          "sourceUrl": "https://x.com/puffywaifus/status/1811098060359159942/"
-        }
-      ]
-    },
-    {
-      "id": "raziel",
-      "name": "Raziel",
+      "id": "Granblue Fantasy",
+      "name": "Granblue Fantasy",
       "commissions": [
         {
           "id": 1,
           "artist": "@puffywaifus",
           "image": "/assets/commissions/miscellaneous/raziel.png",
           "sourceUrl": "https://x.com/puffywaifus/status/1813997161358725278/"
+        }
+      ]
+    },
+    {
+      "id": "Misc Video Games",
+      "name": "Video Games",
+      "commissions": [
+        {
+          "id": 1,
+          "artist": "@puffywaifus",
+          "image": "/assets/commissions/miscellaneous/eve.png",
+          "sourceUrl": "https://x.com/puffywaifus/status/1811098060359159942/"
         }
       ]
     }
