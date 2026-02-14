@@ -480,7 +480,17 @@
           "id": "default",
           "name": "Ryenna",
           "refSheets": [
-            "/assets/referencesheets/ryenna_reference.png"
+            "/assets/referencesheets/ryenna_reference.png",
+            "/assets/referencesheets/ryenna_reference2.png"
+          ],
+          "commissions": []
+        },
+        {
+          "id": "old",
+          "name": "Ryenna",
+          "refSheets": [
+            "/assets/referencesheets/ryenna_reference_old.png",
+            "/assets/referencesheets/ryenna_casual_old.png"
           ],
           "commissions": [
             {
@@ -517,14 +527,6 @@
               }
             }
           ]
-        },
-        {
-          "id": "casual",
-          "name": "Casual Outfit",
-          "refSheets": [
-            "/assets/referencesheets/ryenna_reference2.png"
-          ],
-          "commissions": []
         }
       ]
     },

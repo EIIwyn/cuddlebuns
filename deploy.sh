@@ -54,6 +54,12 @@ if [[ "$SSH_LOADED" == "false" ]]; then
     echo -e "${YELLOW}⚠ Note: No SSH keys found in $SSH_DIR${NC}"
     echo -e "${YELLOW}  If push fails, ensure your SSH keys are set up correctly${NC}"
 fi
+
+# Override IdentitiesOnly so git uses agent keys instead of
+# relying on SSH config file paths (which may resolve incorrectly
+# on Windows Git Bash where ~ points to the wrong home directory)
+export GIT_SSH_COMMAND="ssh -o IdentitiesOnly=no"
+
 echo -e "${GREEN}✓ SSH authentication ready${NC}"
 
 # Step 1: Build React app locally
