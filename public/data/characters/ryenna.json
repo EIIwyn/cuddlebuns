@@ -11,7 +11,21 @@
     {
       "id": "default",
       "name": "Ryenna",
-      "refSheets": ["/assets/referencesheets/ryenna_reference.png"],
+      "refSheets": [
+        "/assets/referencesheets/ryenna_reference.png",
+        "/assets/referencesheets/ryenna_reference2.png"
+      ],
+      "commissions": [
+        
+      ]
+    },
+    {
+      "id": "old",
+      "name": "Ryenna",
+      "refSheets": [
+        "/assets/referencesheets/ryenna_reference_old.png",
+        "/assets/referencesheets/ryenna_casual_old.png"
+      ],
       "commissions": [
         {
           "id": 1,
@@ -32,12 +46,6 @@
           "sourceUrl": "https://x.com/Kenichi__art/status/1999063681079120021/"
         }
       ]
-    },
-    {
-      "id": "casual",
-      "name": "Casual Outfit",
-      "refSheets": ["/assets/referencesheets/ryenna_reference2.png"],
-      "commissions": []
     }
   ]
 }
