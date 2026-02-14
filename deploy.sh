@@ -30,36 +30,19 @@ BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+# Fix HOME on Windows Git Bash so SSH resolves ~/.ssh/ correctly
+# (Git Bash can set HOME to /home/<user> instead of the Windows profile)
+if [[ -n "$USERPROFILE" && -d "$(cygpath -u "$USERPROFILE")/.ssh" ]]; then
+    export HOME="$(cygpath -u "$USERPROFILE")"
+fi
+
 # Initialize SSH agent and add keys
 echo -e "${BLUE}🔑 Setting up SSH authentication...${NC}"
 eval "$(ssh-agent -s)" > /dev/null
-
-# Determine SSH directory (handles Windows Git Bash vs Linux/Mac)
-if [[ -n "$USERPROFILE" ]]; then
-    # Windows - convert backslashes and use Windows home
-    SSH_DIR="$(cygpath -u "$USERPROFILE")/.ssh"
-else
-    SSH_DIR="$HOME/.ssh"
-fi
-
-# Try to add SSH keys from detected directory
-SSH_LOADED=false
-for key in "$SSH_DIR"/id_ed25519 "$SSH_DIR"/id_rsa "$SSH_DIR"/github_ed25519; do
-    if [[ -f "$key" ]]; then
-        ssh-add "$key" 2>/dev/null && SSH_LOADED=true
-    fi
-done
-
-if [[ "$SSH_LOADED" == "false" ]]; then
-    echo -e "${YELLOW}⚠ Note: No SSH keys found in $SSH_DIR${NC}"
+ssh-add 2>/dev/null || {
+    echo -e "${YELLOW}⚠ Note: Could not auto-add SSH keys${NC}"
     echo -e "${YELLOW}  If push fails, ensure your SSH keys are set up correctly${NC}"
-fi
-
-# Override IdentitiesOnly so git uses agent keys instead of
-# relying on SSH config file paths (which may resolve incorrectly
-# on Windows Git Bash where ~ points to the wrong home directory)
-export GIT_SSH_COMMAND="ssh -o IdentitiesOnly=no"
-
+}
 echo -e "${GREEN}✓ SSH authentication ready${NC}"
 
 # Step 1: Build React app locally
