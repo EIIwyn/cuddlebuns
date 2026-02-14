@@ -30,10 +30,23 @@ BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Fix HOME on Windows Git Bash so SSH resolves ~/.ssh/ correctly
-# (Git Bash can set HOME to /home/<user> instead of the Windows profile)
-if [[ -n "$USERPROFILE" && -d "$(cygpath -u "$USERPROFILE")/.ssh" ]]; then
+# Fix SSH key resolution across environments (Git Bash, WSL, Linux/Mac)
+# The SSH config references ~/.ssh/ but ~ may not point to where the keys live
+if [[ -n "$USERPROFILE" ]]; then
+    # Git Bash on Windows: ~ may point to /home/<user> instead of Windows profile
     export HOME="$(cygpath -u "$USERPROFILE")"
+elif grep -qi 'microsoft\|wsl' /proc/version 2>/dev/null; then
+    # WSL: SSH keys are on the Windows filesystem
+    WIN_USER="$(cmd.exe /c 'echo %USERNAME%' 2>/dev/null | tr -d '\r\n')"
+    WIN_SSH="/mnt/c/Users/$WIN_USER/.ssh"
+    if [[ -n "$WIN_USER" && -d "$WIN_SSH" ]]; then
+        # Rewrite SSH config with correct Windows paths
+        TEMP_SSH_CONFIG=$(mktemp)
+        if [[ -f "$HOME/.ssh/config" ]]; then
+            sed "s|~/.ssh|$WIN_SSH|g" "$HOME/.ssh/config" > "$TEMP_SSH_CONFIG"
+        fi
+        export GIT_SSH_COMMAND="ssh -F $TEMP_SSH_CONFIG"
+    fi
 fi
 
 # Initialize SSH agent and add keys
@@ -101,5 +114,6 @@ fi
 echo -e "${GREEN}✅ Deployment complete!${NC}"
 echo -e "${BLUE}🌐 Visit: https://cuddlebuns.moe${NC}"
 
-# Cleanup: Kill the SSH agent we started
+# Cleanup
 kill $SSH_AGENT_PID 2>/dev/null || true
+[[ -n "$TEMP_SSH_CONFIG" ]] && rm -f "$TEMP_SSH_CONFIG"

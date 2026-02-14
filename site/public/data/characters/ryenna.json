@@ -22,9 +22,7 @@
     {
       "id": "old",
       "name": "Ryenna (Old Design)",
-      "refSheets": [
-        "/assets/referencesheets/ryenna_reference_old.png",
-        "/assets/referencesheets/ryenna_casual_old.png"
+      "refSheets": [        
       ],
       "commissions": [
         {
