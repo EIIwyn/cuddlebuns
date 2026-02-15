@@ -4,18 +4,8 @@
   "species": "Kobold",
   "color": "#7be3f2",
   "links": [
-    {
-      "type": "twitter",
-      "url": "https://twitter.com/RuriTinytale"
-    },
-    {
-      "type": "vsona",
-      "url": "https://vsona.co/ruri-tinytale"
-    },
-    {
-      "type": "carrd",
-      "url": "https://ruritinytale.carrd.co/"
-    }
+    {"type": "twitter", "url": "https://twitter.com/RuriTinytale"},    
+    {"type": "carrd", "url": "https://ruritinytale.carrd.co/"}
   ],
   "versions": [
     {

@@ -3,6 +3,9 @@
   "name": "Elise Thornheart",
   "species": "Magic Swordsman",
   "color": "#c4463a",
+  "links": [
+    {"type": "twitter","url": "https://x.com/EliseThornheart"}
+  ],
   "versions": [
     {
       "id": "default",
