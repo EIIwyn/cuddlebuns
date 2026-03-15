@@ -290,6 +290,39 @@
                 "format": "gif",
                 "addedDate": "2026-02-01T19:59:59.018Z"
               }
+            },
+            {
+              "id": 25,
+              "artist": "@mariaclossz",
+              "image": "/assets/commissions/ruri_tinytale/@mariaclossz.png",
+              "sourceUrl": "https://x.com/mariaclossz/status/2030573053831491931",
+              "metadata": {
+                "fileSize": 9548363,
+                "format": "png",
+                "addedDate": "2026-03-15T16:15:44.166Z"
+              }
+            },
+            {
+              "id": 26,
+              "artist": "@ponya_nap",
+              "image": "/assets/commissions/ruri_tinytale/@ponya_nap.png",
+              "sourceUrl": "https://x.com/ponya_nap/status/2030494152308486622/",
+              "metadata": {
+                "fileSize": 930315,
+                "format": "png",
+                "addedDate": "2026-03-07T16:14:44.109Z"
+              }
+            },
+            {
+              "id": 27,
+              "artist": "@yadorii",
+              "image": "/assets/commissions/ruri_tinytale/@yadorii.png",
+              "sourceUrl": "https://skeb.jp/@yadorii",
+              "metadata": {
+                "fileSize": 1979189,
+                "format": "png",
+                "addedDate": "2026-03-15T16:15:44.104Z"
+              }
             }
           ]
         },
@@ -483,7 +516,19 @@
             "/assets/referencesheets/ryenna_reference.png",
             "/assets/referencesheets/ryenna_reference2.png"
           ],
-          "commissions": []
+          "commissions": [
+            {
+              "id": 1,
+              "artist": "@shonibyodayo",
+              "image": "/assets/commissions/ryenna/@shonibyodayo.png",
+              "sourceUrl": "https://x.com/shonibyodayo/status/2026977837954355441/",
+              "metadata": {
+                "fileSize": 5199981,
+                "format": "png",
+                "addedDate": "2026-03-15T16:16:18.407Z"
+              }
+            }
+          ]
         },
         {
           "id": "old",
@@ -521,6 +566,17 @@
                 "fileSize": 6447363,
                 "format": "png",
                 "addedDate": "2025-12-27T02:19:06.411Z"
+              }
+            },
+            {
+              "id": 4,
+              "artist": "@sotoroa_0v0",
+              "image": "/assets/commissions/ryenna/casual/@sotoroa_0v0.gif",
+              "sourceUrl": "https://x.com/sotoroa_0v0/status/2011774309728207246/",
+              "metadata": {
+                "fileSize": 3893133,
+                "format": "gif",
+                "addedDate": "2026-03-15T16:16:30.004Z"
               }
             }
           ]
@@ -707,7 +763,19 @@
           "refSheets": [
             "/assets/referencesheets/yukiko_yasashi_reference.png"
           ],
-          "commissions": []
+          "commissions": [
+            {
+              "id": 1,
+              "artist": "@sanosupi",
+              "image": "/assets/commissions/yukiko_yasashi/@sanosupi.png",
+              "sourceUrl": "https://x.com/sanosupi",
+              "metadata": {
+                "fileSize": 9174528,
+                "format": "png",
+                "addedDate": "2026-03-15T16:17:29.979Z"
+              }
+            }
+          ]
         },
         {
           "id": "idol",
@@ -751,6 +819,28 @@
                 "fileSize": 4802379,
                 "format": "png",
                 "addedDate": "2025-12-27T02:19:06.350Z"
+              }
+            },
+            {
+              "id": 2,
+              "artist": "@Xzeong",
+              "image": "/assets/commissions/rixxy_brightful/@Xzeong.png",
+              "sourceUrl": "https://x.com/Xzeong/status/2027161772088869282/",
+              "metadata": {
+                "fileSize": 7704700,
+                "format": "png",
+                "addedDate": "2026-03-15T16:16:45.321Z"
+              }
+            },
+            {
+              "id": 3,
+              "artist": "@Xzeong_2",
+              "image": "/assets/commissions/rixxy_brightful/@Xzeong_2.png",
+              "sourceUrl": "https://x.com/Xzeong/status/2027161772088869282/",
+              "metadata": {
+                "fileSize": 3969818,
+                "format": "png",
+                "addedDate": "2026-03-15T16:16:45.309Z"
               }
             }
           ]
@@ -959,6 +1049,6 @@
   ],
   "meta": {
     "totalCharacters": 15,
-    "totalCommissions": 52
+    "totalCommissions": 60
   }
 }

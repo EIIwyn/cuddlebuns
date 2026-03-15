@@ -4,8 +4,14 @@
   "species": "PassingCatLoaf",
   "color": "#ffd93d",
   "links": [
-    {"type": "twitter", "url": "https://twitter.com/PassingCatLoaf"},
-    {"type": "carrd", "url": "https://passingcatloaf.carrd.co/"}
+    {
+      "type": "twitter",
+      "url": "https://twitter.com/PassingCatLoaf"
+    },
+    {
+      "type": "carrd",
+      "url": "https://passingcatloaf.carrd.co/"
+    }
   ],
   "versions": [
     {
@@ -16,14 +22,18 @@
         "/assets/referencesheets/ryenna_reference2.png"
       ],
       "commissions": [
-        
+        {
+          "id": 1,
+          "artist": "@shonibyodayo",
+          "image": "/assets/commissions/ryenna/@shonibyodayo.png",
+          "sourceUrl": "https://x.com/shonibyodayo/status/2026977837954355441/"
+        }
       ]
     },
     {
       "id": "old",
       "name": "Ryenna (Old Design)",
-      "refSheets": [        
-      ],
+      "refSheets": [],
       "commissions": [
         {
           "id": 1,
@@ -42,6 +52,12 @@
           "artist": "@Kenichi__art",
           "image": "/assets/commissions/ryenna/@Kenichi__art.png",
           "sourceUrl": "https://x.com/Kenichi__art/status/1999063681079120021/"
+        },
+        {
+          "id": 4,
+          "artist": "@sotoroa_0v0",
+          "image": "/assets/commissions/ryenna/casual/@sotoroa_0v0.gif",
+          "sourceUrl": "https://x.com/sotoroa_0v0/status/2011774309728207246/"
         }
       ]
     }

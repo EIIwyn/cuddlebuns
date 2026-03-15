@@ -4,20 +4,40 @@
   "species": "Happy Robo",
   "color": "#ff69b4",
   "links": [
-    {"type": "twitter", "url": "https://twitter.com/RixxyBrightful"},
-    {"type": "linktree", "url": "https://linktr.ee/rixxybrightful"}
+    {
+      "type": "twitter",
+      "url": "https://twitter.com/RixxyBrightful"
+    },
+    {
+      "type": "linktree",
+      "url": "https://linktr.ee/rixxybrightful"
+    }
   ],
   "versions": [
     {
       "id": "default",
       "name": "Rixxy",
-      "refSheets": ["/assets/referencesheets/rixxy_brightful_reference.png"],
+      "refSheets": [
+        "/assets/referencesheets/rixxy_brightful_reference.png"
+      ],
       "commissions": [
         {
           "id": 1,
           "artist": "@amaoto_35",
           "image": "/assets/commissions/rixxy_brightful/@amaoto_35.png",
           "sourceUrl": "https://x.com/amaoto_35/status/1997272075967623242/"
+        },
+        {
+          "id": 2,
+          "artist": "@Xzeong",
+          "image": "/assets/commissions/rixxy_brightful/@Xzeong.png",
+          "sourceUrl": "https://x.com/Xzeong/status/2027161772088869282/"
+        },
+        {
+          "id": 3,
+          "artist": "@Xzeong_2",
+          "image": "/assets/commissions/rixxy_brightful/@Xzeong_2.png",
+          "sourceUrl": "https://x.com/Xzeong/status/2027161772088869282/"
         }
       ]
     }

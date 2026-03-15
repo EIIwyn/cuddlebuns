@@ -4,20 +4,37 @@
   "species": "Devil Maid",
   "color": "#8b3a62",
   "links": [
-    {"type": "twitter", "url": "https://x.com/YukikoYasashi"},
-    {"type": "carrd", "url": "https://yukikoyasashi.carrd.co/"}
+    {
+      "type": "twitter",
+      "url": "https://x.com/YukikoYasashi"
+    },
+    {
+      "type": "carrd",
+      "url": "https://yukikoyasashi.carrd.co/"
+    }
   ],
   "versions": [
     {
       "id": "default",
       "name": "Yukiko",
-      "refSheets": ["/assets/referencesheets/yukiko_yasashi_reference.png"],
-      "commissions": []
+      "refSheets": [
+        "/assets/referencesheets/yukiko_yasashi_reference.png"
+      ],
+      "commissions": [
+        {
+          "id": 1,
+          "artist": "@sanosupi",
+          "image": "/assets/commissions/yukiko_yasashi/@sanosupi.png",
+          "sourceUrl": "https://x.com/sanosupi"
+        }
+      ]
     },
     {
       "id": "idol",
       "name": "C4 Idol",
-      "refSheets": ["/assets/referencesheets/yukiko_yasashi_reference2.png"],
+      "refSheets": [
+        "/assets/referencesheets/yukiko_yasashi_reference2.png"
+      ],
       "commissions": []
     }
   ]
