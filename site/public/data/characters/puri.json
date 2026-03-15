@@ -3,6 +3,9 @@
   "name": "Puri",
   "species": "Shrimp Cat",
   "color": "#F88C83",
+  "links": [
+    {"type": "twitter","url": "https://x.com/puripuwin"}
+  ],
   "versions": [
     {
       "id": "default",

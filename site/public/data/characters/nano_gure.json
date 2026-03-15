@@ -4,14 +4,8 @@
   "species": "Cyber Princess",
   "color": "#c4a0b0",
   "links": [
-    {
-      "type": "twitter",
-      "url": "https://twitter.com/NanoGure"
-    },
-    {
-      "type": "carrd",
-      "url": "https://nanogure.carrd.co/"
-    }
+    {"type": "twitter", "url": "https://twitter.com/NanoGure"},
+    {"type": "carrd", "url": "https://nanogure.carrd.co/"}
   ],
   "versions": [
     {
