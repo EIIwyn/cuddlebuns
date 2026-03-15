@@ -2,22 +2,14 @@
 # ============================================
 # Deployment script for cuddlebuns.moe
 # ============================================
-# This script builds the React app locally and deploys the full site to VPS
+# This script builds the React app locally and deploys the full site to VPS.
+#
+# Note: GitHub sync is handled separately via manual `git push origin main`.
+#       The Windows SSH key permissions issue in WSL prevents automating it here.
 #
 # Prerequisites:
-# 1. SSH keys configured for GitHub (git@github.com)
-# 2. SSH keys configured for VPS (if deploying to VPS)
-# 3. Git remotes configured:
-#    - origin: GitHub repository
-#    - vps: VPS deployment repository (optional)
-#
-# The script will automatically:
-# - Start SSH agent and load your default SSH keys
-# - Build the React app
-# - Commit built files
-# - Push to configured remotes
-#
-# For collaborators: Ensure your SSH keys are in ~/.ssh/ and added to ssh-agent
+# 1. SSH keys configured for VPS (masterpyon@cuddlebuns.moe)
+# 2. Git remote 'vps' configured
 # ============================================
 
 set -e  # Exit on any error
@@ -30,34 +22,6 @@ BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Fix SSH key resolution across environments (Git Bash, WSL, Linux/Mac)
-# The SSH config references ~/.ssh/ but ~ may not point to where the keys live
-if [[ -n "$USERPROFILE" ]]; then
-    # Git Bash on Windows: ~ may point to /home/<user> instead of Windows profile
-    export HOME="$(cygpath -u "$USERPROFILE")"
-elif grep -qi 'microsoft\|wsl' /proc/version 2>/dev/null; then
-    # WSL: SSH keys are on the Windows filesystem
-    WIN_USER="$(cmd.exe /c 'echo %USERNAME%' 2>/dev/null | tr -d '\r\n')"
-    WIN_SSH="/mnt/c/Users/$WIN_USER/.ssh"
-    if [[ -n "$WIN_USER" && -d "$WIN_SSH" ]]; then
-        # Rewrite SSH config with correct Windows paths
-        TEMP_SSH_CONFIG=$(mktemp)
-        if [[ -f "$HOME/.ssh/config" ]]; then
-            sed "s|~/.ssh|$WIN_SSH|g" "$HOME/.ssh/config" > "$TEMP_SSH_CONFIG"
-        fi
-        export GIT_SSH_COMMAND="ssh -F $TEMP_SSH_CONFIG"
-    fi
-fi
-
-# Initialize SSH agent and add keys
-echo -e "${BLUE}🔑 Setting up SSH authentication...${NC}"
-eval "$(ssh-agent -s)" > /dev/null
-ssh-add 2>/dev/null || {
-    echo -e "${YELLOW}⚠ Note: Could not auto-add SSH keys${NC}"
-    echo -e "${YELLOW}  If push fails, ensure your SSH keys are set up correctly${NC}"
-}
-echo -e "${GREEN}✓ SSH authentication ready${NC}"
-
 # Step 1: Build React app locally
 echo -e "${BLUE}📦 Building React app...${NC}"
 cd site
@@ -69,9 +33,6 @@ echo -e "${GREEN}✓ Build completed${NC}"
 # Step 2: Stage built files for git
 echo -e "${BLUE}📋 Preparing deployment files...${NC}"
 
-# Backup existing public files that shouldn't be deleted
-# (assets folder is synced separately, .gitignore, etc.)
-
 # Remove old built files (but keep assets, .gitignore, etc.)
 find public -type f \( -name "*.html" -o -name "*.js" -o -name "*.css" \) -delete 2>/dev/null || true
 rm -rf public/static 2>/dev/null || true
@@ -82,10 +43,9 @@ cp -r site/dist/* public/
 
 echo -e "${GREEN}✓ Files staged in public/${NC}"
 
-# Step 3: Commit and push
+# Step 3: Commit and push to VPS
 echo -e "${BLUE}📤 Deploying to VPS...${NC}"
 
-# Add the built files
 git add public/
 
 # Check if there are changes to commit
@@ -98,22 +58,15 @@ fi
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M')
 git commit -m "Deploy site - $TIMESTAMP"
 
-# Push to GitHub and VPS
-echo -e "${BLUE}Pushing to GitHub...${NC}"
-git push origin main
-
-# Push to VPS if remote exists
+# Push to VPS
 if git remote | grep -q "^vps$"; then
     echo -e "${BLUE}Pushing to VPS...${NC}"
     git push vps main
 else
-    echo -e "${YELLOW}⚠ VPS remote not configured, skipping VPS deployment${NC}"
-    echo -e "${YELLOW}  (This is normal for collaborators without VPS access)${NC}"
+    echo -e "${YELLOW}⚠ VPS remote not configured${NC}"
+    exit 1
 fi
 
 echo -e "${GREEN}✅ Deployment complete!${NC}"
 echo -e "${BLUE}🌐 Visit: https://cuddlebuns.moe${NC}"
-
-# Cleanup
-kill $SSH_AGENT_PID 2>/dev/null || true
-[[ -n "$TEMP_SSH_CONFIG" ]] && rm -f "$TEMP_SSH_CONFIG"
+echo -e "${YELLOW}ℹ Reminder: sync GitHub manually with \`git push origin main\`${NC}"
