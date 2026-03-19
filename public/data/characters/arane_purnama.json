@@ -1,8 +1,13 @@
 {
   "id": 13,
   "name": "Arane Purnama",
+  "status": "hiatus",
   "species": "Fallen Sorceress",
   "color": "#2d7a7f",
+  "links": [
+    {"type": "twitter","url": "https://x.com/aranepurnama"},
+    {"type": "linktree","url": "https://linktr.ee/AranePurnama"}
+  ],
   "versions": [
     {
       "id": "default",
@@ -18,7 +23,7 @@
       "id": "dress",
       "name": "Dress",
       "refSheets": [
-        "/assets/referencesheets/arane_purnama_reference2.png"
+        "/assets/referencesheets/arane_purnama_reference.png"
       ],
       "commissions": [
         

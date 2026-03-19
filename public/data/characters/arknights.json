@@ -1,6 +1,7 @@
 {
   "id": 5,
   "name": "Arknights",
+  "group": "etc",
   "species": "+ Endfield",
   "color": "#00b5cc",
   "versions": [

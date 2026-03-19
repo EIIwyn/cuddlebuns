@@ -4,14 +4,8 @@
   "species": "Art Cute Student",
   "color": "#ff9ec9",
   "links": [
-    {
-      "type": "twitter",
-      "url": "https://x.com/PyonPhelix"
-    },
-    {
-      "type": "linktree",
-      "url": "https://linktr.ee/pyonphelix"
-    }
+    {"type": "twitter", "url": "https://x.com/PyonPhelix"},
+    {"type": "linktree", "url": "https://linktr.ee/pyonphelix"}
   ],
   "versions": [
     {

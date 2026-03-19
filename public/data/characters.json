@@ -11,10 +11,6 @@
           "url": "https://twitter.com/RuriTinytale"
         },
         {
-          "type": "vsona",
-          "url": "https://vsona.co/ruri-tinytale"
-        },
-        {
           "type": "carrd",
           "url": "https://ruritinytale.carrd.co/"
         }
@@ -670,6 +666,7 @@
     {
       "id": 5,
       "name": "Arknights",
+      "group": "etc",
       "species": "+ Endfield",
       "color": "#00b5cc",
       "versions": [
@@ -728,8 +725,15 @@
     {
       "id": 7,
       "name": "Puri",
+      "status": "hiatus",
       "species": "Shrimp Cat",
       "color": "#F88C83",
+      "links": [
+        {
+          "type": "twitter",
+          "url": "https://x.com/puripuwin"
+        }
+      ],
       "versions": [
         {
           "id": "default",
@@ -744,6 +748,7 @@
     {
       "id": 8,
       "name": "Yukiko Yasashi",
+      "status": "hiatus",
       "species": "Devil Maid",
       "color": "#8b3a62",
       "links": [
@@ -850,6 +855,7 @@
     {
       "id": 10,
       "name": "UmaMusume",
+      "group": "etc",
       "species": "Pretty Derby",
       "color": "#e85d75",
       "versions": [
@@ -894,6 +900,16 @@
       "name": "Ame Okashi",
       "species": "Uma Confectioner",
       "color": "#a94064",
+      "links": [
+        {
+          "type": "twitter",
+          "url": "https://x.com/ameokashi"
+        },
+        {
+          "type": "carrd",
+          "url": "https://ameokashi.carrd.co/"
+        }
+      ],
       "versions": [
         {
           "id": "default",
@@ -930,6 +946,12 @@
       "name": "Elise Thornheart",
       "species": "Magic Swordsman",
       "color": "#c4463a",
+      "links": [
+        {
+          "type": "twitter",
+          "url": "https://x.com/EliseThornheart"
+        }
+      ],
       "versions": [
         {
           "id": "default",
@@ -945,8 +967,19 @@
     {
       "id": 13,
       "name": "Arane Purnama",
+      "status": "hiatus",
       "species": "Fallen Sorceress",
       "color": "#2d7a7f",
+      "links": [
+        {
+          "type": "twitter",
+          "url": "https://x.com/aranepurnama"
+        },
+        {
+          "type": "linktree",
+          "url": "https://linktr.ee/AranePurnama"
+        }
+      ],
       "versions": [
         {
           "id": "default",
@@ -960,7 +993,7 @@
           "id": "dress",
           "name": "Dress",
           "refSheets": [
-            "/assets/referencesheets/arane_purnama_reference2.png"
+            "/assets/referencesheets/arane_purnama_reference.png"
           ],
           "commissions": []
         }
@@ -1007,6 +1040,7 @@
     {
       "id": 15,
       "name": "Miscellaneous",
+      "group": "etc",
       "species": "Other",
       "color": "#9370db",
       "versions": [

@@ -3,6 +3,10 @@
   "name": "Ame Okashi",
   "species": "Uma Confectioner",
   "color": "#a94064",
+  "links": [
+    {"type": "twitter","url": "https://x.com/ameokashi"},
+    {"type": "carrd","url": "https://ameokashi.carrd.co/"}
+  ],
   "versions": [
     {
       "id": "default",
