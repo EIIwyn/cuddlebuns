@@ -21,6 +21,7 @@ export function Gallery() {
   const [language, setLanguage] = useState('en');
   const [sortOrder, setSortOrder] = useState('random');
   const [refSheetIndex, setRefSheetIndex] = useState(0);
+  const [showHiatus, setShowHiatus] = useState(false);
 
   // Lightbox state
   const [lightboxImage, setLightboxImage] = useState(null);
@@ -219,17 +220,66 @@ export function Gallery() {
         </header>
 
         {/* Character Selection */}
-        <nav className="character-nav">
-          {characters.map(character => (
-            <CharacterButton
-              key={character.id}
-              character={character}
-              isSelected={selectedChar?.id === character.id}
-              onClick={() => handleCharacterSelect(character)}
-              lang={language}
-            />
-          ))}
-        </nav>
+        {(() => {
+          const activeChars = characters.filter(c => c.status !== 'hiatus');
+          const hiatusChars = characters.filter(c => c.status === 'hiatus');
+          const mainChars = activeChars.filter(c => c.group !== 'etc');
+          const etcChars = activeChars.filter(c => c.group === 'etc');
+          return (
+            <div className="character-nav-wrapper">
+              <div className="character-nav-row">
+                <nav className="character-nav">
+                  {mainChars.map(character => (
+                    <CharacterButton
+                      key={character.id}
+                      character={character}
+                      isSelected={selectedChar?.id === character.id}
+                      onClick={() => handleCharacterSelect(character)}
+                      lang={language}
+                    />
+                  ))}
+                </nav>
+                {etcChars.length > 0 && (
+                  <nav className="character-nav character-nav--etc">
+                    {etcChars.map(character => (
+                      <CharacterButton
+                        key={character.id}
+                        character={character}
+                        isSelected={selectedChar?.id === character.id}
+                        onClick={() => handleCharacterSelect(character)}
+                        lang={language}
+                      />
+                    ))}
+                  </nav>
+                )}
+              </div>
+              {hiatusChars.length > 0 && (
+                <div className="hiatus-section">
+                  <button
+                    className="hiatus-toggle"
+                    onClick={() => setShowHiatus(h => !h)}
+                  >
+                    <span className="hiatus-toggle__icon">{showHiatus ? '▲' : '▼'}</span>
+                    {showHiatus ? t.hideHiatus : `${t.showHiatus} (${hiatusChars.length})`}
+                  </button>
+                  {showHiatus && (
+                    <nav className="character-nav character-nav--hiatus">
+                      {hiatusChars.map(character => (
+                        <CharacterButton
+                          key={character.id}
+                          character={character}
+                          isSelected={selectedChar?.id === character.id}
+                          onClick={() => handleCharacterSelect(character)}
+                          lang={language}
+                        />
+                      ))}
+                    </nav>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Main Content */}
         {!selectedChar ? (

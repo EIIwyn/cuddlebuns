@@ -210,6 +210,7 @@ body {
     transition: all var(--transition-smooth);
 }
 
+
 .character-btn {
     background: rgba(255, 255, 255, 0.03);
     border: 2px solid var(--border-light);
@@ -254,6 +255,90 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.1em;
     transition: all var(--transition-smooth);
+}
+
+/* ============================================
+   Hiatus Section
+   ============================================ */
+
+.character-nav-wrapper {
+    max-width: 900px;
+    margin: 0 auto 36px;
+    position: relative;
+    z-index: 15;
+}
+
+.character-nav-row {
+    display: flex;
+    gap: 10px;
+    align-items: start;
+    justify-content: center;
+}
+
+.character-nav-wrapper .character-nav {
+    max-width: 100%;
+    margin: 0;
+}
+
+/* Main nav inside the row — 3 rows, fill columns */
+.character-nav-row > .character-nav:not(.character-nav--etc) {
+    grid-template-columns: unset;
+    grid-template-rows: repeat(3, auto);
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(120px, 150px);
+    justify-content: center;
+}
+
+/* Etc column — fixed single column of buttons, separated by a divider */
+.character-nav--etc {
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    width: 150px;
+    gap: 10px;
+    padding-left: 10px;
+    border-left: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.character-nav--etc .character-btn {
+    max-width: none;
+    width: 100%;
+}
+
+.hiatus-section {
+    margin-top: 12px;
+    text-align: center;
+}
+
+.hiatus-toggle {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-family: var(--font-body);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    cursor: pointer;
+    transition: all var(--transition-smooth);
+    margin-bottom: 12px;
+}
+
+.hiatus-toggle:hover {
+    border-color: rgba(255, 255, 255, 0.3);
+    color: var(--text-primary);
+}
+
+.hiatus-toggle__icon {
+    margin-right: 6px;
+    font-size: 0.6rem;
+    vertical-align: middle;
+}
+
+.character-nav--hiatus {
+    opacity: 0.7;
+    margin-bottom: 0;
 }
 
 /* ============================================
@@ -1135,6 +1220,31 @@ body {
         gap: 10px;
         max-width: 100%;
         margin-bottom: 24px;
+    }
+
+    .character-nav-row {
+        flex-direction: column;
+    }
+
+    .character-nav-row > .character-nav:not(.character-nav--etc) {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: unset;
+        grid-auto-flow: row;
+        grid-auto-columns: unset;
+    }
+
+    .character-nav--etc {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        padding-left: 0;
+        border-left: none;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .character-nav--etc .character-btn {
+        max-width: 150px;
     }
 
     .character-btn {

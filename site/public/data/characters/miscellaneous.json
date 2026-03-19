@@ -1,6 +1,7 @@
 {
   "id": 15,
   "name": "Miscellaneous",
+  "group": "etc",
   "species": "Other",
   "color": "#9370db",
   "versions": [

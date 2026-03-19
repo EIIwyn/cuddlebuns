@@ -28,6 +28,8 @@ export const translations = {
         existsAndValid: "exists and is valid JSON.",
         previousRefSheet: "Previous reference sheet",
         nextRefSheet: "Next reference sheet",
+        showHiatus: "Hiatus/Etc.",
+        hideHiatus: "Hide Hiatus/Etc.",
         // Character species translations
         species: {
             "Kobold": "Kobold",
@@ -76,6 +78,8 @@ export const translations = {
         existsAndValid: "が存在し、有効なJSONであること。",
         previousRefSheet: "前のリファレンスシート",
         nextRefSheet: "次のリファレンスシート",
+        showHiatus: "休止中/その他",
+        hideHiatus: "閉じる",
         // Character species translations
         species: {
             "Kobold": "コボルド",

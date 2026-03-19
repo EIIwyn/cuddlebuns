@@ -1,6 +1,7 @@
 {
   "id": 10,
   "name": "UmaMusume",
+  "group": "etc",
   "species": "Pretty Derby",
   "color": "#e85d75",
   "versions": [
