@@ -4,8 +4,14 @@
   "species": "Kobold",
   "color": "#7be3f2",
   "links": [
-    {"type": "twitter", "url": "https://twitter.com/RuriTinytale"},    
-    {"type": "carrd", "url": "https://ruritinytale.carrd.co/"}
+    {
+      "type": "twitter",
+      "url": "https://twitter.com/RuriTinytale"
+    },
+    {
+      "type": "carrd",
+      "url": "https://ruritinytale.carrd.co/"
+    }
   ],
   "versions": [
     {
@@ -176,6 +182,24 @@
           "artist": "@yadorii",
           "image": "/assets/commissions/ruri_tinytale/@yadorii.png",
           "sourceUrl": "https://skeb.jp/@yadorii"
+        },
+        {
+          "id": 28,
+          "artist": "@be_from_kobe",
+          "image": "/assets/commissions/ruri_tinytale/@be_from_kobe.png",
+          "sourceUrl": "https://x.com/be_from_kobe/status/2038927776762433761"
+        },
+        {
+          "id": 29,
+          "artist": "@ikach_526",
+          "image": "/assets/commissions/ruri_tinytale/@ikach_526.png",
+          "sourceUrl": "https://x.com/ikach_526/status/2038957644132851719/"
+        },
+        {
+          "id": 30,
+          "artist": "pufflewaffles",
+          "image": "/assets/commissions/ruri_tinytale/Wuwi&RyeBnnuy.png",
+          "sourceUrl": "https://x.com/pufflewaffles/status/2043026296448651419"
         }
       ]
     },
