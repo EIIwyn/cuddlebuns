@@ -319,6 +319,39 @@
                 "format": "png",
                 "addedDate": "2026-03-15T16:15:44.104Z"
               }
+            },
+            {
+              "id": 28,
+              "artist": "@be_from_kobe",
+              "image": "/assets/commissions/ruri_tinytale/@be_from_kobe.png",
+              "sourceUrl": "https://x.com/be_from_kobe/status/2038927776762433761",
+              "metadata": {
+                "fileSize": 1897164,
+                "format": "png",
+                "addedDate": "2026-04-22T19:07:58.412Z"
+              }
+            },
+            {
+              "id": 29,
+              "artist": "@ikach_526",
+              "image": "/assets/commissions/ruri_tinytale/@ikach_526.png",
+              "sourceUrl": "https://x.com/ikach_526/status/2038957644132851719/",
+              "metadata": {
+                "fileSize": 1743138,
+                "format": "png",
+                "addedDate": "2026-04-22T19:08:07.956Z"
+              }
+            },
+            {
+              "id": 30,
+              "artist": "pufflewaffles",
+              "image": "/assets/commissions/ruri_tinytale/Wuwi&RyeBnnuy.png",
+              "sourceUrl": "https://x.com/pufflewaffles/status/2043026296448651419",
+              "metadata": {
+                "fileSize": 3253026,
+                "format": "png",
+                "addedDate": "2026-04-22T19:09:13.598Z"
+              }
             }
           ]
         },
@@ -523,6 +556,17 @@
                 "format": "png",
                 "addedDate": "2026-03-15T16:16:18.407Z"
               }
+            },
+            {
+              "id": 2,
+              "artist": "@pufflewaffles",
+              "image": "/assets/commissions/ryenna/Wuwi&RyeBnnuy.png",
+              "sourceUrl": "https://x.com/pufflewaffles/status/2043026296448651419",
+              "metadata": {
+                "fileSize": 3253026,
+                "format": "png",
+                "addedDate": "2026-04-22T19:09:07.435Z"
+              }
             }
           ]
         },
@@ -582,6 +626,7 @@
     {
       "id": 4,
       "name": "Piper Permit",
+      "status": "hiatus",
       "species": "Gloomy Librarian",
       "color": "#4a5f8f",
       "links": [
@@ -657,6 +702,17 @@
                 "fileSize": 4008028,
                 "format": "png",
                 "addedDate": "2025-12-27T02:19:06.381Z"
+              }
+            },
+            {
+              "id": 6,
+              "artist": "@Ly05YY",
+              "image": "/assets/commissions/piper_permit/@Ly05YY.png",
+              "sourceUrl": "https://skeb.jp/@Ly05YY/works/330",
+              "metadata": {
+                "fileSize": 4482818,
+                "format": "png",
+                "addedDate": "2026-04-22T19:06:04.762Z"
               }
             }
           ]
@@ -847,6 +903,17 @@
                 "format": "png",
                 "addedDate": "2026-03-15T16:16:45.309Z"
               }
+            },
+            {
+              "id": 4,
+              "artist": "@nasty_nasu",
+              "image": "/assets/commissions/rixxy_brightful/@nasty_nasu.gif",
+              "sourceUrl": "https://x.com/nasty_nasu/status/2035617732759314650/",
+              "metadata": {
+                "fileSize": 2195496,
+                "format": "gif",
+                "addedDate": "2026-04-22T19:06:28.244Z"
+              }
             }
           ]
         }
@@ -967,7 +1034,6 @@
     {
       "id": 13,
       "name": "Arane Purnama",
-      "status": "hiatus",
       "species": "Fallen Sorceress",
       "color": "#2d7a7f",
       "links": [
@@ -1083,6 +1149,6 @@
   ],
   "meta": {
     "totalCharacters": 15,
-    "totalCommissions": 60
+    "totalCommissions": 66
   }
 }

@@ -1,11 +1,18 @@
 {
   "id": 4,
   "name": "Piper Permit",
+  "status": "hiatus",
   "species": "Gloomy Librarian",
   "color": "#4a5f8f",
   "links": [
-    {"type": "twitter", "url": "https://twitter.com/PiperPermit"},
-    {"type": "carrd", "url": "https://piperpermit.carrd.co/"}
+    {
+      "type": "twitter",
+      "url": "https://twitter.com/PiperPermit"
+    },
+    {
+      "type": "carrd",
+      "url": "https://piperpermit.carrd.co/"
+    }
   ],
   "versions": [
     {
@@ -46,6 +53,12 @@
           "artist": "@puffiewaffles",
           "image": "/assets/commissions/ruri_tinytale/@puffiewaffles-wupiper.png",
           "sourceUrl": "https://x.com/pufflewaffles/status/1931212540014457028/"
+        },
+        {
+          "id": 6,
+          "artist": "@Ly05YY",
+          "image": "/assets/commissions/piper_permit/@Ly05YY.png",
+          "sourceUrl": "https://skeb.jp/@Ly05YY/works/330"
         }
       ]
     }
