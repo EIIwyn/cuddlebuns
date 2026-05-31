@@ -4,7 +4,10 @@
   "species": "Hall Monitor",
   "color": "#4db8c4",
   "links": [
-    {"type": "twitter", "url": "https://twitter.com/ManonMerope"}
+    {
+      "type": "twitter",
+      "url": "https://twitter.com/ManonMerope"
+    }
   ],
   "versions": [
     {
@@ -25,6 +28,12 @@
           "artist": "@Ordi_AT",
           "image": "/assets/commissions/manon_merope/@Ordi_AT.gif",
           "sourceUrl": "https://x.com/Ordi_AT"
+        },
+        {
+          "id": 3,
+          "artist": "@ko_torute",
+          "image": "/assets/commissions/manon_merope/@ko_torute.png",
+          "sourceUrl": "https://x.com/ko_torute/status/2048720546846875974/"
         }
       ]
     }
