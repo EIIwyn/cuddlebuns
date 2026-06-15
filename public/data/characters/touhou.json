@@ -1,0 +1,14 @@
+{
+  "id": 16,
+  "name": "Touhou",
+  "group": "etc",
+  "species": "Other",
+  "color": "#ff69b4",
+  "versions": [
+    {
+      "id": "default",
+      "name": "Touhou",
+      "commissions": []
+    }
+  ]
+}

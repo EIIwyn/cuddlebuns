@@ -764,20 +764,6 @@
       ]
     },
     {
-      "id": 5,
-      "name": "Arknights",
-      "group": "etc",
-      "species": "+ Endfield",
-      "color": "#00b5cc",
-      "versions": [
-        {
-          "id": "default",
-          "name": "In Progress",
-          "commissions": []
-        }
-      ]
-    },
-    {
       "id": 6,
       "name": "Manon Merope",
       "species": "Hall Monitor",
@@ -1098,40 +1084,6 @@
       ]
     },
     {
-      "id": 13,
-      "name": "Arane Purnama",
-      "species": "Fallen Sorceress",
-      "color": "#2d7a7f",
-      "links": [
-        {
-          "type": "twitter",
-          "url": "https://x.com/aranepurnama"
-        },
-        {
-          "type": "linktree",
-          "url": "https://linktr.ee/AranePurnama"
-        }
-      ],
-      "versions": [
-        {
-          "id": "default",
-          "name": "Arane",
-          "refSheets": [
-            "/assets/referencesheets/arane_purnama_reference.png"
-          ],
-          "commissions": []
-        },
-        {
-          "id": "dress",
-          "name": "Dress",
-          "refSheets": [
-            "/assets/referencesheets/arane_purnama_reference.png"
-          ],
-          "commissions": []
-        }
-      ]
-    },
-    {
       "id": 14,
       "name": "Pyon Phelix",
       "species": "Art Cute Student",
@@ -1231,12 +1183,66 @@
               }
             }
           ]
+        },
+        {
+          "id": "Arknights",
+          "name": "Arknights",
+          "commissions": []
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "name": "Touhou",
+      "group": "etc",
+      "species": "Other",
+      "color": "#ff69b4",
+      "versions": [
+        {
+          "id": "default",
+          "name": "Touhou",
+          "commissions": []
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "name": "OC",
+      "group": "etc",
+      "species": "Other",
+      "color": "#ffb347",
+      "versions": [
+        {
+          "id": "default",
+          "name": "OC",
+          "commissions": []
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "name": "Nynx Omnia",
+      "group": "etc",
+      "species": "Vtuber",
+      "color": "#8c2ef4",
+      "hidden": true,
+      "versions": [
+        {
+          "id": "default",
+          "name": "Nynx Omnia",
+          "commissions": []
+        }
+      ],
+      "links": [
+        {
+          "type": "twitter",
+          "url": "https://x.com/nynxomnia"
         }
       ]
     }
   ],
   "meta": {
-    "totalCharacters": 15,
+    "totalCharacters": 16,
     "totalCommissions": 74
   }
 }

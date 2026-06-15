@@ -14,6 +14,7 @@ export function Gallery() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [characters, setCharacters] = useState([]);
   const [selectedChar, setSelectedChar] = useState(null);
+  const showHiddenChars = searchParams.has('hidden');
   const [selectedVersion, setSelectedVersion] = useState(null);
   const [showCommissions, setShowCommissions] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -115,6 +116,9 @@ export function Gallery() {
       const versionSlug = newVersion.name.toLowerCase().replace(/\s+/g, '-');
       newParams.set('version', versionSlug);
     }
+    if (showHiddenChars) {
+      newParams.set('hidden', '');
+    }
     setSearchParams(newParams);
   };
 
@@ -130,6 +134,9 @@ export function Gallery() {
       const versionSlug = version.name.toLowerCase().replace(/\s+/g, '-');
       newParams.set('character', characterSlug);
       newParams.set('version', versionSlug);
+      if (showHiddenChars) {
+        newParams.set('hidden', '');
+      }
       setSearchParams(newParams);
     }
   };
@@ -221,10 +228,30 @@ export function Gallery() {
 
         {/* Character Selection */}
         {(() => {
-          const activeChars = characters.filter(c => c.status !== 'hiatus');
+          const activeChars = characters.filter(c => c.status !== 'hiatus' && !c.hidden);
           const hiatusChars = characters.filter(c => c.status === 'hiatus');
-          const mainChars = activeChars.filter(c => c.group !== 'etc');
-          const etcChars = activeChars.filter(c => c.group === 'etc');
+          const hiddenChars = showHiddenChars
+            ? characters.filter(c => c.status !== 'hiatus' && c.hidden)
+            : [];
+          const mainChars = [
+            ...activeChars.filter(c => c.group !== 'etc'),
+            ...hiddenChars.filter(c => c.group !== 'etc'),
+            // Show selected hidden character even without ?hidden parameter
+            ...(selectedChar?.hidden && !hiddenChars.some(c => c.id === selectedChar.id) ? [selectedChar] : [])
+          ];
+          const standardEtcChars = activeChars.filter(c => c.group === 'etc' && c.name !== 'OC');
+          const ocChars = activeChars.filter(c => c.group === 'etc' && c.name === 'OC');
+          const orderMap = {
+            Touhou: 0,
+            UmaMusume: 1,
+            Miscellaneous: 2
+          };
+          const sortedEtcChars = [...standardEtcChars].sort((a, b) => {
+            const aOrder = orderMap[a.name] ?? 10;
+            const bOrder = orderMap[b.name] ?? 10;
+            if (aOrder !== bOrder) return aOrder - bOrder;
+            return a.name.localeCompare(b.name);
+          });
           return (
             <div className="character-nav-wrapper">
               <div className="character-nav-row">
@@ -239,9 +266,22 @@ export function Gallery() {
                     />
                   ))}
                 </nav>
-                {etcChars.length > 0 && (
+                {sortedEtcChars.length > 0 && (
                   <nav className="character-nav character-nav--etc">
-                    {etcChars.map(character => (
+                    {sortedEtcChars.map(character => (
+                      <CharacterButton
+                        key={character.id}
+                        character={character}
+                        isSelected={selectedChar?.id === character.id}
+                        onClick={() => handleCharacterSelect(character)}
+                        lang={language}
+                      />
+                    ))}
+                  </nav>
+                )}
+                {ocChars.length > 0 && (
+                  <nav className="character-nav character-nav--oc">
+                    {ocChars.map(character => (
                       <CharacterButton
                         key={character.id}
                         character={character}

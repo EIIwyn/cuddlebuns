@@ -8,11 +8,13 @@
     "build": "node scripts/renumber-ids.js && node scripts/build-characters.js && vite build",
     "build:data": "node scripts/build-characters.js",
     "build:renumber": "node scripts/renumber-ids.js",
+    "link:assets": "node scripts/link-dist-assets.js",
     "add": "node scripts/add-commissions.js",
     "convert:images": "node scripts/convert-images.js",
     "convert:images:force": "node scripts/convert-images.js --force",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "preview:local": "npm run build && npm run link:assets && vite preview --host 127.0.0.1 --port 4173"
   },
   "dependencies": {
     "react": "^19.2.0",

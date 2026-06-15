@@ -49,7 +49,9 @@ export const translations = {
         },
         characterNames: {
             "UmaMusume": "UmaMusume",
-            "Arknights": "Arknights"
+            "Arknights": "Arknights",
+            "Touhou": "Touhou",
+            "OC": "OC"
         }
     },
     ja: {
@@ -99,7 +101,9 @@ export const translations = {
         },
         characterNames: {
             "UmaMusume": "ウマ娘",
-            "Arknights": "アークナイツ"
+            "Arknights": "アークナイツ",
+            "Touhou": "Touhou",
+            "OC": "オリジナルキャラクター"
         }
     }
 };

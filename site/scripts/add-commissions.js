@@ -8,6 +8,8 @@ const __dirname = path.dirname(__filename);
 
 const ASSETS_DIR = path.resolve(__dirname, '../../assets');
 const CHARACTERS_DIR = path.resolve(__dirname, '../public/data/characters');
+const ROOT_CHARACTERS_DIR = path.resolve(__dirname, '../../public/data/characters');
+const ROOT_CHARACTERS_EXISTS = fs.existsSync(ROOT_CHARACTERS_DIR);
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -278,13 +280,16 @@ async function addCommissionsInteractive() {
 
     console.log(`✅ Added commission #${nextId} to ${charData.content.name}`);
 
-    // Save the updated character file
-    fs.writeFileSync(
-      charData.filePath,
-      JSON.stringify(charData.content, null, 2)
-    );
+    // Save the updated character file in the site data directory
+    const formattedJson = JSON.stringify(charData.content, null, 2) + '\n';
+    fs.writeFileSync(charData.filePath, formattedJson, 'utf8');
+    console.log(`💾 Saved ${charData.file} in site/public/data/characters`);
 
-    console.log(`💾 Saved ${charData.file}`);
+    if (ROOT_CHARACTERS_EXISTS) {
+      const rootFilePath = path.join(ROOT_CHARACTERS_DIR, charData.file);
+      fs.writeFileSync(rootFilePath, formattedJson, 'utf8');
+      console.log(`💾 Saved ${charData.file} in public/data/characters`);
+    }
   }
 
   console.log('\n' + '='.repeat(60));

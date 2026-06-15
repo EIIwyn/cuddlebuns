@@ -1,0 +1,20 @@
+{
+  "id": 18,
+  "name": "Nynx Omnia",
+  "species": "Vtuber",
+  "color": "#8c2ef4",
+  "hidden": true,
+  "versions": [
+    {
+      "id": "default",
+      "name": "Nynx Omnia",
+      "commissions": []
+    }
+  ],
+  "links": [
+    {
+      "type": "twitter",
+      "url": "https://x.com/nynxomnia"
+    }
+  ]
+}

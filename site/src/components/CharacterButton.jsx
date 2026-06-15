@@ -15,6 +15,12 @@ export function CharacterButton({ character, isSelected, onClick, lang = 'en' })
             : '0 4px 16px rgba(0,0,0,0.2)',
     };
 
+    const subtitle = character.name === 'Touhou'
+        ? (lang === 'ja' ? 'プロジェクト' : 'Project')
+        : character.name === 'OC'
+            ? ''
+            : translateSpecies(character.species, lang);
+
     return (
         <button
             className="character-btn"
@@ -31,7 +37,9 @@ export function CharacterButton({ character, isSelected, onClick, lang = 'en' })
                 }}
             />
             <div className="character-btn__name">{translateCharacterName(character.name, lang)}</div>
-            <div className="character-btn__species">{translateSpecies(character.species, lang)}</div>
+            {subtitle && (
+                <div className="character-btn__species">{subtitle}</div>
+            )}
         </button>
     );
 }
