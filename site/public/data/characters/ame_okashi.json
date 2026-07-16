@@ -4,22 +4,37 @@
   "species": "Uma Confectioner",
   "color": "#a94064",
   "links": [
-    {"type": "twitter","url": "https://x.com/ameokashi"},
-    {"type": "carrd","url": "https://ameokashi.carrd.co/"}
+    {
+      "type": "twitter",
+      "url": "https://x.com/ameokashi"
+    },
+    {
+      "type": "carrd",
+      "url": "https://ameokashi.carrd.co/"
+    }
   ],
   "versions": [
     {
       "id": "default",
       "name": "Ame",
-      "refSheets": ["/assets/referencesheets/ame_okashi_reference.png"],
+      "refSheets": [
+        "/assets/referencesheets/ame_okashi_reference.png"
+      ],
       "commissions": [
-        
+        {
+          "id": 1,
+          "artist": "@sanagi2naritai4",
+          "image": "/assets/commissions/ame_okashi/@sanagi2naritai4.png",
+          "sourceUrl": "https://x.com/sanagi2naritai4/status/2066911108770959384/photo/1"
+        }
       ]
     },
     {
       "id": "cozy",
       "name": "Cozy",
-      "refSheets": ["/assets/referencesheets/ame_okashi_reference2.png"],
+      "refSheets": [
+        "/assets/referencesheets/ame_okashi_reference2.png"
+      ],
       "commissions": [
         {
           "id": 1,
@@ -28,6 +43,6 @@
           "sourceUrl": "https://x.com/sa_na_517/status/2000915787935269017/"
         }
       ]
-    }    
+    }
   ]
 }

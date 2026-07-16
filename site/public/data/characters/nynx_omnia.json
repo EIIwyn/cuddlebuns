@@ -8,7 +8,14 @@
     {
       "id": "default",
       "name": "Nynx Omnia",
-      "commissions": []
+      "commissions": [
+        {
+          "id": 1,
+          "artist": "@枝澜Kkio (Pipi11872)",
+          "image": "/assets/commissions/nynx_omnia/@枝澜Kkio (Pipi11872).png",
+          "sourceUrl": "https://pipipen.com/a/11872"
+        }
+      ]
     }
   ],
   "links": [
