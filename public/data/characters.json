@@ -385,6 +385,105 @@
                 "format": "png",
                 "addedDate": "2026-05-31T18:15:48.467Z"
               }
+            },
+            {
+              "id": 34,
+              "artist": "@bebe_illust_",
+              "image": "/assets/commissions/ruri_tinytale/@bebe_illust_.png",
+              "sourceUrl": "https://x.com/bebe_illust_/status/2067895183962939483/photo/1",
+              "metadata": {
+                "fileSize": 1653284,
+                "format": "png",
+                "addedDate": "2026-06-20T16:16:53.492Z"
+              }
+            },
+            {
+              "id": 35,
+              "artist": "@CitronRoll_",
+              "image": "/assets/commissions/ruri_tinytale/@CitronRoll_.png",
+              "sourceUrl": "https://skeb.jp/@CitronRoll_",
+              "metadata": {
+                "fileSize": 3044836,
+                "format": "png",
+                "addedDate": "2026-06-20T16:17:05.104Z"
+              }
+            },
+            {
+              "id": 36,
+              "artist": "@dosti_dosti",
+              "image": "/assets/commissions/ruri_tinytale/@dosti_dosti.png",
+              "sourceUrl": "https://x.com/dosti_dosti/status/2073326466906157503/photo/1",
+              "metadata": {
+                "fileSize": 7343472,
+                "format": "png",
+                "addedDate": "2026-07-16T03:39:10.175Z"
+              }
+            },
+            {
+              "id": 37,
+              "artist": "@erunoto_",
+              "image": "/assets/commissions/ruri_tinytale/@erunoto_.png",
+              "sourceUrl": "https://x.com/erunoto_/status/2063561617657528558/photo/1",
+              "metadata": {
+                "fileSize": 6464440,
+                "format": "png",
+                "addedDate": "2026-06-20T16:17:20.285Z"
+              }
+            },
+            {
+              "id": 38,
+              "artist": "@Kyouka_Abi",
+              "image": "/assets/commissions/ruri_tinytale/@Kyouka_Abi.png",
+              "sourceUrl": "https://skeb.jp/@Kyouka_Abi",
+              "metadata": {
+                "fileSize": 3269202,
+                "format": "png",
+                "addedDate": "2026-07-16T03:39:27.384Z"
+              }
+            },
+            {
+              "id": 39,
+              "artist": "@om_kanna ",
+              "image": "/assets/commissions/ruri_tinytale/@om_kanna .png",
+              "sourceUrl": "https://pipipen.com/a/Pipi14488",
+              "metadata": {
+                "fileSize": 5430694,
+                "format": "png",
+                "addedDate": "2026-07-16T03:40:18.220Z"
+              }
+            },
+            {
+              "id": 40,
+              "artist": "@puffiewaffles",
+              "image": "/assets/commissions/ruri_tinytale/@puffiewaffles-shotgun.png",
+              "sourceUrl": "https://x.com/pufflewaffles/status/2068031059313262873/photo/1",
+              "metadata": {
+                "fileSize": 4050435,
+                "format": "png",
+                "addedDate": "2026-06-20T16:16:27.001Z"
+              }
+            },
+            {
+              "id": 41,
+              "artist": "@山吹色色 (Pipi18158) ",
+              "image": "/assets/commissions/ruri_tinytale/@山吹色色 (Pipi18158) .png",
+              "sourceUrl": "https://pipipen.com/a/Pipi18158",
+              "metadata": {
+                "fileSize": 1262080,
+                "format": "png",
+                "addedDate": "2026-07-16T03:40:18.207Z"
+              }
+            },
+            {
+              "id": 42,
+              "artist": "@puffiewaffles",
+              "image": "/assets/commissions/ruri_tinytale/WuwiMerlin.png",
+              "sourceUrl": "https://x.com/pufflewaffles/status/2074554037614399990/photo/1",
+              "metadata": {
+                "fileSize": 5015356,
+                "format": "png",
+                "addedDate": "2026-07-16T03:40:33.925Z"
+              }
             }
           ]
         },
@@ -437,6 +536,17 @@
                 "fileSize": 3107385,
                 "format": "png",
                 "addedDate": "2025-12-27T03:53:25.720Z"
+              }
+            },
+            {
+              "id": 5,
+              "artist": "@om_kanna  ",
+              "image": "/assets/commissions/ruri_tinytale/wiwu/@om_kanna  .png",
+              "sourceUrl": "https://pipipen.com/a/Pipi14488",
+              "metadata": {
+                "fileSize": 355032,
+                "format": "png",
+                "addedDate": "2026-07-16T03:40:18.218Z"
               }
             }
           ]
@@ -632,6 +742,28 @@
                 "fileSize": 2681881,
                 "format": "jpg",
                 "addedDate": "2026-06-15T02:59:38.969Z"
+              }
+            },
+            {
+              "id": 6,
+              "artist": "随时die命",
+              "image": "/assets/commissions/ryenna/随时die命 01.png",
+              "sourceUrl": "https://pipipen.com/a/643209144_",
+              "metadata": {
+                "fileSize": 6115270,
+                "format": "png",
+                "addedDate": "2026-07-16T03:38:35.501Z"
+              }
+            },
+            {
+              "id": 7,
+              "artist": "随时die命",
+              "image": "/assets/commissions/ryenna/随时die命 04.png",
+              "sourceUrl": "https://pipipen.com/a/643209144_",
+              "metadata": {
+                "fileSize": 5621944,
+                "format": "png",
+                "addedDate": "2026-07-16T03:38:35.483Z"
               }
             }
           ]
@@ -1080,7 +1212,19 @@
           "refSheets": [
             "/assets/referencesheets/ame_okashi_reference.png"
           ],
-          "commissions": []
+          "commissions": [
+            {
+              "id": 1,
+              "artist": "@sanagi2naritai4",
+              "image": "/assets/commissions/ame_okashi/@sanagi2naritai4.png",
+              "sourceUrl": "https://x.com/sanagi2naritai4/status/2066911108770959384/photo/1",
+              "metadata": {
+                "fileSize": 2410285,
+                "format": "png",
+                "addedDate": "2026-07-16T03:37:43.350Z"
+              }
+            }
+          ]
         },
         {
           "id": "cozy",
@@ -1123,7 +1267,19 @@
             "/assets/referencesheets/elise_thornheart_reference.png",
             "/assets/referencesheets/elise_thornheart_reference2.png"
           ],
-          "commissions": []
+          "commissions": [
+            {
+              "id": 1,
+              "artist": "@kimoo",
+              "image": "/assets/commissions/elise_thornheart/@kimoo.jpg",
+              "sourceUrl": "https://pipipen.com/a/kimoo233",
+              "metadata": {
+                "fileSize": 9591092,
+                "format": "jpg",
+                "addedDate": "2026-06-20T16:16:00.115Z"
+              }
+            }
+          ]
         }
       ]
     },
@@ -1203,18 +1359,6 @@
                 "format": "png",
                 "addedDate": "2025-12-27T02:19:06.307Z"
               }
-            },
-            {
-              "id": 2,
-              "artist": "@mamezako_chan",
-              "image": "/assets/commissions/miscellaneous/@mamezako_chan.png",
-              "sourceUrl": "https://skeb.jp/@mamezako_chan"
-            },
-            {
-              "id": 3,
-              "artist": "ruritinytale",
-              "image": "/assets/commissions/miscellaneous/ptilopsis_transparent.png",
-              "sourceUrl": "https://vgen.co/RuriTinytale"
             }
           ]
         },
@@ -1286,7 +1430,19 @@
         {
           "id": "default",
           "name": "Nynx Omnia",
-          "commissions": []
+          "commissions": [
+            {
+              "id": 1,
+              "artist": "@枝澜Kkio (Pipi11872)",
+              "image": "/assets/commissions/nynx_omnia/@枝澜Kkio (Pipi11872).png",
+              "sourceUrl": "https://pipipen.com/a/11872",
+              "metadata": {
+                "fileSize": 2559440,
+                "format": "png",
+                "addedDate": "2026-06-20T16:18:17.596Z"
+              }
+            }
+          ]
         }
       ],
       "links": [
@@ -1315,6 +1471,6 @@
   ],
   "meta": {
     "totalCharacters": 17,
-    "totalCommissions": 80
+    "totalCommissions": 93
   }
 }
