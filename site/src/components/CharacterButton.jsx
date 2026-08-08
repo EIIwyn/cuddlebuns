@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { translateCharacterName, translateSpecies } from '../translations';
+import { translateCharacterName, translateCharacterSubtitle, translateSpecies } from '../translations';
 
 export function CharacterButton({ character, isSelected, onClick, lang = 'en' }) {
     const [isHovered, setIsHovered] = useState(false);
@@ -15,11 +15,12 @@ export function CharacterButton({ character, isSelected, onClick, lang = 'en' })
             : '0 4px 16px rgba(0,0,0,0.2)',
     };
 
+    const subtitleOverride = translateCharacterSubtitle(character.name, lang);
     const subtitle = character.name === 'Touhou'
         ? (lang === 'ja' ? 'プロジェクト' : 'Project')
         : character.name === 'OC'
             ? ''
-            : translateSpecies(character.species, lang);
+            : subtitleOverride || translateSpecies(character.species, lang);
 
     return (
         <button

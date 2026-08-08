@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { translations, getCommissions, shuffleArray } from '../translations';
+import { translations, getCommissions, shuffleArray, downloadReferenceSheet } from '../translations';
 import { LoadingScreen } from '../components/LoadingScreen';
 import { ErrorScreen } from '../components/ErrorScreen';
 import { CharacterButton } from '../components/CharacterButton';
@@ -10,11 +10,11 @@ import { ReferenceSheet } from '../components/ReferenceSheet';
 import { CommissionsGrid } from '../components/CommissionsGrid';
 import { Lightbox } from '../components/Lightbox';
 
+
 export function Gallery() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [characters, setCharacters] = useState([]);
   const [selectedChar, setSelectedChar] = useState(null);
-  const showHiddenChars = searchParams.has('hidden');
   const [selectedVersion, setSelectedVersion] = useState(null);
   const [showCommissions, setShowCommissions] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -24,7 +24,11 @@ export function Gallery() {
   const [refSheetIndex, setRefSheetIndex] = useState(0);
   const [showHiatus, setShowHiatus] = useState(false);
 
-  // Lightbox state
+  // Expanded sheet state (for reference sheets)
+  const [expandedSheet, setExpandedSheet] = useState(null);
+  const [expandedSheetIndex, setExpandedSheetIndex] = useState(0);
+
+  // Lightbox state (for commissions)
   const [lightboxImage, setLightboxImage] = useState(null);
   const [lightboxInfo, setLightboxInfo] = useState(null);
   const [lightboxIsRefSheet, setLightboxIsRefSheet] = useState(false);
@@ -116,9 +120,6 @@ export function Gallery() {
       const versionSlug = newVersion.name.toLowerCase().replace(/\s+/g, '-');
       newParams.set('version', versionSlug);
     }
-    if (showHiddenChars) {
-      newParams.set('hidden', '');
-    }
     setSearchParams(newParams);
   };
 
@@ -134,9 +135,6 @@ export function Gallery() {
       const versionSlug = version.name.toLowerCase().replace(/\s+/g, '-');
       newParams.set('character', characterSlug);
       newParams.set('version', versionSlug);
-      if (showHiddenChars) {
-        newParams.set('hidden', '');
-      }
       setSearchParams(newParams);
     }
   };
@@ -146,13 +144,52 @@ export function Gallery() {
     setLanguage(lang => lang === 'en' ? 'ja' : 'en');
   };
 
-  // Handle lightbox open
+  // Handle image click - inline expansion for ref sheets, lightbox for commissions
   const handleImageClick = (image, commission, isRefSheet, versionName = null, refSheets = null, index = 0) => {
-    setLightboxImage(image);
-    setLightboxInfo(commission || { refSheets });
-    setLightboxIsRefSheet(isRefSheet);
-    setLightboxVersionName(versionName);
-    setLightboxRefSheetIndex(index);
+    if (isRefSheet) {
+      // Inline expansion for reference sheets
+      setExpandedSheet({ refSheets, versionName, character: selectedChar });
+      setExpandedSheetIndex(index);
+    } else {
+      // Lightbox for commissions
+      setLightboxImage(image);
+      setLightboxInfo(commission);
+      setLightboxIsRefSheet(false);
+      setLightboxVersionName(versionName);
+      setLightboxRefSheetIndex(index);
+    }
+  };
+
+  // Handle expanded sheet close
+  const handleExpandedSheetClose = () => {
+    setExpandedSheet(null);
+    setExpandedSheetIndex(0);
+  };
+
+  // Handle expanded sheet navigation
+  const handleExpandedSheetNext = () => {
+    if (expandedSheet?.refSheets) {
+      setExpandedSheetIndex((i) => (i + 1) % expandedSheet.refSheets.length);
+    }
+  };
+
+  const handleExpandedSheetPrev = () => {
+    if (expandedSheet?.refSheets) {
+      setExpandedSheetIndex((i) => (i - 1 + expandedSheet.refSheets.length) % expandedSheet.refSheets.length);
+    }
+  };
+
+  // Handle expanded sheet download
+  const handleExpandedSheetDownload = async () => {
+    if (expandedSheet && selectedChar) {
+      await downloadReferenceSheet(
+        expandedSheet.refSheets[expandedSheetIndex],
+        selectedChar.name,
+        expandedSheet.versionName,
+        expandedSheetIndex,
+        expandedSheet.refSheets.length
+      );
+    }
   };
 
   // Handle lightbox close
@@ -228,47 +265,22 @@ export function Gallery() {
 
         {/* Character Selection */}
         {(() => {
-          const activeChars = characters.filter(c => c.status !== 'hiatus' && !c.hidden);
+          const activeChars = characters.filter(c => c.status !== 'hiatus');
           const hiatusChars = characters.filter(c => c.status === 'hiatus');
-          const hiddenChars = showHiddenChars
-            ? characters.filter(c => c.status !== 'hiatus' && c.hidden)
-            : [];
-          const mainChars = [
-            ...activeChars.filter(c => c.group !== 'etc'),
-            ...hiddenChars.filter(c => c.group !== 'etc'),
-            // Show selected hidden character even without ?hidden parameter
-            ...(selectedChar?.hidden && !hiddenChars.some(c => c.id === selectedChar.id) ? [selectedChar] : [])
-          ];
-          const standardEtcChars = activeChars.filter(c => c.group === 'etc' && c.name !== 'OC');
-          const ocChars = activeChars.filter(c => c.group === 'etc' && c.name === 'OC');
-          const orderMap = {
-            Touhou: 0,
-            UmaMusume: 1,
-            Miscellaneous: 2
-          };
-          const sortedEtcChars = [...standardEtcChars].sort((a, b) => {
-            const aOrder = orderMap[a.name] ?? 10;
-            const bOrder = orderMap[b.name] ?? 10;
-            if (aOrder !== bOrder) return aOrder - bOrder;
-            return a.name.localeCompare(b.name);
-          });
+          const mainRows = [
+            activeChars.filter(c => c.name === 'OC'),
+            activeChars.filter(c => ['Touhou', 'UmaMusume', 'Miscellaneous'].includes(c.name)),
+            activeChars.filter(c => ['Ryenna', 'Ame Okashi', 'Elise Thornheart', 'Nynx Omnia'].includes(c.name))
+          ].filter(row => row.length > 0);
           return (
             <div className="character-nav-wrapper">
               <div className="character-nav-row">
-                <nav className="character-nav">
-                  {mainChars.map(character => (
-                    <CharacterButton
-                      key={character.id}
-                      character={character}
-                      isSelected={selectedChar?.id === character.id}
-                      onClick={() => handleCharacterSelect(character)}
-                      lang={language}
-                    />
-                  ))}
-                </nav>
-                {sortedEtcChars.length > 0 && (
-                  <nav className="character-nav character-nav--etc">
-                    {sortedEtcChars.map(character => (
+                {mainRows.map((row, rowIndex) => (
+                  <nav
+                    key={`row-${rowIndex}`}
+                    className={`character-nav character-nav--row character-nav--row-${rowIndex + 1}`}
+                  >
+                    {row.map(character => (
                       <CharacterButton
                         key={character.id}
                         character={character}
@@ -278,20 +290,7 @@ export function Gallery() {
                       />
                     ))}
                   </nav>
-                )}
-                {ocChars.length > 0 && (
-                  <nav className="character-nav character-nav--oc">
-                    {ocChars.map(character => (
-                      <CharacterButton
-                        key={character.id}
-                        character={character}
-                        isSelected={selectedChar?.id === character.id}
-                        onClick={() => handleCharacterSelect(character)}
-                        lang={language}
-                      />
-                    ))}
-                  </nav>
-                )}
+                ))}
               </div>
               {hiatusChars.length > 0 && (
                 <div className="hiatus-section">
@@ -404,8 +403,60 @@ export function Gallery() {
         )}
       </div>
 
-      {/* Lightbox */}
-      {lightboxImage && (
+      {/* Expanded Sheet View - only for reference sheets */}
+      {expandedSheet && (
+        <div className="expanded-sheet-overlay" onClick={handleExpandedSheetClose}>
+          <button className="expanded-sheet-close" onClick={handleExpandedSheetClose}>✕</button>
+          <div className="expanded-sheet-container" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={expandedSheet.refSheets[expandedSheetIndex]}
+              alt={`${expandedSheet.character.name} Reference Sheet ${expandedSheetIndex + 1}`}
+              className="expanded-sheet-image"
+            />
+            {expandedSheet.refSheets.length > 1 && (
+              <>
+                <button
+                  className="expanded-sheet-nav expanded-sheet-nav--prev"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleExpandedSheetPrev();
+                  }}
+                  aria-label={t.previousRefSheet}
+                >
+                  ‹
+                </button>
+                <button
+                  className="expanded-sheet-nav expanded-sheet-nav--next"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleExpandedSheetNext();
+                  }}
+                  aria-label={t.nextRefSheet}
+                >
+                  ›
+                </button>
+                <div className="expanded-sheet-indicator">
+                  {expandedSheetIndex + 1} / {expandedSheet.refSheets.length}
+                </div>
+              </>
+            )}
+            <button
+              className="expanded-sheet-download-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleExpandedSheetDownload();
+              }}
+              aria-label={t.downloadRefSheet}
+            >
+              <span className="expanded-sheet-download-btn__icon">⬇️</span>
+              <span className="expanded-sheet-download-btn__text">{t.downloadRefSheet}</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox - only for commissions */}
+      {lightboxImage && !lightboxIsRefSheet && (
         <Lightbox
           image={lightboxImage}
           info={lightboxInfo}

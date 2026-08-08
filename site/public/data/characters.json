@@ -3,6 +3,7 @@
     {
       "id": 1,
       "name": "Ruri Tinytale",
+      "status": "hiatus",
       "species": "Kobold",
       "color": "#7be3f2",
       "links": [
@@ -484,6 +485,39 @@
                 "format": "png",
                 "addedDate": "2026-07-16T03:40:33.925Z"
               }
+            },
+            {
+              "id": 43,
+              "artist": "@Haneumi_Maru",
+              "image": "/assets/commissions/ruri_tinytale/@Haneumi_Maru.png",
+              "sourceUrl": "https://skeb.jp/@Haneumi_Maru",
+              "metadata": {
+                "fileSize": 1483150,
+                "format": "png",
+                "addedDate": "2026-08-07T15:38:26.066Z"
+              }
+            },
+            {
+              "id": 44,
+              "artist": "@onsa_oO ",
+              "image": "/assets/commissions/ruri_tinytale/@onsa_oO .png",
+              "sourceUrl": "https://skeb.jp/@onsa_oO",
+              "metadata": {
+                "fileSize": 2276769,
+                "format": "png",
+                "addedDate": "2026-07-16T04:04:09.696Z"
+              }
+            },
+            {
+              "id": 45,
+              "artist": "@onsa_oO",
+              "image": "/assets/commissions/ruri_tinytale/@onsa_oO.png",
+              "sourceUrl": "https://skeb.jp/@onsa_oO",
+              "metadata": {
+                "fileSize": 2069535,
+                "format": "png",
+                "addedDate": "2026-07-16T04:04:09.708Z"
+              }
             }
           ]
         },
@@ -548,6 +582,17 @@
                 "format": "png",
                 "addedDate": "2026-07-16T03:40:18.218Z"
               }
+            },
+            {
+              "id": 6,
+              "artist": "@unanooo_",
+              "image": "/assets/commissions/ruri_tinytale/wiwu/@unanooo_.png",
+              "sourceUrl": "https://x.com/unanooo_/status/2079028663862112561/",
+              "metadata": {
+                "fileSize": 4231388,
+                "format": "png",
+                "addedDate": "2026-08-07T15:39:40.202Z"
+              }
             }
           ]
         },
@@ -564,6 +609,7 @@
     {
       "id": 2,
       "name": "Nano Gure",
+      "status": "hiatus",
       "species": "Cyber Princess",
       "color": "#c4a0b0",
       "links": [
@@ -920,6 +966,7 @@
     {
       "id": 6,
       "name": "Manon Merope",
+      "status": "hiatus",
       "species": "Hall Monitor",
       "color": "#4db8c4",
       "links": [
@@ -990,31 +1037,30 @@
                 "format": "png",
                 "addedDate": "2026-06-15T01:59:02.032Z"
               }
+            },
+            {
+              "id": 6,
+              "artist": "@Haneumi_Maru",
+              "image": "/assets/commissions/manon_merope/@Haneumi_Maru.png",
+              "sourceUrl": "https://skeb.jp/@Haneumi_Maru",
+              "metadata": {
+                "fileSize": 241460,
+                "format": "png",
+                "addedDate": "2026-08-07T15:43:10.283Z"
+              }
+            },
+            {
+              "id": 7,
+              "artist": "@大大大大大汉堡",
+              "image": "/assets/commissions/manon_merope/@大大大大大汉堡.png",
+              "sourceUrl": "https://pipipen.com/a/BigHamburger",
+              "metadata": {
+                "fileSize": 1957600,
+                "format": "png",
+                "addedDate": "2026-08-07T15:43:10.277Z"
+              }
             }
           ]
-        }
-      ]
-    },
-    {
-      "id": 7,
-      "name": "Puri",
-      "status": "hiatus",
-      "species": "Shrimp Cat",
-      "color": "#F88C83",
-      "links": [
-        {
-          "type": "twitter",
-          "url": "https://x.com/puripuwin"
-        }
-      ],
-      "versions": [
-        {
-          "id": "default",
-          "name": "Puri",
-          "refSheets": [
-            "/assets/referencesheets/puri_reference.png"
-          ],
-          "commissions": []
         }
       ]
     },
@@ -1068,6 +1114,7 @@
     {
       "id": 9,
       "name": "Rixxy Brightful",
+      "status": "hiatus",
       "species": "Happy Robo",
       "color": "#ff69b4",
       "links": [
@@ -1286,6 +1333,7 @@
     {
       "id": 14,
       "name": "Pyon Phelix",
+      "status": "hiatus",
       "species": "Art Cute Student",
       "color": "#ff9ec9",
       "links": [
@@ -1425,11 +1473,14 @@
       "name": "Nynx Omnia",
       "species": "Vtuber",
       "color": "#8c2ef4",
-      "hidden": true,
       "versions": [
         {
           "id": "default",
           "name": "Nynx Omnia",
+          "refSheets": [
+            "/assets/referencesheets/NynxOmnia.webp",
+            "/assets/referencesheets/NynxOmnia2.webp"
+          ],
           "commissions": [
             {
               "id": 1,
@@ -1451,26 +1502,10 @@
           "url": "https://x.com/nynxomnia"
         }
       ]
-    },
-    {
-      "id": 19,
-      "name": "Twitchy Buggy",
-      "species": "Vtuber",
-      "color": "#ff6b9d",
-      "hidden": true,
-      "versions": [
-        {
-          "id": "twitchybuggy",
-          "name": "Twitchy Buggy",
-          "commissions": []
-        }
-      ],
-      "links": [],
-      "refSheets": []
     }
   ],
   "meta": {
-    "totalCharacters": 17,
-    "totalCommissions": 93
+    "totalCharacters": 15,
+    "totalCommissions": 99
   }
 }

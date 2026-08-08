@@ -69,16 +69,6 @@ export function ReferenceSheet({ character, selectedVersion, onImageClick, curre
                 </div>
                 <div className="ref-sheet-hint">{t.clickToEnlarge}</div>
 
-                {/* Quick download button */}
-                <button
-                    className="ref-sheet-download"
-                    onClick={handleDownload}
-                    aria-label={t.downloadRefSheet}
-                    title={t.downloadRefSheet}
-                >
-                    <span className="ref-sheet-download__icon">⬇</span>
-                </button>
-
                 {/* Navigation buttons for multiple ref sheets */}
                 {hasMultipleSheets && (
                     <>
@@ -102,6 +92,16 @@ export function ReferenceSheet({ character, selectedVersion, onImageClick, curre
                     </>
                 )}
             </div>
+
+            {/* Download button below image */}
+            <button
+                className="ref-sheet-download-btn"
+                onClick={handleDownload}
+                aria-label={t.downloadRefSheet}
+            >
+                <span className="ref-sheet-download-btn__icon">⬇️</span>
+                <span className="ref-sheet-download-btn__text">{t.downloadRefSheet}</span>
+            </button>
         </div>
     );
 }

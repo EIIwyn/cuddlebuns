@@ -270,8 +270,9 @@ body {
 
 .character-nav-row {
     display: flex;
+    flex-direction: column;
     gap: 10px;
-    align-items: start;
+    align-items: stretch;
     justify-content: center;
 }
 
@@ -280,44 +281,25 @@ body {
     margin: 0;
 }
 
-/* Main nav inside the row — 3 rows, fill columns */
-.character-nav-row > .character-nav:not(.character-nav--etc) {
-    grid-template-columns: unset;
-    grid-template-rows: repeat(3, auto);
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(120px, 150px);
+.character-nav--row {
+    display: grid;
     justify-content: center;
-}
-
-/* Etc column — fixed single column of buttons, separated by a divider */
-.character-nav--etc {
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
-    width: 150px;
     gap: 10px;
-    padding-left: 10px;
-    border-left: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.character-nav--etc .character-btn {
-    max-width: none;
-    width: 100%;
+.character-nav--row-1 {
+    grid-template-columns: minmax(120px, 150px);
 }
 
-.character-nav--oc {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: 150px;
-    gap: 10px;
-    padding-left: 10px;
-    border-left: 1px solid rgba(255, 255, 255, 0.08);
+.character-nav--row-2 {
+    grid-template-columns: repeat(3, minmax(120px, 150px));
 }
 
-.character-nav--oc .character-btn {
+.character-nav--row-3 {
+    grid-template-columns: repeat(4, minmax(120px, 150px));
+}
+
+.character-nav--row .character-btn {
     max-width: none;
     width: 100%;
 }
@@ -637,45 +619,7 @@ body {
 
 /* Quick Download Button on Reference Sheet */
 .ref-sheet-download {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    background: rgba(0, 0, 0, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
-    color: #fff;
-    font-size: 1.2rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all var(--transition-fast);
-    backdrop-filter: blur(8px);
-    opacity: 0;
-    z-index: 10;
-}
-
-.ref-sheet-wrapper:hover .ref-sheet-download {
-    opacity: 1;
-}
-
-.ref-sheet-download:hover {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.4);
-    transform: scale(1.1);
-}
-
-.ref-sheet-download:focus {
-    outline: 2px solid rgba(255, 255, 255, 0.5);
-    outline-offset: 2px;
-}
-
-.ref-sheet-download__icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: none;
 }
 
 /* Reference Sheet Navigation */
@@ -683,8 +627,8 @@ body {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    background: rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     border-radius: 50%;
     width: 48px;
     height: 48px;
@@ -696,17 +640,13 @@ body {
     justify-content: center;
     transition: all var(--transition-fast);
     backdrop-filter: blur(8px);
-    opacity: 0;
-    z-index: 10;
-}
-
-.ref-sheet-wrapper:hover .ref-sheet-nav {
     opacity: 1;
+    z-index: 10;
 }
 
 .ref-sheet-nav:hover {
     background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.4);
+    border-color: rgba(255, 255, 255, 0.5);
     transform: translateY(-50%) scale(1.1);
 }
 
@@ -732,6 +672,8 @@ body {
     backdrop-filter: blur(8px);
     z-index: 10;
 }
+
+
 
 /* ============================================
    Commissions Gallery Grid
@@ -1134,6 +1076,237 @@ body {
     width: 18px;
     height: 18px;
     fill: currentColor;
+}
+
+.ref-sheet-download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 12px 24px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.ref-sheet-download-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px);
+}
+
+.ref-sheet-download-btn:focus {
+    outline: 2px solid rgba(255, 255, 255, 0.5);
+    outline-offset: 2px;
+}
+
+.ref-sheet-download-btn__icon {
+    font-size: 1.2rem;
+}
+
+.ref-sheet-download-btn__text {
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ============================================
+   Expanded Sheet View
+   ============================================ */
+
+.expanded-sheet-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    cursor: zoom-out;
+    animation: fadeIn 0.3s ease;
+    padding: 20px;
+}
+
+.expanded-sheet-close {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    cursor: pointer;
+    color: #fff;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--transition-fast);
+    z-index: 1001;
+}
+
+.expanded-sheet-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.expanded-sheet-container {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: scaleIn 0.3s ease;
+}
+
+.expanded-sheet-image {
+    max-width: 100%;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 20px 60px var(--shadow-dark);
+}
+
+.expanded-sheet-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    width: 56px;
+    height: 56px;
+    cursor: pointer;
+    color: #fff;
+    font-size: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+    backdrop-filter: blur(8px);
+    z-index: 1001;
+}
+
+.expanded-sheet-nav:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.expanded-sheet-nav--prev {
+    left: 24px;
+}
+
+.expanded-sheet-nav--next {
+    right: 24px;
+}
+
+.expanded-sheet-indicator {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 12px;
+    padding: 8px 16px;
+    font-size: 0.8rem;
+    font-family: var(--font-body);
+    color: #fff;
+    backdrop-filter: blur(8px);
+    z-index: 1001;
+}
+
+.expanded-sheet-download-btn {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    color: #fff;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    z-index: 1001;
+}
+
+.expanded-sheet-download-btn:hover {
+    background: rgba(0, 0, 0, 0.85);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: translateX(-50%) translateY(-2px);
+}
+
+.expanded-sheet-download-btn__icon {
+    font-size: 1.1rem;
+}
+
+.expanded-sheet-download-btn__text {
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+@media (max-width: 768px) {
+    .ref-sheet-download-btn {
+        width: 100%;
+        max-width: 300px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .expanded-sheet-overlay {
+        padding: 0;
+    }
+
+    .expanded-sheet-nav {
+        width: 48px;
+        height: 48px;
+        font-size: 2rem;
+    }
+
+    .expanded-sheet-nav--prev {
+        left: 12px;
+    }
+
+    .expanded-sheet-nav--next {
+        right: 12px;
+    }
+
+    .expanded-sheet-close {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+        top: 16px;
+        right: 16px;
+    }
+
+    .expanded-sheet-indicator {
+        bottom: 70px;
+        font-size: 0.75rem;
+        padding: 6px 12px;
+    }
+
+    .expanded-sheet-download-btn {
+        padding: 10px 20px;
+        font-size: 0.8rem;
+        bottom: 16px;
+    }
 }
 
 /* ============================================

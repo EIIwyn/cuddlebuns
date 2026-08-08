@@ -12,6 +12,8 @@ export const translations = {
         noCommissions: "No commissions yet for",
         noRefSheet: "No reference sheet yet",
         officialRefSheet: "Official Reference Sheet",
+        referenceSheet: "Sheet",
+        selectReferenceSheet: "Select reference sheet",
         clickToEnlarge: "Click to enlarge",
         downloadRefSheet: "Download Reference Sheet",
         escToClose: "ESC to close",
@@ -52,6 +54,9 @@ export const translations = {
             "Arknights": "Arknights",
             "Touhou": "Touhou",
             "OC": "OC"
+        },
+        characterSubtitles: {
+            "Nynx Omnia": "Oracle"
         }
     },
     ja: {
@@ -64,6 +69,8 @@ export const translations = {
         noCommissions: "まだコミッションがありません：",
         noRefSheet: "リファレンスシートはまだありません",
         officialRefSheet: "公式リファレンスシート",
+        referenceSheet: "シート",
+        selectReferenceSheet: "リファレンスシートを選択",
         clickToEnlarge: "クリックして拡大",
         downloadRefSheet: "リファレンスシートをダウンロード",
         escToClose: "ESCで閉じる",
@@ -104,6 +111,9 @@ export const translations = {
             "Arknights": "アークナイツ",
             "Touhou": "Touhou",
             "OC": "オリジナルキャラクター"
+        },
+        characterSubtitles: {
+            "Nynx Omnia": "オラクル"
         }
     }
 };
@@ -116,6 +126,11 @@ export function translateSpecies(species, lang = 'en') {
 // Helper function to translate character names
 export function translateCharacterName(name, lang = 'en') {
     return translations[lang]?.characterNames?.[name] || name;
+}
+
+// Helper function to translate character subtitle overrides
+export function translateCharacterSubtitle(name, lang = 'en') {
+    return translations[lang]?.characterSubtitles?.[name] || null;
 }
 
 // ============================================
