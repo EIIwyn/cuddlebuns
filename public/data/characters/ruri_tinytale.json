@@ -1,6 +1,7 @@
 {
   "id": 1,
   "name": "Ruri Tinytale",
+  "status": "hiatus",
   "species": "Kobold",
   "color": "#7be3f2",
   "links": [
@@ -272,6 +273,24 @@
           "artist": "@puffiewaffles",
           "image": "/assets/commissions/ruri_tinytale/WuwiMerlin.png",
           "sourceUrl": "https://x.com/pufflewaffles/status/2074554037614399990/photo/1"
+        },
+        {
+          "id": 43,
+          "artist": "@Haneumi_Maru",
+          "image": "/assets/commissions/ruri_tinytale/@Haneumi_Maru.png",
+          "sourceUrl": "https://skeb.jp/@Haneumi_Maru"
+        },
+        {
+          "id": 44,
+          "artist": "@onsa_oO ",
+          "image": "/assets/commissions/ruri_tinytale/@onsa_oO .png",
+          "sourceUrl": "https://skeb.jp/@onsa_oO"
+        },
+        {
+          "id": 45,
+          "artist": "@onsa_oO",
+          "image": "/assets/commissions/ruri_tinytale/@onsa_oO.png",
+          "sourceUrl": "https://skeb.jp/@onsa_oO"
         }
       ]
     },
@@ -311,6 +330,12 @@
           "artist": "@om_kanna  ",
           "image": "/assets/commissions/ruri_tinytale/wiwu/@om_kanna  .png",
           "sourceUrl": "https://pipipen.com/a/Pipi14488"
+        },
+        {
+          "id": 6,
+          "artist": "@unanooo_",
+          "image": "/assets/commissions/ruri_tinytale/wiwu/@unanooo_.png",
+          "sourceUrl": "https://x.com/unanooo_/status/2079028663862112561/"
         }
       ]
     },

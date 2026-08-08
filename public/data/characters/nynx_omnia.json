@@ -3,11 +3,14 @@
   "name": "Nynx Omnia",
   "species": "Vtuber",
   "color": "#8c2ef4",
-  "hidden": true,
   "versions": [
     {
       "id": "default",
       "name": "Nynx Omnia",
+      "refSheets": [
+        "/assets/referencesheets/NynxOmnia.webp",
+        "/assets/referencesheets/NynxOmnia2.webp"
+      ],
       "commissions": [
         {
           "id": 1,

@@ -1,6 +1,7 @@
 {
   "id": 6,
   "name": "Manon Merope",
+  "status": "hiatus",
   "species": "Hall Monitor",
   "color": "#4db8c4",
   "links": [
@@ -46,6 +47,18 @@
           "artist": "@Miyouk",
           "image": "/assets/commissions/manon_merope/@Miyouk.PNG",
           "sourceUrl": "https://pipipen.com/a/Pipi18985"
+        },
+        {
+          "id": 6,
+          "artist": "@Haneumi_Maru",
+          "image": "/assets/commissions/manon_merope/@Haneumi_Maru.png",
+          "sourceUrl": "https://skeb.jp/@Haneumi_Maru"
+        },
+        {
+          "id": 7,
+          "artist": "@大大大大大汉堡",
+          "image": "/assets/commissions/manon_merope/@大大大大大汉堡.png",
+          "sourceUrl": "https://pipipen.com/a/BigHamburger"
         }
       ]
     }
