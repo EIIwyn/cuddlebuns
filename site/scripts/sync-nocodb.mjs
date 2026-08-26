@@ -3,6 +3,9 @@ import fs from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
 
+// Keep libvips conservative on a small VPS. This can be raised later if the server has headroom.
+sharp.concurrency(1);
+
 const SITE_DIR = path.resolve(import.meta.dirname, "..");
 const CACHE_DIR = path.join(SITE_DIR, ".cache", "nocodb");
 const ORIGINALS_DIR = path.join(CACHE_DIR, "originals");
@@ -12,8 +15,18 @@ const GALLERY_DIR = path.join(DATA_DIR, "gallery");
 const IMAGE_DIR = path.join(SITE_DIR, "public", "generated", "nocodb", "images");
 const PUBLIC_IMAGE_ROOT = "/generated/nocodb/images";
 const CHECK_ONLY = process.argv.includes("--check");
-const MANIFEST_VERSION = 1;
+const MANIFEST_VERSION = 2;
 const DERIVATIVE_WIDTHS = [480, 960, 1600];
+const API_PAGE_SIZE = 10;
+const API_TIMEOUT_MS = 120_000;
+const IMAGE_TIMEOUT_MS = 600_000;
+const IMAGE_MAX_ATTEMPTS = 4;
+const IMAGE_RETRY_BASE_MS = 5_000;
+const API_MAX_ATTEMPTS = 4;
+const API_RETRY_BASE_MS = 4_000;
+const IMAGE_CONCURRENCY = Math.max(1, Math.min(2, Number(process.env.CMS_IMAGE_CONCURRENCY) || 1));
+const WEBP_ONLY = /^(1|true|yes)$/i.test(process.env.CMS_WEBP_ONLY || "");
+const IMAGE_FORMATS = WEBP_ONLY ? ["webp"] : ["avif", "webp"];
 const PALETTE = ["#7be3f2", "#f29bd4", "#b6e36f", "#b9a4ff", "#ffb86b", "#74d8b4"];
 
 function loadEnvironment() {
@@ -81,7 +94,15 @@ function byOrderThenName(left, right) {
 function relationIds(value) {
   if (!value) return [];
   const values = Array.isArray(value) ? value : [value];
-  return values.map((item) => String(item?.id ?? "")).filter(Boolean);
+  return values
+    .map((item) => {
+      if (item == null) return null;
+      if (typeof item === "string" || typeof item === "number") return String(item);
+      if (item.id != null) return String(item.id);
+      if (item.id_fields?.Id != null) return String(item.id_fields.Id);
+      return null;
+    })
+    .filter(Boolean);
 }
 
 function attachmentSnapshot(attachment) {
@@ -143,34 +164,87 @@ function writeJsonAtomic(file, value) {
   fs.renameSync(temporary, file);
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isRetryableApiFailure(status, detail) {
+  if (status === 408 || status === 425 || status === 429 || status >= 500) return true;
+  if (status !== 422) return false;
+  return /57P03|recovery mode|ERR_DATABASE_OP_FAILED|database system is in recovery/i.test(detail);
+}
+
+async function fetchApiPage(url, config, label, pageNumber) {
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= API_MAX_ATTEMPTS; attempt += 1) {
+    let response;
+    try {
+      response = await fetch(url, {
+        headers: { "xc-token": config.token },
+        signal: AbortSignal.timeout(API_TIMEOUT_MS),
+      });
+    } catch (error) {
+      lastError = error;
+      if (attempt === API_MAX_ATTEMPTS) throw error;
+      const delay = API_RETRY_BASE_MS * attempt;
+      console.warn(
+        `${label} page ${pageNumber} request error; ` +
+        `retrying in ${Math.round(delay / 1000)}s (${attempt}/${API_MAX_ATTEMPTS})...`,
+      );
+      await sleep(delay);
+      continue;
+    }
+
+    if (response.ok) return response;
+
+    const detail = (await response.text()).slice(0, 500);
+    if (!isRetryableApiFailure(response.status, detail) || attempt === API_MAX_ATTEMPTS) {
+      throw new Error(
+        `${label} request failed on page ${pageNumber}: ` +
+        `${response.status} ${response.statusText}\n${detail}`,
+      );
+    }
+
+    const delay = API_RETRY_BASE_MS * attempt;
+    console.warn(
+      `${label} page ${pageNumber} returned ${response.status}; ` +
+      `retrying in ${Math.round(delay / 1000)}s (${attempt}/${API_MAX_ATTEMPTS})...`,
+    );
+    await sleep(delay);
+  }
+
+  throw lastError ?? new Error(`${label} request failed.`);
+}
+
 async function fetchTable(config, tableId, label) {
   const records = [];
-  const origin = new URL(config.url).origin;
+  let pageNumber = 1;
   let next = `${config.url}/api/v3/data/${encodeURIComponent(config.baseId)}/` +
-    `${encodeURIComponent(tableId)}/records?pageSize=100&linksAsLtar=true`;
+    `${encodeURIComponent(tableId)}/records?pageSize=${API_PAGE_SIZE}&linksAsLtar=true`;
 
   while (next) {
-    const url = new URL(next, `${config.url}/`);
-    if (url.origin !== origin) throw new Error(`${label} pagination changed hosts.`);
-    const response = await fetch(url, {
-      headers: { "xc-token": config.token },
-      signal: AbortSignal.timeout(30_000),
-    });
-    if (!response.ok) {
-      const detail = (await response.text()).slice(0, 500);
-      throw new Error(`${label} request failed: ${response.status} ${response.statusText}\n${detail}`);
-    }
+    const returnedUrl = new URL(next, `${config.url}/`);
+
+    // NocoDB may return absolute pagination URLs using NC_SITE_URL. Preserve the
+    // server-provided path/query but always use the configured origin, allowing
+    // the VPS to use http://127.0.0.1:8080 without following the public hostname.
+    const url = new URL(`${returnedUrl.pathname}${returnedUrl.search}`, `${config.url}/`);
+    const response = await fetchApiPage(url, config, label, pageNumber);
     const page = await response.json();
     records.push(...(page.records ?? []));
     next = page.next ?? null;
+    pageNumber += 1;
   }
+
+  console.log(`Fetched ${records.length} ${label} record(s).`);
   return records;
 }
 
 function publicSourceSnapshot(tables) {
   const wanted = {
     collections: ["Name", "Slug", "Display Order", "Visible", "Collapsible", "Characters"],
-    characters: ["Name", "Slug", "Subtitle", "Accent Color", "Display Order", "Visible", "Versions", "Project", "Social 1 Label", "Social 1 URL"],
+    characters: ["Name", "Slug", "Subtitle", "Accent Color", "Display Order", "Visible", "Versions", "Collections", "Social 1 Label", "Social 1 URL"],
     versions: ["Name", "Slug", "Reference Sheet", "Display Order", "Visible", "Character", "Commissions"],
     commissions: ["Image", "Source URL", "Type", "Date", "Published", "Display Order", "Versions", "Artists"],
     artists: ["Artist Name", "URL"],
@@ -185,7 +259,7 @@ function publicSourceSnapshot(tables) {
         if (name === "Image" || name === "Reference Sheet") {
           return [name, Array.isArray(value) ? value.map(attachmentSnapshot) : []];
         }
-        if (["Characters", "Versions", "Project", "Commissions", "Artists"].includes(name)) {
+        if (["Characters", "Versions", "Collections", "Commissions", "Artists"].includes(name)) {
           return [name, relationIds(value).sort()];
         }
         return [name, value ?? null];
@@ -222,7 +296,7 @@ function createModel(tables, config) {
         subtitle: record.fields?.Subtitle || null,
         order: record.fields?.["Display Order"] ?? null,
         color: accentColor(record.fields?.["Accent Color"], record.fields?.Slug || name),
-        collectionId: relationIds(record.fields?.Project)[0] ?? null,
+        collectionId: relationIds(record.fields?.Collections)[0] ?? null,
         social: record.fields?.["Social 1 URL"] ? {
           label: record.fields?.["Social 1 Label"] || "Profile",
           url: record.fields["Social 1 URL"],
@@ -263,7 +337,12 @@ function createModel(tables, config) {
         continue;
       }
       const taskKey = `reference:${version.id}:${attachment.id ?? index}`;
-      imageTasks.set(taskKey, { key: taskKey, attachment, sourceUrl: new URL(attachment.signedPath, `${config.url}/`).href });
+      imageTasks.set(taskKey, {
+        key: taskKey,
+        attachment,
+        sourceUrl: new URL(attachment.signedPath, `${config.url}/`).href,
+        fallbackUrl: thumbnailFallbackUrl(attachment, config.url),
+      });
       version.referenceSheets.push({ taskKey });
     }
     delete version.referenceAttachments;
@@ -274,7 +353,8 @@ function createModel(tables, config) {
     const fields = record.fields ?? {};
     if (fields.Published !== true) continue;
 
-    const label = `Commission ${record.id}${fields.Title ? ` (${fields.Title})` : ""}`;
+    const internalTitle = fields["Internal Title"];
+    const label = `Commission ${record.id}${internalTitle ? ` (${internalTitle})` : ""}`;
     const type = typeof fields.Type === "string" ? fields.Type.trim() : "";
     const sourceUrl = typeof fields["Source URL"] === "string" ? fields["Source URL"].trim() : "";
     const attachments = Array.isArray(fields.Image) ? fields.Image : [];
@@ -305,7 +385,12 @@ function createModel(tables, config) {
         return;
       }
       const taskKey = `commission:${record.id}:${attachment.id ?? attachmentIndex}`;
-      imageTasks.set(taskKey, { key: taskKey, attachment, sourceUrl: new URL(attachment.signedPath, `${config.url}/`).href });
+      imageTasks.set(taskKey, {
+        key: taskKey,
+        attachment,
+        sourceUrl: new URL(attachment.signedPath, `${config.url}/`).href,
+        fallbackUrl: thumbnailFallbackUrl(attachment, config.url),
+      });
       const item = {
         id: `${record.id}-${attachment.id ?? attachmentIndex}`,
         recordId: String(record.id),
@@ -345,6 +430,15 @@ function createModel(tables, config) {
   return { collections, galleries, versions, imageTasks, errors };
 }
 
+function thumbnailFallbackUrl(attachment, baseUrl) {
+  const thumbnails = attachment?.thumbnails ?? {};
+  const signedPath = thumbnails.card_cover?.signedPath ||
+    thumbnails.small?.signedPath ||
+    thumbnails.tiny?.signedPath ||
+    null;
+  return signedPath ? new URL(signedPath, `${baseUrl}/`).href : null;
+}
+
 function extensionFor(attachment) {
   const mime = {
     "image/avif": ".avif", "image/gif": ".gif", "image/jpeg": ".jpg",
@@ -356,9 +450,31 @@ function extensionFor(attachment) {
 }
 
 async function downloadTask(task) {
-  const response = await fetch(task.sourceUrl, { signal: AbortSignal.timeout(90_000) });
-  if (!response.ok) throw new Error(`Image ${task.key} failed: ${response.status} ${response.statusText}`);
-  return Buffer.from(await response.arrayBuffer());
+  let lastError = null;
+  for (let attempt = 1; attempt <= IMAGE_MAX_ATTEMPTS; attempt += 1) {
+    try {
+      const response = await fetch(task.sourceUrl, {
+        signal: AbortSignal.timeout(IMAGE_TIMEOUT_MS),
+      });
+      if (response.ok) return Buffer.from(await response.arrayBuffer());
+
+      const detail = (await response.text()).slice(0, 300);
+      const retryable = response.status === 408 || response.status === 429 || response.status >= 500;
+      if (!retryable || attempt === IMAGE_MAX_ATTEMPTS) {
+        throw new Error(`Image ${task.key} failed: ${response.status} ${response.statusText}\n${detail}`);
+      }
+      const waitMs = IMAGE_RETRY_BASE_MS * attempt;
+      console.warn(`Image ${task.key} returned ${response.status}; retrying in ${Math.round(waitMs / 1000)}s (${attempt}/${IMAGE_MAX_ATTEMPTS})...`);
+      await new Promise((resolve) => setTimeout(resolve, waitMs));
+    } catch (error) {
+      lastError = error;
+      if (attempt === IMAGE_MAX_ATTEMPTS) break;
+      const waitMs = IMAGE_RETRY_BASE_MS * attempt;
+      console.warn(`Image ${task.key} download failed (${error?.name || "error"}); retrying in ${Math.round(waitMs / 1000)}s (${attempt}/${IMAGE_MAX_ATTEMPTS})...`);
+      await new Promise((resolve) => setTimeout(resolve, waitMs));
+    }
+  }
+  throw lastError ?? new Error(`Image ${task.key} failed after retries.`);
 }
 
 function publicUrl(filename) {
@@ -372,8 +488,10 @@ function fileExists(relativePublicUrl) {
 
 function cachedEntryIsComplete(entry) {
   if (!entry?.image?.fallback?.url || !fileExists(entry.image.fallback.url)) return false;
-  return ["avif", "webp"].every((format) =>
-    entry.image.sources?.[format]?.every((source) => fileExists(source.url)),
+  return IMAGE_FORMATS.every((format) =>
+    Array.isArray(entry.image.sources?.[format]) &&
+    entry.image.sources[format].length > 0 &&
+    entry.image.sources[format].every((source) => fileExists(source.url)),
   ) && (!entry.image.originalUrl || fileExists(entry.image.originalUrl));
 }
 
@@ -389,20 +507,51 @@ async function processImage(task, previous) {
   const cacheFile = path.join(ORIGINALS_DIR, `${contentHash}${sourceExtension}`);
   if (!fs.existsSync(cacheFile)) fs.writeFileSync(cacheFile, buffer);
 
-  const stem = `${slugify(task.key, "image")}-${contentHash.slice(0, 12)}`;
+  let processingBuffer = buffer;
+  let usedThumbnailFallback = false;
+  try {
+    await sharp(processingBuffer, { animated: false }).metadata();
+  } catch (error) {
+    if (!task.fallbackUrl) {
+      throw new Error(
+        `${task.key} (${task.attachment?.title || "untitled"}, ${task.attachment?.mimetype || "unknown MIME"}) ` +
+        `cannot be decoded by Sharp and has no NocoDB thumbnail fallback: ${error.message}`,
+      );
+    }
+    console.warn(
+      `Sharp cannot decode ${task.key} (${task.attachment?.title || "untitled"}, ${task.attachment?.mimetype || "unknown MIME"}); ` +
+      "using NocoDB JPEG thumbnail fallback.",
+    );
+    processingBuffer = await downloadTask({
+      ...task,
+      key: `${task.key}:thumbnail-fallback`,
+      sourceUrl: task.fallbackUrl,
+    });
+    try {
+      await sharp(processingBuffer, { animated: false }).metadata();
+    } catch (fallbackError) {
+      throw new Error(
+        `${task.key} fallback thumbnail is also unsupported: ${fallbackError.message}`,
+      );
+    }
+    usedThumbnailFallback = true;
+  }
+
+  const derivativeHash = hash(processingBuffer);
+  const stem = `${slugify(task.key, "image")}-${contentHash.slice(0, 12)}${usedThumbnailFallback ? `-fallback-${derivativeHash.slice(0, 8)}` : ""}`;
   const sources = { avif: [], webp: [] };
   for (const width of DERIVATIVE_WIDTHS) {
-    for (const format of ["avif", "webp"]) {
+    for (const format of IMAGE_FORMATS) {
       const filename = `${stem}-${width}.${format}`;
       const output = path.join(IMAGE_DIR, filename);
       let info;
       if (fs.existsSync(output)) {
         info = await sharp(output).metadata();
       } else {
-        const pipeline = sharp(buffer, { animated: false }).rotate().resize({ width, withoutEnlargement: true });
+        const pipeline = sharp(processingBuffer, { animated: false }).rotate().resize({ width, withoutEnlargement: true });
         info = format === "avif"
-          ? await pipeline.avif({ quality: 65, effort: 5 }).toFile(output)
-          : await pipeline.webp({ quality: 80, effort: 5 }).toFile(output);
+          ? await pipeline.avif({ quality: 65, effort: 3 }).toFile(output)
+          : await pipeline.webp({ quality: 80, effort: 4 }).toFile(output);
       }
       if (!sources[format].some((source) => source.width === info.width)) {
         sources[format].push({ url: publicUrl(filename), width: info.width, height: info.height });
@@ -413,6 +562,7 @@ async function processImage(task, previous) {
   }
   for (const values of Object.values(sources)) values.sort((a, b) => a.width - b.width);
   const fallback = sources.webp.at(-1);
+  if (!fallback) throw new Error(`${task.key} produced no WebP fallback output.`);
   const image = {
     width: fallback.width,
     height: fallback.height,
@@ -426,7 +576,7 @@ async function processImage(task, previous) {
     if (!fs.existsSync(originalOutput)) fs.copyFileSync(cacheFile, originalOutput);
     image.originalUrl = publicUrl(originalFilename);
   }
-  return { signature, contentHash, image };
+  return { signature, contentHash, usedThumbnailFallback, image };
 }
 
 async function mapWithConcurrency(items, concurrency, operation) {
@@ -467,18 +617,22 @@ function pruneGeneratedFiles(allowedUrls, allowedGalleryFiles) {
 async function main() {
   loadEnvironment();
   const config = getConfig();
-  console.log("Fetching Collections, Characters, Versions, Commissions, and Artists...");
-  const [collections, characters, versions, commissions, artists] = await Promise.all([
-    fetchTable(config, config.collections, "Collections"),
-    fetchTable(config, config.characters, "Characters"),
-    fetchTable(config, config.versions, "Versions"),
-    fetchTable(config, config.commissions, "Commissions"),
-    fetchTable(config, config.artists, "Artists"),
-  ]);
+  console.log("Fetching Collections, Characters, Versions, Commissions, and Artists sequentially...");
+  const collections = await fetchTable(config, config.collections, "Collections");
+  const characters = await fetchTable(config, config.characters, "Characters");
+  const versions = await fetchTable(config, config.versions, "Versions");
+  const commissions = await fetchTable(config, config.commissions, "Commissions");
+  const artists = await fetchTable(config, config.artists, "Artists");
   const tables = { collections, characters, versions, commissions, artists };
   const sourceFingerprint = fingerprint(publicSourceSnapshot(tables));
   const previous = readJson(MANIFEST_FILE, { attachments: {} });
   const model = createModel(tables, config);
+  const publishedCommissionCount = commissions.filter((record) => record.fields?.Published === true).length;
+  console.log(
+    `Public model: ${model.collections.length} collection(s), ` +
+    `${model.collections.flatMap((collection) => collection.characters).length} character(s), ` +
+    `${model.versions.length} version(s), ${publishedCommissionCount} published commission record(s).`,
+  );
   const expectedSite = path.join(DATA_DIR, "site.json");
   const missingGalleryOutputs = [...model.versions].filter((version) =>
     !fs.existsSync(path.join(SITE_DIR, "public", version.galleryUrl.slice(1))),
@@ -514,13 +668,34 @@ async function main() {
 
   const tasks = [...model.imageTasks.values()];
   let processed = 0;
-  const entries = await mapWithConcurrency(tasks, 3, async (task) => {
+  console.log(`Processing ${tasks.length} image task(s) with concurrency ${IMAGE_CONCURRENCY}${WEBP_ONLY ? " (WebP-only mode)" : ""}...`);
+  let completed = 0;
+  const imageFailures = [];
+  const entries = await mapWithConcurrency(tasks, IMAGE_CONCURRENCY, async (task) => {
+    const sequence = completed + 1;
+    console.log(
+      `Image ${sequence}/${tasks.length}: ${task.key} | ${task.attachment?.title || "untitled"} | ` +
+      `${task.attachment?.mimetype || "unknown MIME"} | ${task.attachment?.size ?? "unknown size"} bytes`,
+    );
     const oldEntry = previous.attachments?.[task.key];
-    const entry = await processImage(task, oldEntry);
-    if (entry !== oldEntry) processed += 1;
-    return [task.key, entry];
+    try {
+      const entry = await processImage(task, oldEntry);
+      if (entry !== oldEntry) processed += 1;
+      return [task.key, entry];
+    } catch (error) {
+      imageFailures.push({ key: task.key, message: error.message });
+      console.error(`Image failed: ${task.key}: ${error.message}`);
+      return null;
+    } finally {
+      completed += 1;
+    }
   });
-  const attachmentEntries = Object.fromEntries(entries);
+  if (imageFailures.length) {
+    console.error(`Image processing completed with ${imageFailures.length} failure(s):`);
+    for (const failure of imageFailures) console.error(`- ${failure.key}: ${failure.message}`);
+    throw new Error("One or more image tasks failed; generated CMS output was not published.");
+  }
+  const attachmentEntries = Object.fromEntries(entries.filter(Boolean));
   const resolveImage = ({ taskKey }) => attachmentEntries[taskKey].image;
   const allowedGalleryFiles = new Set();
 
