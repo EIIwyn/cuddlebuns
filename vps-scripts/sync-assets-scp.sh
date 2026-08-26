@@ -13,6 +13,7 @@ echo "📤 Syncing assets to VPS using SCP..."
 # Note: Copying ./assets/ instead of ./assets/* to preserve directory structure
 scp -r -P 2222 \
   ./assets/commissions \
+  ./assets/nocodb \
   ./assets/referencesheets \
   masterpyon@cuddlebuns.moe:/var/www/cuddlebuns/public/assets/
 

@@ -1,0 +1,16 @@
+[Unit]
+Description=Sync NocoDB and atomically deploy cuddlebuns gallery
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=masterpyon
+Group=www-cuddlebuns
+WorkingDirectory=/var/www/cuddlebuns/source/site
+EnvironmentFile=/etc/cuddlebuns/gallery.env
+Environment=NODE_ENV=production
+ExecStart=/var/www/cuddlebuns/source/vps-scripts/sync-build-deploy.sh
+
+[Install]
+WantedBy=multi-user.target

@@ -4,7 +4,7 @@ export function VersionSelector({ versions, selectedVersion, onSelectVersion, ac
     return (
         <div className="version-selector">
             {versions.map((version) => {
-                const commissionCount = version.commissions?.length || 0;
+                const commissionCount = version.commissionCount ?? version.commissions?.length ?? 0;
                 return (
                     <button
                         key={version.id}

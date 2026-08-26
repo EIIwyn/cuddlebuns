@@ -1,0 +1,12 @@
+[Unit]
+Description=Check NocoDB for gallery changes every five minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+RandomizedDelaySec=30s
+Persistent=true
+Unit=cuddlebuns-gallery-sync.service
+
+[Install]
+WantedBy=timers.target

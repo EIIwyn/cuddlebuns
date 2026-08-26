@@ -1,319 +1,186 @@
-npm# Gallery Workflow Guide
+# Gallery Workflow Guide
 
-## Adding New Commissions to the Gallery
+## Architecture
 
-Follow these steps when you receive new commission artwork to add to the gallery.
+NocoDB is the editorial CMS and source of truth for the `/gallery` route:
 
----
-
-## Step-by-Step Checklist
-
-### 1. Add Images to Assets Folder
-
-Place new images in the appropriate character folder:
-
-```bash
-/assets/commissions/[character_name]/@artist.png
-/assets/commissions/[character_name]/[version]/@artist.png
+```text
+NocoDB (server-side API only)
+  -> npm run sync
+  -> validated static JSON + hashed responsive images
+  -> npm run build
+  -> complete Vite dist release
+  -> Caddy serves /var/www/cuddlebuns/current
 ```
 
-**Example:**
-```bash
-/assets/commissions/ruri_tinytale/@artist_name.png
-/assets/commissions/ruri_tinytale/wiwu/@artist_name.png
+The browser never connects to NocoDB. `NOCODB_TOKEN` must only exist in `.env.local`
+for local work or `/etc/cuddlebuns/gallery.env` on the VPS. Never prefix it with
+`VITE_`, commit it, paste it into browser code, or place it in `public/`.
+
+## One-time local setup
+
+Copy `.env.example` to `.env.local` and fill in all values:
+
+```dotenv
+NOCODB_URL=https://noco.cuddlebuns.moe
+NOCODB_TOKEN=YOUR_TOKEN_HERE
+NOCODB_BASE_ID=YOUR_BASE_ID
+NOCODB_ARTISTS_TABLE_ID=YOUR_ARTISTS_TABLE_ID
+NOCODB_CHARACTERS_TABLE_ID=YOUR_CHARACTERS_TABLE_ID
+NOCODB_COMMISSIONS_TABLE_ID=YOUR_COMMISSIONS_TABLE_ID
+NOCODB_COLLECTIONS_TABLE_ID=YOUR_COLLECTIONS_TABLE_ID
+NOCODB_VERSIONS_TABLE_ID=YOUR_VERSIONS_TABLE_ID
 ```
 
-**Naming Convention:**
-- Use `@artist_name` prefix for automatic artist detection
-- Supported formats: PNG, JPG, JPEG, GIF
+Explicit table IDs are intentional. Personal API tokens in this NocoDB installation do
+not expose the table-list metadata permission, but they can read records from a known
+table ID.
 
----
+On Windows PowerShell, use `npm.cmd` if the PowerShell execution policy blocks
+`npm.ps1`:
 
-### 2. Run Interactive Commission Adder
-
-```bash
-cd site
-npm run add
+```powershell
+npm.cmd install
+npm.cmd run sync
+npm.cmd run dev
 ```
 
-**What this does:**
-- Shows each image with details (path, artist, size, format)
-- Automatically detects which character based on folder name
-- Asks you to confirm or select a different character
-- Prompts you to choose which version to add to
-- Asks for source URL (Twitter/Skeb link)
-- Updates the character JSON files automatically
+Open `http://localhost:5173/gallery`.
 
----
+## Editing the gallery in NocoDB
 
-### 3. Renumber Commission IDs (Optional)
+Relationships are:
 
-```bash
-npm run build:renumber
+```text
+Collections -> Characters -> Versions <-> Commissions -> Artists
 ```
 
-**What this does:**
-- Automatically renumbers all commission IDs to be sequential (1, 2, 3...)
-- Detects and warns about duplicate IDs
-- Only needed if you manually reordered commissions in JSON files
-- Safe to run anytime - only updates files that need changes
+- Collections, Characters, and Versions must have `Visible` enabled to appear.
+- A Character belongs to a Collection through `Project`.
+- A Character's optional `Accent Color` is a CSS hex color such as `#7be3f2`.
+- A Version belongs to a Character.
+- A Commission may link to multiple Versions.
+- A Commission may link to one or more Artists.
+- Set `Published` only after the record is ready for the public site.
 
-**When to use:**
-- After manually reordering commission entries in character JSON files
-- If you notice gaps in commission IDs (e.g., 1, 2, 5, 7)
-- When you see duplicate ID warnings
+A published Commission requires:
 
-**Note:** This step runs automatically during `npm run build` (production build), so you typically don't need to run it manually.
+- `Type`
+- `Image` with at least one attachment
+- `Source URL`
+- at least one linked visible Version
+- at least one linked Artist with an `Artist Name`
 
----
+The NocoDB `Title` field remains an internal identifier. Public cards are always shown
+as `[Type] by Artist`; the internal title is never written to public JSON.
 
-### 4. Rebuild Character Data
+`Accent Color` accepts three- or six-digit hex values. The sync normalizes valid values
+and uses a deterministic fallback palette if the field is blank or invalid.
 
-```bash
-npm run build:data
+The sync reports invalid published records and omits them. This prevents partially
+configured records from leaking into the live gallery. At the first migration sync,
+Commission records 21 and 60 were omitted because they did not have a Source URL.
+
+## Local commands
+
+```powershell
+# Fetch and validate all five tables, then generate changed files/images
+npm.cmd run sync
+
+# Exit 0 when current; exit 10 when a public CMS change needs syncing
+npm.cmd run sync:check
+
+# Pure Vite build; it does not edit source JSON
+npm.cmd run build
+
+# Validate JSON relationships, required public fields, responsive files, and secrets
+npm.cmd run validate:cms
+
+# Sync first, then build
+npm.cmd run build:fresh
+
+# Quality checks
+npm.cmd run lint
 ```
 
-**What this does:**
-- Combines individual character JSONs into `characters.json`
-- Reports any new images found that haven't been added yet
-- No timestamp in output (prevents unnecessary commits)
+The first sync downloads every attachment and creates 480px, 960px, and 1600px AVIF
+and WebP derivatives. Later runs use `.cache/nocodb/manifest.json` and content hashes,
+so unchanged images are reused.
 
----
+Generated and cached files are intentionally ignored by Git:
 
-### 5. Convert Images to Modern Formats
-
-```bash
-npm run convert:images
+```text
+site/.cache/nocodb/
+site/public/data/cms/site.json
+site/public/data/cms/gallery/<character>--<version>.json
+site/public/generated/nocodb/images/<stable-name>-<hash>-<width>.<format>
 ```
 
-**What this does:**
-- Creates WebP versions (85% quality)
-- Creates AVIF versions (75% quality)
-- Automatically skips reference sheets (preserves original quality)
-- Shows file size savings
-- Only converts images that are newer than existing conversions
+`site.json` contains navigation and reference-sheet metadata. The browser fetches only
+the selected Version's gallery JSON, rather than loading the entire gallery at once.
 
-**Optional flags:**
-- `npm run convert:images:force` - Re-convert all images even if they exist
+## VPS automatic deployment
 
----
-
-### 6. Build Production Files
+The new automation expects a complete source checkout at
+`/var/www/cuddlebuns/source`. This is separate from the old sparse production checkout.
+Run the following once on the VPS, adapting the clone URL if necessary:
 
 ```bash
-npm run build
+sudo mkdir -p /var/www/cuddlebuns/source /var/www/cuddlebuns/releases /etc/cuddlebuns
+sudo chown -R masterpyon:www-cuddlebuns /var/www/cuddlebuns/source /var/www/cuddlebuns/releases
+
+# Clone or check out the complete repository into /var/www/cuddlebuns/source.
+cd /var/www/cuddlebuns/source/site
+npm ci
+chmod +x ../vps-scripts/sync-build-deploy.sh
 ```
 
-**What this does:**
-- Automatically runs `build:renumber` first (renumbers commission IDs)
-- Then runs `build:data` (combines character JSONs)
-- Builds optimized React app
-- Outputs to `dist/` folder
-
----
-
-### 7. Sync Assets to VPS (Do This First!)
-
-**IMPORTANT:** Always sync assets BEFORE deploying code to avoid 404 errors.
+Create `/etc/cuddlebuns/gallery.env` with the same eight NocoDB values used locally,
+then protect it:
 
 ```bash
-cd ..
-bash vps-scripts/sync-assets-scp.sh
+sudo chown root:root /etc/cuddlebuns/gallery.env
+sudo chmod 600 /etc/cuddlebuns/gallery.env
 ```
 
-**What this does:**
-- Uploads all images including WebP/AVIF versions
-- Preserves subdirectory structure
-- Uses SCP (recommended for Windows)
-
-**Alternative (if rsync is available):**
-```bash
-bash vps-scripts/sync-assets.sh
-```
-
----
-
-### 8. Deploy Site to VPS
+Install and start the timer:
 
 ```bash
-bash deploy.sh
+sudo cp /var/www/cuddlebuns/source/vps-scripts/systemd/cuddlebuns-gallery-sync.service /etc/systemd/system/
+sudo cp /var/www/cuddlebuns/source/vps-scripts/systemd/cuddlebuns-gallery-sync.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl start cuddlebuns-gallery-sync.service
+sudo systemctl enable --now cuddlebuns-gallery-sync.timer
 ```
 
-**What this does:**
-- Builds the React app (runs steps 3, 4, & 6 automatically)
-- Commits built files to git
-- Pushes to VPS via git
-- VPS automatically updates the live site
-
----
-
-## Quick Reference Commands
-
-Run all steps in sequence from project root:
+Check it with:
 
 ```bash
-# 1. Add commission metadata (interactive)
-cd site && npm run add
-
-# 2. Renumber commission IDs (optional, only if you manually reordered)
-npm run build:renumber
-
-# 3. Generate combined JSON
-npm run build:data
-
-# 4. Create WebP/AVIF versions
-npm run convert:images
-
-# 5. Build for production (automatically runs renumber + build:data)
-npm run build
-
-# 6. Upload images FIRST (important!)
-cd .. && bash vps-scripts/sync-assets-scp.sh
-
-# 7. Deploy site
-bash deploy.sh
+systemctl status cuddlebuns-gallery-sync.timer
+journalctl -u cuddlebuns-gallery-sync.service -n 100 --no-pager
 ```
 
----
+The timer checks every five minutes. If both NocoDB and the checked-out Git commit are
+unchanged, it exits without building. A changed run validates the output, copies the
+complete `dist/` into `/var/www/cuddlebuns/releases/<timestamp>`, and atomically changes
+the `/var/www/cuddlebuns/current` symlink. Failed syncs or builds never replace the
+active release.
 
-## Important Notes
+Older releases are retained for rollback. To roll back, point a temporary symlink at a
+known release and atomically rename it to `current`.
 
-### Deployment Order Matters
-Always run `sync-assets-scp.sh` BEFORE `deploy.sh` to avoid caching issues:
-1. Assets sync → images available on VPS
-2. Deploy code → HTML/JS references existing images
-3. No 404 errors, no cache issues
-
-### Reference Sheets
-Reference sheets are **not converted** to WebP/AVIF by default to preserve maximum quality. They remain as PNG files.
-
-### Image Format Fallback
-The `ModernImage` component automatically serves the best format:
-- Modern browsers (Chrome/Edge): AVIF (~70-90% smaller)
-- Most browsers (Safari/Firefox): WebP (~60-80% smaller)
-- Old browsers: Original PNG/JPG
-
-### File Size Benefits
-- AVIF: ~70-90% smaller than PNG
-- WebP: ~60-80% smaller than PNG
-- All three versions stored, but users only download one
-
----
+After the first successful release creates `current`, install the repository's
+`cuddlebuns.caddy` configuration and reload Caddy. It serves hashed images with immutable
+caching and revalidates `/data/cms/*.json`.
 
 ## Troubleshooting
 
-### "No changes to deploy" when running deploy.sh
-This is normal if only non-code files changed. The script detects identical bundle hashes.
-
-### Images not showing on live site
-1. Check if assets were synced: `ssh -p 2222 masterpyon@cuddlebuns.moe "ls /var/www/cuddlebuns/public/assets/commissions/"`
-2. Clear browser cache: Ctrl+Shift+R (hard refresh)
-3. Check browser DevTools Network tab for 404 errors
-
-### Console shows "404 /gallery/"
-This is normal SPA behavior - Caddy's error handler catches it and serves index.html. Not a real error.
-
-### React warnings about duplicate keys
-If you see warnings like "Encountered two children with the same key", run `npm run build:renumber` to fix duplicate or missing commission IDs.
-
----
-
-## Available Scripts
-
-### Data Management
-- `npm run build:data` - Rebuild characters.json from individual files
-- `npm run build:renumber` - Renumber commission IDs sequentially (optional)
-- `npm run add` - Interactive commission adder
-
-### Image Processing
-- `npm run convert:images` - Convert to WebP/AVIF (skip existing)
-- `npm run convert:images:force` - Re-convert all images
-
-### Development
-- `npm run dev` - Start dev server (http://localhost:5173)
-- `npm run build` - Build for production (runs renumber + build:data + vite build)
-- `npm run preview` - Preview production build locally
-- `npm run lint` - Check code for errors with ESLint
-
-### Deployment
-- `bash deploy.sh` - Deploy to VPS (from project root)
-- `bash vps-scripts/sync-assets-scp.sh` - Sync assets to VPS
-
----
-
-## Project Structure
-
-```
-cuddlebuns/
-├── assets/
-│   ├── commissions/
-│   │   ├── ruri_tinytale/
-│   │   │   ├── @artist.png
-│   │   │   ├── @artist.webp
-│   │   │   ├── @artist.avif
-│   │   │   ├── wiwu/
-│   │   │   └── wubold/
-│   │   └── [other characters]/
-│   └── referencesheets/
-│       └── *.png (not converted)
-├── site/
-│   ├── public/
-│   │   └── data/
-│   │       ├── characters.json (combined, auto-generated)
-│   │       └── characters/
-│   │           ├── ruri_tinytale.json
-│   │           ├── nano_gure.json
-│   │           └── [other characters].json
-│   ├── scripts/
-│   │   ├── build-characters.js
-│   │   ├── add-commissions.js
-│   │   ├── convert-images.js
-│   │   └── renumber-ids.js
-│   └── src/
-│       └── components/
-│           └── ModernImage.jsx
-├── vps-scripts/
-│   ├── sync-assets-scp.sh (Windows-friendly)
-│   └── sync-assets.sh (rsync variant)
-└── deploy.sh
-```
-
----
-
-## Character JSON Structure
-
-Individual character files in `site/public/data/characters/`:
-
-```json
-{
-  "id": 1,
-  "name": "Ruri Tinytale",
-  "species": "Kobold",
-  "color": "#7be3f2",
-  "links": [...],
-  "versions": [
-    {
-      "id": "default",
-      "name": "Ruri",
-      "refSheets": ["/assets/referencesheets/ruri_reference.png"],
-      "commissions": [
-        {
-          "id": 1,
-          "artist": "@artist_name",
-          "image": "/assets/commissions/ruri_tinytale/@artist_name.png",
-          "sourceUrl": "https://twitter.com/..."
-        }
-      ]
-    }
-  ]
-}
-```
-
----
-
-## Success!
-
-Once deployed, your new commissions will be live at:
-**https://cuddlebuns.moe/gallery**
-
-Modern browsers will automatically load the optimized AVIF/WebP versions for faster loading!
+- `npm.ps1 cannot be loaded`: use `npm.cmd` in PowerShell.
+- `sync:check` exits 10: this means changes exist; it is not an error.
+- A published record is skipped: read the validation message and fill its missing field.
+- Images do not update: confirm the attachment itself changed, run `npm.cmd run sync`,
+  and verify that a new content hash appears in the generated filename.
+- Timer fails before building: verify `/etc/cuddlebuns/gallery.env`, NocoDB access, and
+  that `npm ci` was run in the VPS source checkout.
+- Site still shows an older release: inspect `readlink -f /var/www/cuddlebuns/current`
+  and the service journal.

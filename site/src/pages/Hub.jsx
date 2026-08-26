@@ -12,7 +12,7 @@ export function Hub() {
           <Link to="/gallery" className="hub-link">
             <div className="hub-card">
               <h2>Character Gallery</h2>
-              <p>View reference sheets and commissions</p>
+              <p>Browse reference sheets and commissions</p>
             </div>
           </Link>
 

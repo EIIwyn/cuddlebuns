@@ -5,16 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/renumber-ids.js && node scripts/build-characters.js && vite build",
-    "build:data": "node scripts/build-characters.js",
-    "build:renumber": "node scripts/renumber-ids.js",
-    "link:assets": "node scripts/link-dist-assets.js",
-    "add": "node scripts/add-commissions.js",
-    "convert:images": "node scripts/convert-images.js",
-    "convert:images:force": "node scripts/convert-images.js --force",
+    "build": "vite build",
+    "build:fresh": "npm run sync && npm run validate:cms && npm run build",
+    "sync": "node scripts/sync-nocodb.mjs",
+    "sync:check": "node scripts/sync-nocodb.mjs --check",
+    "validate:cms": "node scripts/validate-cms-output.mjs",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "preview:local": "npm run build && npm run link:assets && vite preview --host 127.0.0.1 --port 4173"
+    "preview": "vite preview"
   },
   "dependencies": {
     "react": "^19.2.0",
@@ -31,7 +28,6 @@
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
     "sharp": "^0.33.5",
-    "vite": "^7.2.4",
-    "vite-plugin-static-copy": "^3.1.4"
+    "vite": "^7.2.4"
   }
 }

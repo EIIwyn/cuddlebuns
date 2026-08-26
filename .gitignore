@@ -8,6 +8,9 @@ site/node_modules/
 site/dist/
 site/.env
 site/.env.local
+site/.cache/
+site/public/data/cms/
+site/public/generated/nocodb/
 *.log
 
 # Assets (large image files - deploy separately via rsync)

@@ -1,18 +1,6 @@
 import { useState } from 'react';
 
-/**
- * ModernImage Component
- *
- * Displays images using modern formats (WebP/AVIF) with automatic fallback to original format.
- * Supports lazy loading and provides loading states.
- *
- * @param {string} src - Original image path (e.g., /assets/commissions/character/@artist.png)
- * @param {string} alt - Alternative text for accessibility
- * @param {string} className - CSS class name
- * @param {Function} onClick - Click handler
- * @param {boolean} lazy - Enable lazy loading (default: true)
- * @param {string} loading - Loading attribute value ('lazy' or 'eager')
- */
+/** Renders a generated responsive image descriptor, with string-path fallback support. */
 export function ModernImage({
   src,
   alt = '',
@@ -20,77 +8,47 @@ export function ModernImage({
   onClick = null,
   lazy = true,
   loading = 'lazy',
+  sizes = '(max-width: 640px) 50vw, (max-width: 1100px) 33vw, 25vw',
   ...props
 }) {
-  const [imageError, setImageError] = useState(false);
+  const [failedSource, setFailedSource] = useState(null);
 
-  if (!src) {
-    return null;
-  }
+  if (!src) return null;
 
-  // Skip modern formats for reference sheets (they're not converted) and GIFs (to preserve animation)
-  const isReferenceSheet = src.includes('/referencesheets/');
-  const isGif = src.toLowerCase().endsWith('.gif');
-
-  // Generate modern format paths
+  const responsiveImage = typeof src === 'object' ? src : null;
+  const fallbackSrc = responsiveImage?.fallback?.url || src;
+  const imageError = failedSource === fallbackSrc;
+  const isReferenceSheet = typeof fallbackSrc === 'string' && fallbackSrc.includes('/referencesheets/');
+  const isGif = typeof fallbackSrc === 'string' && fallbackSrc.toLowerCase().endsWith('.gif');
   const getModernSrc = (originalSrc, format) => {
-    if (isReferenceSheet || isGif) return null; // Don't try modern formats for ref sheets or GIFs
-    const ext = originalSrc.match(/\.(png|jpg|jpeg)$/i);
-    if (!ext) return null;
-    return originalSrc.replace(ext[0], `.${format}`);
+    if (isReferenceSheet || isGif || typeof originalSrc !== 'string') return null;
+    const extension = originalSrc.match(/\.(png|jpg|jpeg)$/i);
+    return extension ? originalSrc.replace(extension[0], `.${format}`) : null;
+  };
+  const responsiveSrcSet = (format) => responsiveImage?.sources?.[format]
+    ?.map((source) => `${source.url} ${source.width}w`)
+    .join(', ');
+  const imageProps = {
+    src: fallbackSrc,
+    alt,
+    className,
+    onClick,
+    loading: lazy ? loading : 'eager',
+    decoding: 'async',
+    width: responsiveImage?.fallback?.width || responsiveImage?.width,
+    height: responsiveImage?.fallback?.height || responsiveImage?.height,
+    ...props,
   };
 
-  const webpSrc = getModernSrc(src, 'webp');
-  const avifSrc = getModernSrc(src, 'avif');
+  if (imageError) return <img {...imageProps} />;
 
-  // Handle image loading errors
-  const handleError = () => {
-    setImageError(true);
-  };
-
-  // If modern formats failed, use original
-  if (imageError) {
-    return (
-      <img
-        src={src}
-        alt={alt}
-        className={className}
-        onClick={onClick}
-        loading={lazy ? loading : 'eager'}
-        {...props}
-      />
-    );
-  }
-
-  // Use picture element for format fallback chain
+  const avifSrc = responsiveSrcSet('avif') || getModernSrc(src, 'avif');
+  const webpSrc = responsiveSrcSet('webp') || getModernSrc(src, 'webp');
   return (
     <picture>
-      {/* AVIF - Best compression, newest format */}
-      {avifSrc && (
-        <source
-          srcSet={avifSrc}
-          type="image/avif"
-        />
-      )}
-
-      {/* WebP - Good compression, wide support */}
-      {webpSrc && (
-        <source
-          srcSet={webpSrc}
-          type="image/webp"
-        />
-      )}
-
-      {/* Original format fallback */}
-      <img
-        src={src}
-        alt={alt}
-        className={className}
-        onClick={onClick}
-        loading={lazy ? loading : 'eager'}
-        onError={handleError}
-        {...props}
-      />
+      {avifSrc && <source srcSet={avifSrc} sizes={responsiveImage ? sizes : undefined} type="image/avif" />}
+      {webpSrc && <source srcSet={webpSrc} sizes={responsiveImage ? sizes : undefined} type="image/webp" />}
+      <img {...imageProps} onError={() => setFailedSource(fallbackSrc)} />
     </picture>
   );
 }

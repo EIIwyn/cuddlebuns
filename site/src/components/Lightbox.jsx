@@ -71,8 +71,9 @@ export function Lightbox({ image, info, character, isRefSheet, versionName, onCl
     const handleDownload = async (e) => {
         e.stopPropagation();
         const sheets = refSheetsRef.current;
+        const downloadableImage = currentImage?.originalUrl || currentImage?.fallback?.url || currentImage;
         await downloadReferenceSheet(
-            currentImage,
+            downloadableImage,
             character.name,
             versionName,
             currentIdx,
@@ -124,7 +125,7 @@ export function Lightbox({ image, info, character, isRefSheet, versionName, onCl
             <div className="lightbox__content" onClick={(e) => e.stopPropagation()}>
                 <ModernImage
                     className="lightbox__image"
-                    src={currentImage}
+                    src={currentImage?.originalUrl || currentImage}
                     alt={info?.title || (isRefSheet ? `${character.name} Reference Sheet` : "Full size")}
                     loading="eager"
                     lazy={false}
