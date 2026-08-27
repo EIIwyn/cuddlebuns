@@ -122,7 +122,7 @@ export function Gallery() {
 
   return (
     <div className="site-shell" style={{ '--accent': selectedCharacter.color }}>
-      <SiteNav />
+      <SiteNav to="/gallery" showBack />
       <main className="character-page page-width">
         <header className="character-masthead">
           <div>

@@ -4,7 +4,7 @@ import { SiteNav } from '../components/SiteNav';
 export function Home() {
   return (
     <div className="site-shell">
-      <SiteNav title="Cuddlebuns" />
+      <SiteNav title="Cuddlebuns" to="/gallery" />
       <main className="home-landing page-width">
         <Link className="home-gallery-link" to="/gallery">
           <h1>Gallery</h1>

@@ -80,7 +80,6 @@ summary:focus-visible {
 .site-nav__brand {
   display: inline-flex;
   align-items: center;
-  gap: 0;
   font-family: var(--serif);
   font-size: 1.04rem;
   font-weight: 500;
@@ -216,17 +215,14 @@ summary:focus-visible {
 }
 
 .character-link a {
-  display: flex;
+  display: grid;
   min-height: 128px;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px 14px;
+  grid-template-columns: minmax(0, 1fr) minmax(76px, 38%);
+  overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.015);
   box-shadow: inset 0 2px 0 transparent;
-  text-align: center;
   text-decoration: none;
   transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
 }
@@ -237,12 +233,14 @@ summary:focus-visible {
   box-shadow: inset 0 2px 0 var(--accent);
 }
 
-.character-link__marker {
-  width: 8px;
-  height: 8px;
-  margin-bottom: 10px;
-  border-radius: 50%;
-  background: var(--accent);
+.character-link__copy {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 18px 10px 16px 18px;
 }
 
 .character-link strong {
@@ -250,14 +248,51 @@ summary:focus-visible {
   font-size: 1.18rem;
   font-weight: 500;
   line-height: 1.2;
+  text-align: left;
 }
 
 .character-link small {
-  margin-top: 5px;
+  margin-top: 6px;
   color: var(--faint);
   font-size: 0.68rem;
   letter-spacing: 0.1em;
+  line-height: 1.35;
+  text-align: left;
   text-transform: uppercase;
+}
+
+.character-link__thumbnail {
+  position: relative;
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  border-left: 1px solid var(--line-soft);
+  background: var(--page-soft);
+}
+
+.character-link__thumbnail picture {
+  display: contents;
+}
+
+.character-link__thumbnail img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  opacity: 0.78;
+  transition: opacity 180ms ease, transform 300ms ease;
+}
+
+.character-link__thumbnail--empty {
+  background:
+    radial-gradient(circle at 50% 42%, var(--accent) 0 4px, transparent 5px),
+    linear-gradient(145deg, color-mix(in srgb, var(--accent) 12%, var(--page-soft)), var(--page-soft) 70%);
+}
+
+.character-link a:hover .character-link__thumbnail img {
+  opacity: 0.95;
+  transform: scale(1.035);
 }
 
 .gallery-placeholder {
@@ -928,7 +963,11 @@ summary:focus-visible {
 
   .character-link a {
     min-height: 112px;
-    padding: 16px 10px;
+    grid-template-columns: minmax(0, 1fr) minmax(68px, 36%);
+  }
+
+  .character-link__copy {
+    padding: 15px 8px 14px 14px;
   }
 
   .commission-card__type {
