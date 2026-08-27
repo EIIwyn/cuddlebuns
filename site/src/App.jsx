@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Routes, Route, useSearchParams } from 'react-router-dom';
 import { Hub } from './pages/Hub';
 import { Gallery } from './pages/Gallery';
+import { Home } from './pages/Home';
 
 function GalleryRoute() {
   const [searchParams] = useSearchParams();
@@ -12,8 +13,8 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Hub />} />
-        <Route path="/characters" element={<Navigate to="/" replace />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/characters" element={<Navigate to="/gallery" replace />} />
         <Route path="/gallery" element={<GalleryRoute />} />
         <Route path="/gallery-noco" element={<Navigate to="/gallery" replace />} />
 
