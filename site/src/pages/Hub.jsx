@@ -23,7 +23,7 @@ function categoryLabel(collection) {
 }
 
 function CharacterLink({ entry }) {
-  const thumbnail = characterVersion(entry.character)?.referenceSheets?.[0];
+  const thumbnail = entry.character.thumbnail || characterVersion(entry.character)?.referenceSheets?.[0];
 
   return (
     <article className="character-link" style={{ '--accent': entry.character.color }}>
@@ -37,7 +37,7 @@ function CharacterLink({ entry }) {
             <ModernImage
               src={thumbnail}
               alt=""
-              sizes="120px"
+              sizes="(max-width: 480px) 42vw, 120px"
             />
           )}
         </span>
@@ -77,11 +77,11 @@ export function Hub() {
       collection.characters.map((character) => ({ character, collection }))),
   [activeCollection, collections]);
 
-  if (error) return <ErrorScreen message={error} artifact="data/cms/site.json" />;
-  if (!site) return <LoadingScreen />;
+  if (error) return <div className="site-shell gallery-shell"><ErrorScreen message={error} artifact="data/cms/site.json" /></div>;
+  if (!site) return <div className="site-shell gallery-shell"><LoadingScreen /></div>;
 
   return (
-    <div className="site-shell">
+    <div className="site-shell gallery-shell">
       <SiteNav />
       <main className="home-index page-width">
         <h1 className="visually-hidden">Characters</h1>

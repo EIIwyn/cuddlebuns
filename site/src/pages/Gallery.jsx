@@ -92,11 +92,11 @@ export function Gallery() {
     index,
   });
 
-  if (siteError) return <ErrorScreen message={siteError} artifact="data/cms/site.json" />;
-  if (!site) return <LoadingScreen />;
+  if (siteError) return <div className="site-shell gallery-shell"><ErrorScreen message={siteError} artifact="data/cms/site.json" /></div>;
+  if (!site) return <div className="site-shell gallery-shell"><LoadingScreen /></div>;
   if (!searchParams.get('character')) {
     return (
-      <div className="site-shell">
+      <div className="site-shell gallery-shell">
         <SiteNav />
         <main className="gallery-placeholder page-width">
           <p className="eyebrow">Gallery</p>
@@ -108,7 +108,7 @@ export function Gallery() {
     );
   }
   if (!selectedCharacter || !selectedVersion) {
-    return <ErrorScreen message="No visible character versions were generated." artifact="data/cms/site.json" />;
+    return <div className="site-shell gallery-shell"><ErrorScreen message="No visible character versions were generated." artifact="data/cms/site.json" /></div>;
   }
 
   const referenceSheets = selectedVersion.referenceSheets ?? [];
@@ -121,7 +121,7 @@ export function Gallery() {
   };
 
   return (
-    <div className="site-shell" style={{ '--accent': selectedCharacter.color }}>
+    <div className="site-shell gallery-shell" style={{ '--accent': selectedCharacter.color }}>
       <SiteNav to="/gallery" showBack />
       <main className="character-page page-width">
         <header className="character-masthead">

@@ -17,6 +17,7 @@ const PUBLIC_IMAGE_ROOT = "/generated/nocodb/images";
 const CHECK_ONLY = process.argv.includes("--check");
 const MANIFEST_VERSION = 3;
 const DERIVATIVE_WIDTHS = [480, 960, 1600];
+const THUMBNAIL_WIDTHS = [480, 600, 720];
 const API_PAGE_SIZE = 10;
 const API_TIMEOUT_MS = 120_000;
 const IMAGE_TIMEOUT_MS = 600_000;
@@ -244,7 +245,7 @@ async function fetchTable(config, tableId, label) {
 function publicSourceSnapshot(tables) {
   const wanted = {
     collections: ["Name", "Slug", "Display Order", "Visible", "Collapsible", "Characters"],
-    characters: ["Name", "Slug", "Subtitle", "Accent Color", "Display Order", "Visible", "Versions", "Collections", "Social 1 Label", "Social 1 URL"],
+    characters: ["Name", "Slug", "Subtitle", "Accent Color", "Card Thumbnail", "Display Order", "Visible", "Versions", "Collections", "Social 1 Label", "Social 1 URL"],
     versions: ["Name", "Slug", "Reference Sheet", "Display Order", "Visible", "Character", "Commissions"],
     commissions: ["Image", "Source URL", "Type", "Date", "Published", "Display Order", "Versions", "Artists"],
     artists: ["Artist Name", "URL"],
@@ -256,7 +257,7 @@ function publicSourceSnapshot(tables) {
       id: record.id,
       fields: Object.fromEntries(wanted[table].map((name) => {
         const value = record.fields?.[name];
-        if (name === "Image" || name === "Reference Sheet") {
+        if (name === "Image" || name === "Reference Sheet" || name === "Card Thumbnail") {
           return [name, Array.isArray(value) ? value.map(attachmentSnapshot) : []];
         }
         if (["Characters", "Versions", "Collections", "Commissions", "Artists"].includes(name)) {
@@ -289,6 +290,8 @@ function createModel(tables, config) {
     .filter((record) => record.fields?.Visible === true)
     .map((record) => {
       const name = String(record.fields?.Name ?? "Untitled character");
+      const thumbnailAttachments = Array.isArray(record.fields?.["Card Thumbnail"])
+        ? record.fields["Card Thumbnail"] : [];
       return {
         id: String(record.id),
         name,
@@ -301,11 +304,32 @@ function createModel(tables, config) {
           label: record.fields?.["Social 1 Label"] || "Profile",
           url: record.fields["Social 1 URL"],
         } : null,
+        thumbnail: null,
+        thumbnailAttachment: thumbnailAttachments[0] ?? null,
         versions: [],
       };
     })
     .filter((character) => collectionById.has(character.collectionId));
   const characterById = new Map(characters.map((item) => [item.id, item]));
+
+  for (const character of characters) {
+    const attachment = character.thumbnailAttachment;
+    delete character.thumbnailAttachment;
+    if (!attachment) continue;
+    if (!attachment.signedPath) {
+      errors.push(`Character ${character.id}: Card Thumbnail has no downloadable path; skipped.`);
+      continue;
+    }
+    const taskKey = `character-thumbnail:${character.id}:${attachment.id ?? 0}`;
+    imageTasks.set(taskKey, {
+      key: taskKey,
+      attachment,
+      sourceUrl: new URL(attachment.signedPath, `${config.url}/`).href,
+      fallbackUrl: thumbnailFallbackUrl(attachment, config.url),
+      derivativeWidths: THUMBNAIL_WIDTHS,
+    });
+    character.thumbnail = { taskKey };
+  }
 
   const versions = tables.versions
     .filter((record) => record.fields?.Visible === true)
@@ -497,8 +521,15 @@ function cachedEntryIsComplete(entry, task = null) {
   ) && (!entry.image.originalUrl || fileExists(entry.image.originalUrl));
 }
 
+function taskSignature(task) {
+  const attachment = attachmentSnapshot(task.attachment);
+  return fingerprint(task.derivativeWidths
+    ? { attachment, derivativeWidths: task.derivativeWidths }
+    : attachment);
+}
+
 async function processImage(task, previous) {
-  const signature = fingerprint(attachmentSnapshot(task.attachment));
+  const signature = taskSignature(task);
   if (previous?.signature === signature && cachedEntryIsComplete(previous, task)) return previous;
 
   const buffer = await downloadTask(task);
@@ -542,7 +573,7 @@ async function processImage(task, previous) {
   const derivativeHash = hash(processingBuffer);
   const stem = `${slugify(task.key, "image")}-${contentHash.slice(0, 12)}${usedThumbnailFallback ? `-fallback-${derivativeHash.slice(0, 8)}` : ""}`;
   const sources = { avif: [], webp: [] };
-  for (const width of DERIVATIVE_WIDTHS) {
+  for (const width of task.derivativeWidths ?? DERIVATIVE_WIDTHS) {
     for (const format of IMAGE_FORMATS) {
       const filename = `${stem}-${width}.${format}`;
       const output = path.join(IMAGE_DIR, filename);
@@ -641,6 +672,7 @@ async function main() {
   );
   const outputPresent = fs.existsSync(expectedSite) && missingGalleryOutputs.length === 0;
   const incompleteCachedTasks = [...model.imageTasks.entries()].filter(([key, task]) =>
+    previous.attachments?.[key]?.signature !== taskSignature(task) ||
     !cachedEntryIsComplete(previous.attachments?.[key], task),
   );
   const unchanged = previous.version === MANIFEST_VERSION &&
@@ -700,12 +732,15 @@ async function main() {
   const attachmentEntries = Object.fromEntries(entries.filter(Boolean));
   const resolveImage = ({ taskKey }) => attachmentEntries[taskKey].image;
   const allowedGalleryFiles = new Set();
+  const modelCharacters = model.collections.flatMap((collection) => collection.characters);
+
+  for (const character of modelCharacters) {
+    if (character.thumbnail?.taskKey) character.thumbnail = resolveImage(character.thumbnail);
+  }
 
   for (const version of model.versions) {
     version.referenceSheets = version.referenceSheets.map(resolveImage);
-    const character = [...model.collections]
-      .flatMap((collection) => collection.characters)
-      .find((item) => item.id === version.characterId);
+    const character = modelCharacters.find((item) => item.id === version.characterId);
     const items = model.galleries.get(version.id).map((item) => {
       const { taskKey, ...publicItem } = item;
       return { ...publicItem, image: attachmentEntries[taskKey].image };

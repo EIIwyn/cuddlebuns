@@ -58,6 +58,8 @@ Collections -> Characters -> Versions <-> Commissions -> Artists
 - Collections, Characters, and Versions must have `Visible` enabled to appear.
 - A Character belongs to a Collection through `Project`.
 - A Character's optional `Accent Color` is a CSS hex color such as `#7be3f2`.
+- A Character's optional `Card Thumbnail` is the curated 5:7 portrait used by the gallery index.
+  Upload at least 720×1008px to generate the 480px, 600px, and 720px responsive variants.
 - A Version belongs to a Character.
 - A Commission may link to multiple Versions.
 - A Commission may link to one or more Artists.
