@@ -1,187 +1,140 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { translations, getSourcePlatform, downloadReferenceSheet } from '../translations';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { downloadReferenceSheet, getSourcePlatform, translations } from '../translations';
 import { ModernImage } from './ModernImage';
 
-export function Lightbox({ image, info, character, isRefSheet, versionName, onClose, currentIndex, onIndexChange, lang = 'en' }) {
-    const t = translations[lang];
-    const refSheets = isRefSheet && info?.refSheets ? info.refSheets : null;
-    const hasMultipleSheets = refSheets && refSheets.length > 1;
-    const [currentImage, setCurrentImage] = useState(image);
-    const [currentIdx, setCurrentIdx] = useState(currentIndex || 0);
+export function Lightbox({
+  image,
+  info,
+  character,
+  isRefSheet,
+  versionName,
+  onClose,
+  currentIndex,
+  onIndexChange,
+  lang = 'en',
+}) {
+  const t = translations[lang];
+  const refSheets = isRefSheet && info?.refSheets ? info.refSheets : null;
+  const hasMultipleSheets = Boolean(refSheets && refSheets.length > 1);
+  const [currentImage, setCurrentImage] = useState(image);
+  const [currentIdx, setCurrentIdx] = useState(currentIndex || 0);
+  const refSheetsRef = useRef(refSheets);
+  const onIndexChangeRef = useRef(onIndexChange);
 
-    useEffect(() => {
-        // Setting state here is intentional - syncing with props changes
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setCurrentImage(image);
-        setCurrentIdx(currentIndex || 0);
-    }, [image, currentIndex]);
+  useEffect(() => {
+    // Syncing lightbox state to a newly selected image is intentional.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setCurrentImage(image);
+    setCurrentIdx(currentIndex || 0);
+  }, [image, currentIndex]);
 
-    // Use refs to avoid stale closures in event handlers
-    const refSheetsRef = useRef(refSheets);
-    const hasMultipleSheetsRef = useRef(hasMultipleSheets);
-    const onIndexChangeRef = useRef(onIndexChange);
+  useEffect(() => {
+    refSheetsRef.current = refSheets;
+    onIndexChangeRef.current = onIndexChange;
+  }, [refSheets, onIndexChange]);
 
-    useEffect(() => {
-        refSheetsRef.current = refSheets;
-        hasMultipleSheetsRef.current = hasMultipleSheets;
-        onIndexChangeRef.current = onIndexChange;
-    }, [refSheets, hasMultipleSheets, onIndexChange]);
+  const move = useCallback((direction) => {
+    const sheets = refSheetsRef.current;
+    if (!sheets || sheets.length < 2) return;
+    setCurrentIdx((previousIndex) => {
+      const nextIndex = (previousIndex + direction + sheets.length) % sheets.length;
+      setCurrentImage(sheets[nextIndex]);
+      onIndexChangeRef.current?.(nextIndex);
+      return nextIndex;
+    });
+  }, []);
 
-    const handlePrevious = useCallback(() => {
-        const sheets = refSheetsRef.current;
-        if (hasMultipleSheetsRef.current && sheets) {
-            setCurrentIdx(prevIdx => {
-                const newIdx = (prevIdx - 1 + sheets.length) % sheets.length;
-                setCurrentImage(sheets[newIdx]);
-                if (onIndexChangeRef.current) onIndexChangeRef.current(newIdx);
-                return newIdx;
-            });
-        }
-    }, []);
-
-    const handleNext = useCallback(() => {
-        const sheets = refSheetsRef.current;
-        if (hasMultipleSheetsRef.current && sheets) {
-            setCurrentIdx(prevIdx => {
-                const newIdx = (prevIdx + 1) % sheets.length;
-                setCurrentImage(sheets[newIdx]);
-                if (onIndexChangeRef.current) onIndexChangeRef.current(newIdx);
-                return newIdx;
-            });
-        }
-    }, []);
-
-    useEffect(() => {
-        const handleKeydown = (e) => {
-            if (e.key === 'Escape') {
-                onClose();
-            } else if (hasMultipleSheetsRef.current && e.key === 'ArrowLeft') {
-                handlePrevious();
-            } else if (hasMultipleSheetsRef.current && e.key === 'ArrowRight') {
-                handleNext();
-            }
-        };
-        window.addEventListener('keydown', handleKeydown);
-        return () => {
-            window.removeEventListener('keydown', handleKeydown);
-        };
-    }, [onClose, handlePrevious, handleNext]);
-
-    // Handle download (only for ref sheets)
-    const handleDownload = async (e) => {
-        e.stopPropagation();
-        const sheets = refSheetsRef.current;
-        const downloadableImage = currentImage?.originalUrl || currentImage?.fallback?.url || currentImage;
-        await downloadReferenceSheet(
-            downloadableImage,
-            character.name,
-            versionName,
-            currentIdx,
-            sheets?.length || 1
-        );
+  useEffect(() => {
+    const handleKeydown = (event) => {
+      if (event.key === 'Escape') onClose();
+      if (hasMultipleSheets && event.key === 'ArrowLeft') move(-1);
+      if (hasMultipleSheets && event.key === 'ArrowRight') move(1);
     };
+    window.addEventListener('keydown', handleKeydown);
+    return () => window.removeEventListener('keydown', handleKeydown);
+  }, [hasMultipleSheets, move, onClose]);
 
-    // Handle opening source URL
-    const handleViewSource = (e) => {
-        e.stopPropagation();
-        if (info?.sourceUrl) {
-            window.open(info.sourceUrl, '_blank', 'noopener,noreferrer');
-        }
-    };
+  const platform = info?.sourceUrl ? getSourcePlatform(info.sourceUrl, lang) : null;
+  const downloadableImage = currentImage?.originalUrl || currentImage?.fallback?.url || currentImage;
 
-    // Get platform info for source button
-    const platform = info?.sourceUrl ? getSourcePlatform(info.sourceUrl, lang) : null;
+  return (
+    <div className="lightbox" onClick={onClose} role="dialog" aria-modal="true">
+      <button className="lightbox__close" onClick={onClose} aria-label="Close image">×</button>
+      {hasMultipleSheets && (
+        <>
+          <button
+            className="lightbox__nav lightbox__nav--prev"
+            onClick={(event) => { event.stopPropagation(); move(-1); }}
+            aria-label={t.previousRefSheet}
+          >
+            ←
+          </button>
+          <button
+            className="lightbox__nav lightbox__nav--next"
+            onClick={(event) => { event.stopPropagation(); move(1); }}
+            aria-label={t.nextRefSheet}
+          >
+            →
+          </button>
+        </>
+      )}
 
-    return (
-        <div className="lightbox" onClick={onClose}>
-            <button className="lightbox__close" onClick={onClose}>✕</button>
+      <div className="lightbox__content" onClick={(event) => event.stopPropagation()}>
+        {isRefSheet && currentImage?.originalUrl ? (
+          <img
+            className="lightbox__image"
+            src={currentImage.originalUrl}
+            alt={`${character.name} reference sheet`}
+            loading="eager"
+            decoding="async"
+          />
+        ) : (
+          <ModernImage
+            className="lightbox__image"
+            src={currentImage?.originalUrl || currentImage}
+            alt={info?.title || (isRefSheet ? `${character.name} reference sheet` : 'Full-size artwork')}
+            loading="eager"
+            lazy={false}
+            sizes="100vw"
+          />
+        )}
 
-            {/* Keyboard shortcuts hint */}
-            <div className="lightbox__shortcuts-hint" aria-live="polite">
-                {t.escToClose}
-                {hasMultipleSheets && ` • ${t.arrowsToNavigate}`}
-            </div>
-
-            {/* Navigation buttons for multiple ref sheets */}
-            {hasMultipleSheets && (
-                <>
-                    <button
-                        className="lightbox__nav lightbox__nav--prev"
-                        onClick={(e) => { e.stopPropagation(); handlePrevious(); }}
-                        aria-label={t.previousRefSheet}
-                    >
-                        ‹
-                    </button>
-                    <button
-                        className="lightbox__nav lightbox__nav--next"
-                        onClick={(e) => { e.stopPropagation(); handleNext(); }}
-                        aria-label={t.nextRefSheet}
-                    >
-                        ›
-                    </button>
-                </>
+        <footer className="lightbox__footer">
+          <div>
+            <p className="lightbox__kicker">{isRefSheet ? 'Reference' : info?.type || 'Artwork'}</p>
+            <h2>{isRefSheet ? character.name : info?.artist}</h2>
+            {isRefSheet && (
+              <p>
+                {versionName}
+                {hasMultipleSheets ? ` · ${currentIdx + 1} of ${refSheets.length}` : ''}
+              </p>
             )}
-
-            <div className="lightbox__content" onClick={(e) => e.stopPropagation()}>
-                <ModernImage
-                    className="lightbox__image"
-                    src={currentImage?.originalUrl || currentImage}
-                    alt={info?.title || (isRefSheet ? `${character.name} Reference Sheet` : "Full size")}
-                    loading="eager"
-                    lazy={false}
-                />
-
-                {/* Info section */}
-                <div className="lightbox__info">
-                    {isRefSheet ? (
-                        <>
-                            <h3 className="lightbox__title">{character.name}</h3>
-                            {versionName && versionName !== 'Default' && (
-                                <p className="lightbox__version">{versionName}</p>
-                            )}
-                            <p className="lightbox__artist" style={{ color: character.color }}>
-                                {t.officialRefSheet}
-                                {hasMultipleSheets && ` (${currentIdx + 1}/${refSheets.length})`}
-                            </p>
-                        </>
-                    ) : info && (
-                        <>
-                            <h3 className="lightbox__title">{info.title || 'Commission'}</h3>
-                            <p className="lightbox__artist" style={{ color: character.color }}>
-                                {t.commissionedFrom} {info.artist}
-                            </p>
-                            {info.notes && (
-                                <p className="lightbox__notes">"{info.notes}"</p>
-                            )}
-                        </>
-                    )}
-                </div>
-
-                {/* Action Buttons */}
-                <div className="lightbox__actions">
-                    {/* Source button - only for commissions with sourceUrl */}
-                    {!isRefSheet && platform && (
-                        <button
-                            className={`lightbox__btn lightbox__btn--${platform.type}`}
-                            onClick={handleViewSource}
-                        >
-                            <span className="lightbox__btn-icon">{platform.icon}</span>
-                            {platform.label}
-                        </button>
-                    )}
-
-                    {/* Download button - only for reference sheets */}
-                    {isRefSheet && (
-                        <button
-                            className="lightbox__btn lightbox__btn--download"
-                            onClick={handleDownload}
-                        >
-                            <span className="lightbox__btn-icon">⬇️</span>
-                            {t.downloadRefSheet}
-                        </button>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
+          </div>
+          <div className="lightbox__actions">
+            {!isRefSheet && platform && (
+              <a href={info.sourceUrl} target="_blank" rel="noreferrer">
+                {platform.label} ↗
+              </a>
+            )}
+            {isRefSheet && (
+              <button
+                onClick={(event) => {
+                  event.stopPropagation();
+                  downloadReferenceSheet(
+                    downloadableImage,
+                    character.name,
+                    versionName,
+                    currentIdx,
+                    refSheets?.length || 1,
+                  );
+                }}
+              >
+                Download ↓
+              </button>
+            )}
+          </div>
+        </footer>
+      </div>
+    </div>
+  );
 }

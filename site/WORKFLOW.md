@@ -107,6 +107,11 @@ The first sync downloads every attachment and creates 480px, 960px, and 1600px A
 and WebP derivatives. Later runs use `.cache/nocodb/manifest.json` and content hashes,
 so unchanged images are reused.
 
+Reference-sheet originals are also preserved in the generated image directory. The
+page uses responsive derivatives for the embedded preview, then loads the original
+file in a viewport-fitted lightbox when the preview is clicked. This preserves full
+source quality while allowing the browser to scale the display to the available space.
+
 Generated and cached files are intentionally ignored by Git:
 
 ```text

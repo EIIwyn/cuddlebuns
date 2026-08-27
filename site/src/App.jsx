@@ -7,6 +7,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Hub />} />
+        <Route path="/characters" element={<Navigate to="/" replace />} />
         <Route path="/gallery" element={<Gallery />} />
         <Route path="/gallery-noco" element={<Navigate to="/gallery" replace />} />
         {/* Future routes */}

@@ -1,33 +1,106 @@
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import './Hub.css';
+import { ErrorScreen } from '../components/ErrorScreen';
+import { LoadingScreen } from '../components/LoadingScreen';
+import { SiteNav } from '../components/SiteNav';
+
+function characterVersion(character) {
+  return character.versions.find((version) => version.referenceSheets?.length) || character.versions[0];
+}
+
+function characterUrl(character) {
+  const version = characterVersion(character);
+  const params = new URLSearchParams({ character: character.slug });
+  if (version) params.set('version', version.slug);
+  return `/gallery?${params}`;
+}
+
+function categoryLabel(collection) {
+  if (collection.slug === 'oc') return 'Original character';
+  if (collection.slug === 'archive') return 'Archived';
+  return collection.name;
+}
+
+function CharacterLink({ entry }) {
+  return (
+    <article className="character-link" style={{ '--accent': entry.character.color }}>
+      <Link to={characterUrl(entry.character)}>
+        <span className="character-link__marker" aria-hidden="true" />
+        <strong>{entry.character.name}</strong>
+        <small>{entry.character.subtitle || categoryLabel(entry.collection)}</small>
+      </Link>
+    </article>
+  );
+}
 
 export function Hub() {
+  const [site, setSite] = useState(null);
+  const [error, setError] = useState(null);
+  const [activeCollection, setActiveCollection] = useState('all');
+
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch('/data/cms/site.json', { signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      .then(setSite)
+      .catch((requestError) => {
+        if (requestError.name !== 'AbortError') setError(requestError.message);
+      });
+    return () => controller.abort();
+  }, []);
+
+  const collections = useMemo(
+    () => site?.collections ?? [],
+    [site],
+  );
+  const cast = useMemo(() => collections
+    .filter((collection) => activeCollection === 'all'
+      ? collection.slug !== 'archive'
+      : collection.slug === activeCollection)
+    .flatMap((collection) =>
+      collection.characters.map((character) => ({ character, collection }))),
+  [activeCollection, collections]);
+
+  if (error) return <ErrorScreen message={error} artifact="data/cms/site.json" />;
+  if (!site) return <LoadingScreen />;
+
   return (
-    <div className="hub-container">
-      <div className="hub-content">
-        <h1 className="hub-title">Cuddlebuns</h1>
-        <p className="hub-subtitle">A personal website and craziness</p>
+    <div className="site-shell">
+      <SiteNav />
+      <main className="home-index page-width">
+        <h1 className="visually-hidden">Characters</h1>
 
-        <nav className="hub-nav">
-          <Link to="/gallery" className="hub-link">
-            <div className="hub-card">
-              <h2>Character Gallery</h2>
-              <p>Browse reference sheets and commissions</p>
-            </div>
-          </Link>
-
-          {/* Placeholder for future sections */}
-          <div className="hub-card hub-card-disabled">
-            <h2>Such n such</h2>
-            <p>Coming soon</p>
-          </div>
-
-          <div className="hub-card hub-card-disabled">
-            <h2>Such n such</h2>
-            <p>Coming soon</p>
-          </div>
+        <nav className="collection-nav" aria-label="Character categories">
+          <button
+            className={activeCollection === 'all' ? 'is-active' : ''}
+            onClick={() => setActiveCollection('all')}
+            aria-pressed={activeCollection === 'all'}
+          >
+            All
+          </button>
+          {collections.map((collection) => (
+            <button
+              key={collection.id}
+              className={activeCollection === collection.slug ? 'is-active' : ''}
+              onClick={() => setActiveCollection(collection.slug)}
+              aria-pressed={activeCollection === collection.slug}
+            >
+              {categoryLabel(collection)}
+            </button>
+          ))}
         </nav>
-      </div>
+
+        {cast.length > 0 && (
+          <section className="character-link-grid" aria-label="Character index">
+            {cast.map((entry) => (
+              <CharacterLink key={entry.character.id} entry={entry} />
+            ))}
+          </section>
+        )}
+      </main>
     </div>
   );
 }

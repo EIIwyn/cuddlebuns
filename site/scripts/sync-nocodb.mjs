@@ -15,7 +15,7 @@ const GALLERY_DIR = path.join(DATA_DIR, "gallery");
 const IMAGE_DIR = path.join(SITE_DIR, "public", "generated", "nocodb", "images");
 const PUBLIC_IMAGE_ROOT = "/generated/nocodb/images";
 const CHECK_ONLY = process.argv.includes("--check");
-const MANIFEST_VERSION = 2;
+const MANIFEST_VERSION = 3;
 const DERIVATIVE_WIDTHS = [480, 960, 1600];
 const API_PAGE_SIZE = 10;
 const API_TIMEOUT_MS = 120_000;
@@ -342,6 +342,7 @@ function createModel(tables, config) {
         attachment,
         sourceUrl: new URL(attachment.signedPath, `${config.url}/`).href,
         fallbackUrl: thumbnailFallbackUrl(attachment, config.url),
+        preserveOriginal: true,
       });
       version.referenceSheets.push({ taskKey });
     }
@@ -486,8 +487,9 @@ function fileExists(relativePublicUrl) {
   return fs.existsSync(path.join(SITE_DIR, "public", relativePublicUrl.slice(1)));
 }
 
-function cachedEntryIsComplete(entry) {
+function cachedEntryIsComplete(entry, task = null) {
   if (!entry?.image?.fallback?.url || !fileExists(entry.image.fallback.url)) return false;
+  if (task?.preserveOriginal && (!entry.image.originalUrl || !fileExists(entry.image.originalUrl))) return false;
   return IMAGE_FORMATS.every((format) =>
     Array.isArray(entry.image.sources?.[format]) &&
     entry.image.sources[format].length > 0 &&
@@ -497,7 +499,7 @@ function cachedEntryIsComplete(entry) {
 
 async function processImage(task, previous) {
   const signature = fingerprint(attachmentSnapshot(task.attachment));
-  if (previous?.signature === signature && cachedEntryIsComplete(previous)) return previous;
+  if (previous?.signature === signature && cachedEntryIsComplete(previous, task)) return previous;
 
   const buffer = await downloadTask(task);
   const contentHash = hash(buffer);
@@ -570,8 +572,8 @@ async function processImage(task, previous) {
     sources,
     fallback,
   };
-  if (task.attachment?.mimetype === "image/gif") {
-    const originalFilename = `${stem}-original.gif`;
+  if (task.preserveOriginal || task.attachment?.mimetype === "image/gif") {
+    const originalFilename = `${stem}-original${sourceExtension}`;
     const originalOutput = path.join(IMAGE_DIR, originalFilename);
     if (!fs.existsSync(originalOutput)) fs.copyFileSync(cacheFile, originalOutput);
     image.originalUrl = publicUrl(originalFilename);
@@ -638,8 +640,8 @@ async function main() {
     !fs.existsSync(path.join(SITE_DIR, "public", version.galleryUrl.slice(1))),
   );
   const outputPresent = fs.existsSync(expectedSite) && missingGalleryOutputs.length === 0;
-  const incompleteCachedTasks = [...model.imageTasks.keys()].filter((key) =>
-    !cachedEntryIsComplete(previous.attachments?.[key]),
+  const incompleteCachedTasks = [...model.imageTasks.entries()].filter(([key, task]) =>
+    !cachedEntryIsComplete(previous.attachments?.[key], task),
   );
   const unchanged = previous.version === MANIFEST_VERSION &&
     previous.sourceFingerprint === sourceFingerprint && outputPresent &&

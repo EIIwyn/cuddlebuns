@@ -26,7 +26,7 @@ function requirePublicFile(url, context) {
   }
 }
 
-function validateImage(image, context) {
+function validateImage(image, context, { requireOriginal = false } = {}) {
   if (!image?.fallback?.url || !image?.width || !image?.height) {
     errors.push(`${context}: incomplete responsive image descriptor.`);
     return;
@@ -40,7 +40,11 @@ function validateImage(image, context) {
     }
     for (const source of sources) requirePublicFile(source.url, context);
   }
-  if (image.originalUrl) requirePublicFile(image.originalUrl, context);
+  if (requireOriginal && !image.originalUrl) {
+    errors.push(`${context}: original image is required.`);
+  } else if (image.originalUrl) {
+    requirePublicFile(image.originalUrl, context);
+  }
 }
 
 const site = readJson(SITE_FILE);
@@ -56,7 +60,7 @@ if (site) {
         for (const version of character.versions ?? []) {
           const context = `${character.slug}/${version.slug}`;
           for (const [index, image] of (version.referenceSheets ?? []).entries()) {
-            validateImage(image, `${context} reference ${index + 1}`);
+            validateImage(image, `${context} reference ${index + 1}`, { requireOriginal: true });
           }
           requirePublicFile(version.galleryUrl, `${context} gallery`);
           const gallery = readJson(path.join(PUBLIC_DIR, version.galleryUrl.slice(1)));
