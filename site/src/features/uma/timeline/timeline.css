@@ -149,6 +149,21 @@
 .uma-event-marker--loh { width:19px; height:19px; }
 .uma-release-lane { grid-template-columns:180px minmax(2442px,1fr); min-height:108px; }
 .uma-card-release { top:calc(18px + (var(--stack) * 8px)); width:52px; height:66px; }
+.uma-card-release--style { border-color:#c990ef; }
+.uma-card-release--distance { border-color:#e6c45c; }
+.uma-card-release--parenting { border-color:#ef8f8f; }
+.uma-card-release > i { position:absolute; right:-7px; bottom:-7px; z-index:2; display:grid; width:18px; height:18px; place-items:center; border:1px solid var(--page); border-radius:50%; background:var(--page-soft); color:var(--ink); font-size:.62rem; font-style:normal; font-weight:700; }
+.uma-card-release > b { position:absolute; top:-7px; left:-7px; z-index:2; display:grid; min-width:22px; height:16px; place-items:center; padding:0 3px; border:1px solid var(--page); border-radius:3px; background:#7b89a6; color:#090a12; font-size:.5rem; font-weight:800; letter-spacing:.02em; }
+.uma-card-release--type-speed > b { background:#68a9ff; }
+.uma-card-release--type-stamina > b { background:#ef7878; }
+.uma-card-release--type-power > b { background:#e6c45c; }
+.uma-card-release--type-guts > b { background:#ef8fba; }
+.uma-card-release--type-wisdom > b { background:#78c48e; }
+.uma-card-release--type-friend > b { background:#78c48e; }
+.uma-card-release--type-group > b { background:#f08b78; }
+.uma-card-release--style > i { background:#c990ef; color:#1a1020; }
+.uma-card-release--distance > i { background:#e6c45c; color:#241d08; }
+.uma-card-release--parenting > i { background:#ef8f8f; color:#2a1010; }
 .uma-support-row { grid-template-columns:180px minmax(2442px,1fr); min-height:100px; }
 .uma-support-identity picture,.uma-support-identity img,.uma-support-image-fallback { width:52px; height:66px; }
 .uma-support-identity strong { font-size:.88rem; }

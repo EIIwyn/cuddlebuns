@@ -3,6 +3,22 @@ import { dateRangeLabel, eventTypeLabel } from './timeline-model';
 
 const labelFor = (card) => card.characterName || card.name || card.slug;
 
+function specializedSubtype(rating) {
+  return ({ 'Style Niche': 'style', 'Distance Specific': 'distance', Parenting: 'parenting' })[rating] ?? null;
+}
+
+function cardTypeBadge(cardType) {
+  const type = String(cardType ?? '').toLowerCase();
+  if (type.includes('speed')) return ['speed', 'SPD'];
+  if (type.includes('stamina')) return ['stamina', 'STA'];
+  if (type.includes('power')) return ['power', 'PWR'];
+  if (type.includes('guts')) return ['guts', 'GUT'];
+  if (type.includes('wisdom') || type.includes('wit')) return ['wisdom', 'WIT'];
+  if (type.includes('friend')) return ['friend', 'FRN'];
+  if (type.includes('group')) return ['group', 'GRP'];
+  return ['other', cardType ? String(cardType).slice(0, 3).toUpperCase() : '?'];
+}
+
 export function SupportCardControls({ cards, filters, onChange, onReset, selectedCount, onClearSelected }) {
   const types = [...new Set(cards.map((card) => card.cardType).filter(Boolean))].sort();
   const styles = [...new Set(cards.flatMap((card) => card.styles ?? []))].sort();
@@ -24,7 +40,7 @@ export function CardReleaseLane({ cards, selectedIds, onToggle, onCardHighlight 
   ];
   const knownRatings = ratingLanes.flatMap(([, ratings]) => ratings);
   const lanes = [...ratingLanes.map(([label, ratings]) => [label, cards.filter((card) => ratings.includes(card.rating))]), ['Unrated', cards.filter((card) => !knownRatings.includes(card.rating))]].filter(([, items]) => items.length);
-  return <div className="uma-release-lanes"><div className="uma-release-heading">Card releases</div>{lanes.map(([rating, items]) => <div className="uma-release-lane" key={rating}><div className="uma-lane__label">{rating}</div><div className="uma-lane__track">{items.map((card, index) => card.releasePercent != null && <button key={card.id} className={`uma-card-release${selectedIds.has(card.id) ? ' is-selected' : ''}`} style={{ left: `${card.releasePercent}%`, '--stack': index % 3 }} type="button" title={`${labelFor(card)} · ${rating} · ${card.cardType || 'Support card'} · Released ${dateRangeLabel(card.releaseDate, card.releaseDate)} · ${(card.styles ?? []).join(', ') || 'No styles listed'}`} aria-label={`${selectedIds.has(card.id) ? 'Remove' : 'Add'} ${labelFor(card)}. ${rating}. Released ${dateRangeLabel(card.releaseDate, card.releaseDate)}.`} aria-pressed={selectedIds.has(card.id)} onMouseEnter={() => onCardHighlight(card.id)} onMouseLeave={() => onCardHighlight(null)} onFocus={() => onCardHighlight(card.id)} onBlur={() => onCardHighlight(null)} onClick={() => onToggle(card.id)}>{card.image ? <ModernImage src={card.image} alt="" sizes="42px" /> : <span>{labelFor(card).slice(0, 1)}</span>}</button>)}</div></div>)}</div>;
+  return <div className="uma-release-lanes"><div className="uma-release-heading">Card releases</div>{lanes.map(([rating, items]) => <div className="uma-release-lane" key={rating}><div className="uma-lane__label">{rating}</div><div className="uma-lane__track">{items.map((card, index) => { const subtype = specializedSubtype(card.rating); const [type, badge] = cardTypeBadge(card.cardType); return card.releasePercent != null && <button key={card.id} className={`uma-card-release uma-card-release--type-${type}${selectedIds.has(card.id) ? ' is-selected' : ''}${subtype ? ` uma-card-release--${subtype}` : ''}`} style={{ left: `${card.releasePercent}%`, '--stack': index % 3 }} type="button" title={`${labelFor(card)} · ${rating} · ${card.cardType || 'Support card'} · Released ${dateRangeLabel(card.releaseDate, card.releaseDate)} · ${(card.styles ?? []).join(', ') || 'No styles listed'}`} aria-label={`${selectedIds.has(card.id) ? 'Remove' : 'Add'} ${labelFor(card)}. ${rating}. ${card.cardType || 'Support card'}. Released ${dateRangeLabel(card.releaseDate, card.releaseDate)}.`} aria-pressed={selectedIds.has(card.id)} onMouseEnter={() => onCardHighlight(card.id)} onMouseLeave={() => onCardHighlight(null)} onFocus={() => onCardHighlight(card.id)} onBlur={() => onCardHighlight(null)} onClick={() => onToggle(card.id)}>{card.image ? <ModernImage src={card.image} alt="" sizes="42px" /> : <span>{labelFor(card).slice(0, 1)}</span>}<b aria-hidden="true">{badge}</b>{subtype && <i aria-hidden="true">{subtype === 'style' ? 'S' : subtype === 'distance' ? 'D' : 'P'}</i>}</button>; })}</div></div>)}</div>;
 }
 
 export function SelectedCardRows({ cards, eventById, scenarioById, selectedEvent, onEventSelect, onEventHighlight, onRemove }) {
