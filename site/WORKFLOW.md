@@ -2,7 +2,7 @@
 
 ## Architecture
 
-NocoDB is the editorial CMS and source of truth for the `/gallery` route:
+NocoDB is the editorial CMS and source of truth for the `/gallery` route and the separate `/uma/timeline` data set:
 
 ```text
 NocoDB (server-side API only)
@@ -13,7 +13,7 @@ NocoDB (server-side API only)
   -> Caddy serves /var/www/cuddlebuns/current
 ```
 
-The browser never connects to NocoDB. `NOCODB_TOKEN` must only exist in `.env.local`
+The browser never connects to NocoDB. `NOCODB_TOKEN` and `UMA_NOCODB_TOKEN` must only exist in `.env.local`
 for local work or `/etc/cuddlebuns/gallery.env` on the VPS. Never prefix it with
 `VITE_`, commit it, paste it into browser code, or place it in `public/`.
 
@@ -30,6 +30,14 @@ NOCODB_CHARACTERS_TABLE_ID=YOUR_CHARACTERS_TABLE_ID
 NOCODB_COMMISSIONS_TABLE_ID=YOUR_COMMISSIONS_TABLE_ID
 NOCODB_COLLECTIONS_TABLE_ID=YOUR_COLLECTIONS_TABLE_ID
 NOCODB_VERSIONS_TABLE_ID=YOUR_VERSIONS_TABLE_ID
+
+# Separate Uma Musume Global base
+UMA_NOCODB_URL=https://noco.cuddlebuns.moe
+UMA_NOCODB_TOKEN=YOUR_UMA_TOKEN_HERE
+UMA_NOCODB_BASE_ID=YOUR_UMA_BASE_ID
+UMA_NOCODB_SCENARIOS_TABLE_ID=YOUR_SCENARIOS_TABLE_ID
+UMA_NOCODB_PVP_EVENTS_TABLE_ID=YOUR_PVP_EVENTS_TABLE_ID
+UMA_NOCODB_SUPPORT_CARDS_TABLE_ID=YOUR_SUPPORT_CARDS_TABLE_ID
 ```
 
 Explicit table IDs are intentional. Personal API tokens in this NocoDB installation do
@@ -83,6 +91,23 @@ The sync reports invalid published records and omits them. This prevents partial
 configured records from leaking into the live gallery. At the first migration sync,
 Commission records 21 and 60 were omitted because they did not have a Source URL.
 
+## Editing the Uma timeline in NocoDB
+
+The Uma tables live in a separate base. The public timeline requires `scenarios` with
+`name`, `slug`, `era_start`, and `era_end`, plus `pvp_events` with `name`, `slug`,
+`start_date`, `end_date`, and an optional relation to a scenario. Race metadata is
+optional and is shown only when supplied.
+
+The pipeline outputs a neutral `unspecified` status until an explicit `status` (or
+`confirmed_projected_status`) field is added. When present, only `confirmed` and
+`projected` are accepted. Projected events use distinct dashed styling in the UI.
+
+`support_cards` are normalized with stable linked PvP record IDs, general card-level
+running styles, release dates, and cached 240px AVIF/WebP thumbnails. `npm run sync:uma`
+writes `public/data/uma/timeline.json`; `npm run validate:uma`
+checks public data shape, relationships, dates, and secret leakage. Like gallery
+output, these generated files are ignored by Git and rebuilt on the VPS.
+
 ## Local commands
 
 ```powershell
@@ -92,11 +117,20 @@ npm.cmd run sync
 # Exit 0 when current; exit 10 when a public CMS change needs syncing
 npm.cmd run sync:check
 
+# Fetch Uma scenarios and PvP events into public timeline JSON
+npm.cmd run sync:uma
+
+# Exit 0 when current; exit 10 when public Uma data changed
+npm.cmd run sync:uma:check
+
 # Pure Vite build; it does not edit source JSON
 npm.cmd run build
 
 # Validate JSON relationships, required public fields, responsive files, and secrets
 npm.cmd run validate:cms
+
+# Validate the public Uma timeline JSON
+npm.cmd run validate:uma
 
 # Sync first, then build
 npm.cmd run build:fresh

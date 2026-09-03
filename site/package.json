@@ -6,10 +6,13 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "build:fresh": "npm run sync && npm run validate:cms && npm run build",
+    "build:fresh": "npm run sync && npm run sync:uma && npm run validate:cms && npm run validate:uma && npm run build",
     "sync": "node scripts/sync-nocodb.mjs",
     "sync:check": "node scripts/sync-nocodb.mjs --check",
+    "sync:uma": "node scripts/sync-uma-nocodb.mjs",
+    "sync:uma:check": "node scripts/sync-uma-nocodb.mjs --check",
     "validate:cms": "node scripts/validate-cms-output.mjs",
+    "validate:uma": "node scripts/validate-uma-output.mjs",
     "lint": "eslint .",
     "preview": "vite preview"
   },

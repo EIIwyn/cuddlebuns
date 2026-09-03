@@ -114,6 +114,9 @@ summary:focus-visible {
 
 /* Minimal home */
 .home-landing {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 470px));
+  gap: 18px;
   padding: clamp(54px, 8vw, 110px) 0 120px;
 }
 
@@ -163,6 +166,13 @@ summary:focus-visible {
 
 .home-gallery-link:hover > span span {
   transform: translateX(4px);
+}
+
+.home-uma-link {
+  --accent: #75c8ff;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, transparent), transparent 60%),
+    rgba(255, 255, 255, 0.018);
 }
 
 /* Character-first home */
@@ -836,6 +846,10 @@ summary:focus-visible {
 }
 
 @media (max-width: 760px) {
+  .home-landing {
+    grid-template-columns: 1fr;
+  }
+
   .page-width,
   .site-nav {
     width: min(100% - 30px, 1480px);
