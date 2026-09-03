@@ -8,6 +8,7 @@ CURRENT="/var/www/cuddlebuns/current"
 
 GIT_CHANGED=0
 CMS_CHANGED=0
+UMA_CHANGED=0
 
 echo "========================================"
 echo "Cuddlebuns automatic deployment check"
@@ -78,10 +79,12 @@ cd "$SITE"
 
 set +e
 npm run sync:check
-SYNC_CHECK_EXIT=$?
+GALLERY_SYNC_CHECK_EXIT=$?
+npm run sync:uma:check
+UMA_SYNC_CHECK_EXIT=$?
 set -e
 
-case "$SYNC_CHECK_EXIT" in
+case "$GALLERY_SYNC_CHECK_EXIT" in
     0)
         echo "No public NocoDB changes detected."
         ;;
@@ -90,8 +93,22 @@ case "$SYNC_CHECK_EXIT" in
         CMS_CHANGED=1
         ;;
     *)
-        echo "ERROR: NocoDB change check failed with exit code $SYNC_CHECK_EXIT."
-        exit "$SYNC_CHECK_EXIT"
+        echo "ERROR: Gallery NocoDB change check failed with exit code $GALLERY_SYNC_CHECK_EXIT."
+        exit "$GALLERY_SYNC_CHECK_EXIT"
+        ;;
+esac
+
+case "$UMA_SYNC_CHECK_EXIT" in
+    0)
+        echo "No public Uma NocoDB changes detected."
+        ;;
+    10)
+        echo "Public Uma NocoDB changes detected."
+        UMA_CHANGED=1
+        ;;
+    *)
+        echo "ERROR: Uma NocoDB change check failed with exit code $UMA_SYNC_CHECK_EXIT."
+        exit "$UMA_SYNC_CHECK_EXIT"
         ;;
 esac
 
@@ -99,7 +116,7 @@ esac
 # Nothing changed
 # --------------------------------------------------
 
-if [ "$GIT_CHANGED" -eq 0 ] && [ "$CMS_CHANGED" -eq 0 ]; then
+if [ "$GIT_CHANGED" -eq 0 ] && [ "$CMS_CHANGED" -eq 0 ] && [ "$UMA_CHANGED" -eq 0 ]; then
     echo
     echo "Nothing changed. No deployment required."
     exit 0
@@ -115,6 +132,12 @@ if [ "$CMS_CHANGED" -eq 1 ]; then
     npm run sync
 fi
 
+if [ "$UMA_CHANGED" -eq 1 ]; then
+    echo
+    echo "Synchronizing changed Uma NocoDB content..."
+    npm run sync:uma
+fi
+
 # --------------------------------------------------
 # Validate + build
 # --------------------------------------------------
@@ -122,6 +145,10 @@ fi
 echo
 echo "Validating generated CMS..."
 npm run validate:cms
+
+echo
+echo "Validating generated Uma timeline..."
+npm run validate:uma
 
 echo
 echo "Building production site..."
@@ -176,5 +203,6 @@ echo "========================================"
 echo "Deployment successful"
 echo "Git changed:    $GIT_CHANGED"
 echo "NocoDB changed: $CMS_CHANGED"
+echo "Uma changed:    $UMA_CHANGED"
 echo "Finished: $(date)"
 echo "========================================"
