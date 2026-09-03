@@ -16,9 +16,14 @@ function UsageMarker({ card, event, scenario, selectedEvent, onEventSelect, onEv
 }
 
 export function CardReleaseLane({ cards, selectedIds, onToggle, onCardHighlight }) {
-  const ratings = ['Auto Include', 'Style Core', 'Borrow'];
-  const group = (rating) => cards.filter((card) => (card.rating || 'Unrated') === rating);
-  const lanes = [...ratings.map((rating) => [rating, group(rating)]), ['Unrated', cards.filter((card) => !ratings.includes(card.rating))]].filter(([, items]) => items.length);
+  const ratingLanes = [
+    ['Auto Include', ['Auto Include']],
+    ['Style Core', ['Style Core']],
+    ['Specialized', ['Style Niche', 'Distance Specific']],
+    ['Borrow', ['Borrow']],
+  ];
+  const knownRatings = ratingLanes.flatMap(([, ratings]) => ratings);
+  const lanes = [...ratingLanes.map(([label, ratings]) => [label, cards.filter((card) => ratings.includes(card.rating))]), ['Unrated', cards.filter((card) => !knownRatings.includes(card.rating))]].filter(([, items]) => items.length);
   return <div className="uma-release-lanes"><div className="uma-release-heading">Card releases</div>{lanes.map(([rating, items]) => <div className="uma-release-lane" key={rating}><div className="uma-lane__label">{rating}</div><div className="uma-lane__track">{items.map((card, index) => card.releasePercent != null && <button key={card.id} className={`uma-card-release${selectedIds.has(card.id) ? ' is-selected' : ''}`} style={{ left: `${card.releasePercent}%`, '--stack': index % 3 }} type="button" title={`${labelFor(card)} · ${rating} · ${card.cardType || 'Support card'} · Released ${dateRangeLabel(card.releaseDate, card.releaseDate)} · ${(card.styles ?? []).join(', ') || 'No styles listed'}`} aria-label={`${selectedIds.has(card.id) ? 'Remove' : 'Add'} ${labelFor(card)}. ${rating}. Released ${dateRangeLabel(card.releaseDate, card.releaseDate)}.`} aria-pressed={selectedIds.has(card.id)} onMouseEnter={() => onCardHighlight(card.id)} onMouseLeave={() => onCardHighlight(null)} onFocus={() => onCardHighlight(card.id)} onBlur={() => onCardHighlight(null)} onClick={() => onToggle(card.id)}>{card.image ? <ModernImage src={card.image} alt="" sizes="42px" /> : <span>{labelFor(card).slice(0, 1)}</span>}</button>)}</div></div>)}</div>;
 }
 
