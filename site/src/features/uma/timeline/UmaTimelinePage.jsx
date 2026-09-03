@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchUmaTimeline } from '../api';
+import { ModernImage } from '../../../components/ModernImage';
 import { createTimelineModel, dateRangeLabel, eventTypeLabel, formatDate } from './timeline-model';
 import { CardReleaseLane, SelectedCardRows, SupportCardControls } from './SupportCardLanes';
 import './timeline.css';
@@ -42,7 +43,7 @@ function EventCard({ event, active, onSelect }) {
   );
 }
 
-function EventDetails({ event, scenario, onClose }) {
+function EventDetails({ event, scenario, supportCards, selectedCardIds, onToggleCard, onClose }) {
   const details = [
     ['Scenario', scenario?.name],
     ['Racecourse', event.racecourse],
@@ -64,17 +65,33 @@ function EventDetails({ event, scenario, onClose }) {
           {details.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
         </dl>
       )}
+      {supportCards.length > 0 && <section className="uma-details__cards" aria-label="Support cards linked to this event"><p className="eyebrow">Linked support cards</p><div>{supportCards.map((card) => <button key={card.id} className={`uma-details-card${selectedCardIds.has(card.id) ? ' is-selected' : ''}`} type="button" onClick={() => onToggleCard(card.id)} title={`${card.characterName || card.name} · ${card.rating || 'Unrated'} · ${card.cardType || 'Support card'}`} aria-pressed={selectedCardIds.has(card.id)} aria-label={`${selectedCardIds.has(card.id) ? 'Remove' : 'Add'} ${card.characterName || card.name} to selected cards`}>{card.image ? <ModernImage src={card.image} alt="" sizes="60px" /> : <span className="uma-support-image-fallback" aria-hidden="true" />}<span><strong>{card.characterName || card.name}</strong><small>{[card.rating, card.cardType].filter(Boolean).join(' · ')}</small></span></button>)}</div></section>}
       {event.status === 'projected' && <p className="uma-details__projected">Projected information — subject to change.</p>}
     </aside>
   );
 }
 
 function TimelineChart({ model, selectedCards, selectedEvent, highlightedEventId, hoveredCardId, selectedCardIds, onSelect, onEventHighlight, onCardHighlight, onToggleCard, onRemoveCard }) {
+  const pan = useRef(null);
   const eventById = useMemo(() => new Map(model.events.map((event) => [event.id, event])), [model.events]);
   const scenarioById = useMemo(() => new Map(model.scenarios.map((scenario) => [scenario.id, scenario])), [model.scenarios]);
   const hoveredEventIds = useMemo(() => new Set(model.supportCards.find((card) => card.id === hoveredCardId)?.eventIds ?? []), [hoveredCardId, model.supportCards]);
   return (
-    <section className="uma-timeline" aria-label="Uma Musume Global timeline">
+    <section
+      className="uma-timeline"
+      aria-label="Uma Musume Global timeline"
+      onPointerDown={(event) => {
+        if (event.target.closest('button, input, select')) return;
+        pan.current = { x: event.clientX, scrollLeft: event.currentTarget.scrollLeft };
+        event.currentTarget.setPointerCapture(event.pointerId);
+      }}
+      onPointerMove={(event) => {
+        if (!pan.current) return;
+        event.currentTarget.scrollLeft = pan.current.scrollLeft - (event.clientX - pan.current.x);
+      }}
+      onPointerUp={() => { pan.current = null; }}
+      onPointerCancel={() => { pan.current = null; }}
+    >
       <div className="uma-chart" role="group" aria-label="Scenario eras and PvP events by date">
         <div className="uma-axis" aria-hidden="true">
           {model.today && <div className="uma-today-line" style={{ left: `${model.today.percent}%` }}><span>TODAY · {formatDate(model.today.date, { month: 'short', day: 'numeric' })}</span></div>}
@@ -114,7 +131,7 @@ function TimelineChart({ model, selectedCards, selectedEvent, highlightedEventId
                   key={event.id}
                   style={{ left: `${event.startPercent ?? 0}%`, '--course-color': event.courseColor }}
                   onMouseEnter={() => onEventHighlight(event.id)} onMouseLeave={() => onEventHighlight(null)} onFocus={() => onEventHighlight(event.id)} onBlur={() => onEventHighlight(null)}
-                  onClick={() => onSelect(event)}
+                  onClick={() => onSelect(selected ? null : event)}
                   type="button"
                   aria-pressed={selected}
                   aria-label={eventAriaLabel(event, selected)}
@@ -150,6 +167,7 @@ export function UmaTimelinePage() {
   const model = useMemo(() => timeline ? createTimelineModel(timeline) : null, [timeline]);
   const scenarioById = useMemo(() => new Map(timeline?.scenarios.map((scenario) => [scenario.id, scenario])), [timeline]);
   const selectedScenario = selectedEvent?.scenarioId ? scenarioById.get(selectedEvent.scenarioId) : null;
+  const selectedEventCards = useMemo(() => selectedEvent ? (model?.supportCards ?? []).filter((card) => card.eventIds.includes(selectedEvent.id)) : [], [model, selectedEvent]);
   const filteredCards = useMemo(() => (model?.supportCards ?? []).filter((card) => {
     const query = filters.query.trim().toLowerCase();
     return (!query || [card.name, card.characterName, card.slug].filter(Boolean).some((value) => value.toLowerCase().includes(query))) &&
@@ -169,11 +187,11 @@ export function UmaTimelinePage() {
             <SupportCardControls cards={model.supportCards} filters={filters} onChange={setFilters} onReset={() => setFilters({ query: '', type: '', style: '' })} selectedCount={selectedCards.length} onClearSelected={() => setSelectedCardIds(new Set())} />
             <div className={`uma-timeline-layout${selectedEvent ? ' has-details' : ''}`}>
               <TimelineChart model={visibleModel} selectedCards={selectedCards} selectedEvent={selectedEvent} highlightedEventId={highlightedEventId || selectedEvent?.id} hoveredCardId={hoveredCardId} selectedCardIds={selectedCardIds} onSelect={setSelectedEvent} onEventHighlight={setHighlightedEventId} onCardHighlight={setHoveredCardId} onToggleCard={toggleCard} onRemoveCard={removeCard} />
-              {selectedEvent && <EventDetails event={selectedEvent} scenario={selectedScenario} onClose={() => setSelectedEvent(null)} />}
+              {selectedEvent && <EventDetails event={selectedEvent} scenario={selectedScenario} supportCards={selectedEventCards} selectedCardIds={selectedCardIds} onToggleCard={toggleCard} onClose={() => setSelectedEvent(null)} />}
             </div>
             <section className="uma-events" aria-labelledby="uma-events-heading">
               <div className="uma-section-heading">
-                <div><p className="eyebrow">Events</p><h2 id="uma-events-heading">Champions Meeting & League of Heroes</h2></div>
+                <div><p className="eyebrow" id="uma-events-heading">Events</p></div>
                 <div className="uma-legend" aria-label="Event marker legend"><span>Shape:</span><span><i className="uma-legend__marker uma-legend__marker--cm" aria-hidden="true" />Champions Meeting</span><span><i className="uma-legend__marker uma-legend__marker--loh" aria-hidden="true" />League of Heroes</span><span>Course:</span>{[['sprint','Sprint'],['mile','Mile'],['medium','Medium'],['long','Long'],['dirt','Dirt']].map(([key,label]) => <span key={key}><i className="uma-legend__course" style={{ '--course-color': `var(--uma-course-${key})` }} aria-hidden="true" />{label}</span>)}</div>
               </div>
               <div className="uma-event-grid">{model.events.map((event) => <EventCard key={event.id} event={event} active={selectedEvent?.id === event.id} onSelect={setSelectedEvent} />)}</div>
