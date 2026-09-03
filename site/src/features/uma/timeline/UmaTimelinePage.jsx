@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchUmaTimeline } from '../api';
-import { createTimelineModel, dateRangeLabel, eventTypeLabel } from './timeline-model';
+import { createTimelineModel, dateRangeLabel, eventTypeLabel, formatDate } from './timeline-model';
 import { CardReleaseLane, SelectedCardRows, SupportCardControls } from './SupportCardLanes';
 import './timeline.css';
 
@@ -20,15 +20,23 @@ function scenarioLabel(scenario) {
 }
 
 function eventAriaLabel(event, selected) {
-  return `${selected ? 'Selected. ' : ''}${eventTypeLabel(event.eventType)}: ${event.name}, ${dateRangeLabel(event.startDate, event.endDate)}. Show details.`;
+  const course = [event.surface, event.distanceClass, event.distanceM ? `${event.distanceM}m` : null].filter(Boolean).join(' ');
+  return `${selected ? 'Selected. ' : ''}${eventTypeLabel(event.eventType)}: ${event.name}, ${course ? `${course}, ` : ''}${dateRangeLabel(event.startDate, event.endDate)}. Show details.`;
 }
 
 function EventCard({ event, active, onSelect }) {
+  const metadata = [
+    [event.racecourse, [event.distanceClass, event.distanceM ? `${event.distanceM}m` : null].filter(Boolean).join(' ')],
+    [event.surface, event.direction, event.trackCondition],
+    [event.season, event.weather],
+  ].map((parts) => parts.filter(Boolean).join(' · ')).filter(Boolean);
   return (
-    <button className={`uma-event-card uma-event-card--${event.typeKind}${active ? ' is-active' : ''}`} onClick={() => onSelect(event)} type="button">
+    <button className={`uma-event-card uma-event-card--${event.typeKind}${active ? ' is-active' : ''}`} style={{ '--course-color': event.courseColor }} onClick={() => onSelect(event)} type="button">
       <span className="uma-event-card__type"><i aria-hidden="true" />{eventTypeLabel(event.eventType)}</span>
       <strong>{event.name}</strong>
       <span>{dateRangeLabel(event.startDate, event.endDate)}</span>
+      {metadata.map((line, index) => <small key={index}>{line}</small>)}
+      {event.scenarioName && <small>Scenario: {event.scenarioName}</small>}
       {event.status === 'projected' && <em>Projected</em>}
     </button>
   );
@@ -46,7 +54,7 @@ function EventDetails({ event, scenario, onClose }) {
     ['Surface', event.surface],
   ].filter(([, value]) => value);
   return (
-    <aside className="uma-details" aria-live="polite" aria-label={`${event.name} details`}>
+    <aside className="uma-details" style={{ '--course-color': event.courseColor }} aria-live="polite" aria-label={`${event.name} details`}>
       <button onClick={onClose} type="button" aria-label="Close event details">×</button>
       <p className="eyebrow">{eventTypeLabel(event.eventType)}</p>
       <h2>{event.name}</h2>
@@ -69,6 +77,7 @@ function TimelineChart({ model, selectedCards, selectedEvent, highlightedEventId
     <section className="uma-timeline" aria-label="Uma Musume Global timeline">
       <div className="uma-chart" role="group" aria-label="Scenario eras and PvP events by date">
         <div className="uma-axis" aria-hidden="true">
+          {model.today && <div className="uma-today-line" style={{ left: `${model.today.percent}%` }}><span>TODAY · {formatDate(model.today.date, { month: 'short', day: 'numeric' })}</span></div>}
           {model.ticks.map((tick) => (
             <div className={`uma-axis-tick is-${tick.kind}`} key={tick.key} style={{ left: `${tick.percent}%` }}>
               {(tick.kind === 'year' || tick.kind === 'quarter') && <span>{tick.label}</span>}
@@ -103,7 +112,7 @@ function TimelineChart({ model, selectedCards, selectedEvent, highlightedEventId
                 <button
                   className={`uma-event-marker uma-event-marker--${event.typeKind}${selected ? ' is-selected' : ''}${hoveredEventIds.has(event.id) || highlightedEventId === event.id ? ' is-linked' : ''}${event.status === 'projected' ? ' is-projected' : ''}`}
                   key={event.id}
-                  style={{ left: `${event.startPercent ?? 0}%` }}
+                  style={{ left: `${event.startPercent ?? 0}%`, '--course-color': event.courseColor }}
                   onMouseEnter={() => onEventHighlight(event.id)} onMouseLeave={() => onEventHighlight(null)} onFocus={() => onEventHighlight(event.id)} onBlur={() => onEventHighlight(null)}
                   onClick={() => onSelect(event)}
                   type="button"
@@ -155,7 +164,6 @@ export function UmaTimelinePage() {
     <div className="site-shell uma-shell">
       <header className="site-nav uma-nav"><Link className="site-nav__brand" to="/">Cuddlebuns</Link><span>Uma Musume Global</span></header>
       <main className="uma-page page-width">
-        <header className="uma-masthead"><p className="eyebrow">Uma Musume Pretty Derby</p><h1>Global timeline</h1><p>Scenarios, Champions Meeting, and League of Heroes in one chronological view.</p></header>
         {error ? <TimelineError message={error} /> : !model ? <TimelineLoading /> : (
           <>
             <SupportCardControls cards={model.supportCards} filters={filters} onChange={setFilters} onReset={() => setFilters({ query: '', type: '', style: '' })} selectedCount={selectedCards.length} onClearSelected={() => setSelectedCardIds(new Set())} />
@@ -166,7 +174,7 @@ export function UmaTimelinePage() {
             <section className="uma-events" aria-labelledby="uma-events-heading">
               <div className="uma-section-heading">
                 <div><p className="eyebrow">Events</p><h2 id="uma-events-heading">Champions Meeting & League of Heroes</h2></div>
-                <div className="uma-legend" aria-label="Event marker legend"><span><i className="uma-legend__marker uma-legend__marker--cm" aria-hidden="true" />Champions Meeting</span><span><i className="uma-legend__marker uma-legend__marker--loh" aria-hidden="true" />League of Heroes</span></div>
+                <div className="uma-legend" aria-label="Event marker legend"><span>Shape:</span><span><i className="uma-legend__marker uma-legend__marker--cm" aria-hidden="true" />Champions Meeting</span><span><i className="uma-legend__marker uma-legend__marker--loh" aria-hidden="true" />League of Heroes</span><span>Course:</span>{[['sprint','Sprint'],['mile','Mile'],['medium','Medium'],['long','Long'],['dirt','Dirt']].map(([key,label]) => <span key={key}><i className="uma-legend__course" style={{ '--course-color': `var(--uma-course-${key})` }} aria-hidden="true" />{label}</span>)}</div>
               </div>
               <div className="uma-event-grid">{model.events.map((event) => <EventCard key={event.id} event={event} active={selectedEvent?.id === event.id} onSelect={setSelectedEvent} />)}</div>
             </section>

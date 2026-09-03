@@ -197,6 +197,7 @@ function createModel(scenarioRecords, eventRecords, supportCardRecords) {
       id: String(record.id), slug: slugify(field(fields, 'slug', 'Slug') || name || characterName, `support-card-${record.id}`),
       name: name || characterName || 'Untitled support card', characterName,
       cardType: text(field(fields, 'card_type', 'Card Type')),
+      rating: text(field(fields, 'rating', 'Rating')),
       releaseDate: date(field(fields, 'release_date', 'Release Date')),
       styles: multiText(field(fields, 'styles', 'Styles')),
       eventIds: relationIds(field(fields, 'pvp_events', 'PvP Events')).filter((id) => eventIds.has(id)),

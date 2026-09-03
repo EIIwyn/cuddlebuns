@@ -21,7 +21,7 @@ if (timeline) {
   }
   const eventIds = new Set((timeline.pvpEvents ?? []).map((event) => event.id));
   for (const card of timeline.supportCards ?? []) {
-    if (!card.id || !card.slug || !card.name || !Array.isArray(card.styles) || !Array.isArray(card.eventIds)) errors.push(`Support card ${card.id ?? 'unknown'}: invalid public fields.`);
+    if (!card.id || !card.slug || !card.name || !Array.isArray(card.styles) || !Array.isArray(card.eventIds) || (card.rating != null && typeof card.rating !== 'string')) errors.push(`Support card ${card.id ?? 'unknown'}: invalid public fields.`);
     if (card.releaseDate && !date(card.releaseDate)) errors.push(`Support card ${card.id}: invalid release date.`);
     for (const eventId of card.eventIds ?? []) if (!eventIds.has(eventId)) errors.push(`Support card ${card.id}: unknown PvP event relation.`);
     if (card.image?.fallback?.url && !card.image.fallback.url.startsWith('/generated/nocodb/')) errors.push(`Support card ${card.id}: invalid public image URL.`);

@@ -1,4 +1,5 @@
 const DAY_MS = 24 * 60 * 60 * 1000;
+export const COURSE_COLORS = { sprint: '#55D6CE', mile: '#68A9FF', medium: '#E6C45C', long: '#D58ADB', dirt: '#DD8A52', unknown: '#8b93a8' };
 
 function asDate(value) {
   if (typeof value !== 'string') return null;
@@ -54,6 +55,20 @@ export function eventTypeLabel(eventType) {
   return eventType || 'PvP event';
 }
 
+export function courseCategory(event) {
+  const surface = String(event.surface ?? '').trim().toLowerCase();
+  if (surface === 'dirt') return 'dirt';
+  const distance = String(event.distanceClass ?? '').trim().toLowerCase();
+  return COURSE_COLORS[distance] ? distance : 'unknown';
+}
+
+export function courseColor(event) { return COURSE_COLORS[courseCategory(event)]; }
+
+function isoToday() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
 export function createTimelineModel(timeline) {
   const dated = [
     ...timeline.scenarios.flatMap((item) => [timestamp(item.eraStart), timestamp(item.eraEnd)]),
@@ -75,12 +90,13 @@ export function createTimelineModel(timeline) {
     start,
     end,
     ticks: timelineTicks(start, end, position),
+    today: timestamp(isoToday()) >= start && timestamp(isoToday()) <= end ? { date: isoToday(), percent: position(isoToday()) } : null,
     scenarios: [...timeline.scenarios]
       .sort((left, right) => (timestamp(left.eraStart) ?? Infinity) - (timestamp(right.eraStart) ?? Infinity))
       .map((scenario) => ({ ...scenario, startPercent: position(scenario.eraStart), endPercent: position(scenario.eraEnd) })),
     events: [...timeline.pvpEvents]
       .sort((left, right) => (timestamp(left.startDate) ?? Infinity) - (timestamp(right.startDate) ?? Infinity))
-      .map((event) => ({ ...event, startPercent: position(event.startDate), endPercent: position(event.endDate), typeKind: eventTypeKind(event.eventType) })),
+      .map((event) => ({ ...event, startPercent: position(event.startDate), endPercent: position(event.endDate), typeKind: eventTypeKind(event.eventType), courseCategory: courseCategory(event), courseColor: courseColor(event), scenarioName: timeline.scenarios.find((scenario) => scenario.id === event.scenarioId)?.name ?? null })),
     supportCards: (timeline.supportCards ?? []).map((card) => ({ ...card, releasePercent: position(card.releaseDate) })),
   };
 }

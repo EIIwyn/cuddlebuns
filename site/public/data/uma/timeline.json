@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-09-03T02:15:12.564Z",
+  "generatedAt": "2026-09-03T22:00:06.414Z",
   "scenarios": [
     {
       "id": "1",
@@ -857,11 +857,120 @@
   ],
   "supportCards": [
     {
+      "id": "7",
+      "slug": "kristam",
+      "name": "krisstam",
+      "characterName": "Symboli Kris",
+      "cardType": "Stamina",
+      "rating": "Borrow",
+      "releaseDate": "2026-09-01",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-7-at3znomm3t1b233k-12fb9b8dba26-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-7-at3znomm3t1b233k-12fb9b8dba26-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-7-at3znomm3t1b233k-12fb9b8dba26-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "8",
+      "slug": "oguriwit",
+      "name": "oguriwit",
+      "characterName": "Oguri Cap",
+      "cardType": "Wit",
+      "rating": "Borrow",
+      "releaseDate": "2026-09-07",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-8-at2ghd9azjs9nkrs-6f25092d2df3-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-8-at2ghd9azjs9nkrs-6f25092d2df3-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-8-at2ghd9azjs9nkrs-6f25092d2df3-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "10",
+      "slug": "mutekiguts",
+      "name": "mutekiguts",
+      "characterName": "yaeno muteki",
+      "cardType": "Guts",
+      "rating": null,
+      "releaseDate": "2026-09-07",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-10-atpccdxjmdyqm1qf-7b8f08ae4d0f-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-10-atpccdxjmdyqm1qf-7b8f08ae4d0f-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-10-atpccdxjmdyqm1qf-7b8f08ae4d0f-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
       "id": "2",
       "slug": "eishinspd",
       "name": "eishinspeed",
       "characterName": "eishin flash",
       "cardType": "Speed",
+      "rating": "Style Core",
       "releaseDate": "2026-09-23",
       "styles": [
         "Late"
@@ -902,11 +1011,48 @@
       }
     },
     {
+      "id": "6",
+      "slug": "ksguts",
+      "name": "ksmiracleguts",
+      "characterName": "ks miracle",
+      "cardType": "Guts",
+      "rating": null,
+      "releaseDate": "2026-11-02",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-6-atyspw63rpvhpad2-b64e743c724d-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-6-atyspw63rpvhpad2-b64e743c724d-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-6-atyspw63rpvhpad2-b64e743c724d-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
       "id": "3",
       "slug": "ramonuwit",
       "name": "ramonuwit",
       "characterName": "mejiro ramonu",
       "cardType": "Wit",
+      "rating": "Auto Include",
       "releaseDate": "2026-11-28",
       "styles": [
         "Front",
@@ -958,6 +1104,7 @@
       "name": "mihonowit",
       "characterName": "mihono bourbon",
       "cardType": "Wit",
+      "rating": "Style Core",
       "releaseDate": "2027-01-12",
       "styles": [
         "Front"
@@ -1007,6 +1154,7 @@
       "name": "pokkespd",
       "characterName": "jungle pocket",
       "cardType": "Speed",
+      "rating": "Style Core",
       "releaseDate": "2027-01-26",
       "styles": [
         "Late",
@@ -1040,6 +1188,1086 @@
         },
         "fallback": {
           "url": "/generated/nocodb/uma-support/support-card-5-atuidr1hdnbuv42c-00ad16bbc536-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "11",
+      "slug": "zephyrguts",
+      "name": "zephyrguts",
+      "characterName": "Yamanin Zephyr",
+      "cardType": "Guts",
+      "rating": null,
+      "releaseDate": "2026-10-13",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-11-at0rksuhlrilyay9-e0cd5fe92b91-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-11-at0rksuhlrilyay9-e0cd5fe92b91-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-11-at0rksuhlrilyay9-e0cd5fe92b91-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "12",
+      "slug": "specialstam",
+      "name": "specialstam",
+      "characterName": "Special Week",
+      "cardType": "Stamina",
+      "rating": null,
+      "releaseDate": "2026-10-19",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-12-atm2veqfaonb12jp-06d302bbca71-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-12-atm2veqfaonb12jp-06d302bbca71-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-12-atm2veqfaonb12jp-06d302bbca71-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "13",
+      "slug": "sweepwit",
+      "name": "sweepwit",
+      "characterName": "Sweep Tosho",
+      "cardType": "Wit",
+      "rating": null,
+      "releaseDate": "2026-10-19",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-13-ati2ypzhxgrfydv3-a22c9d219680-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-13-ati2ypzhxgrfydv3-a22c9d219680-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-13-ati2ypzhxgrfydv3-a22c9d219680-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "14",
+      "slug": "mcqueenstam",
+      "name": "mcqueenstam",
+      "characterName": "Mejiro McQueen",
+      "cardType": "Stamina",
+      "rating": null,
+      "releaseDate": "2026-12-23",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-14-at0aea8svdhlhuky-075aded81c01-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-14-at0aea8svdhlhuky-075aded81c01-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-14-at0aea8svdhlhuky-075aded81c01-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "15",
+      "slug": "machanwit",
+      "name": "machanwit",
+      "characterName": "Aston Machan",
+      "cardType": "Wit",
+      "rating": "Borrow",
+      "releaseDate": "2027-02-02",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-15-atho0xr871ytmc4x-a1f9efcb361b-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-15-atho0xr871ytmc4x-a1f9efcb361b-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-15-atho0xr871ytmc4x-a1f9efcb361b-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "16",
+      "slug": "goldcityguts",
+      "name": "goldcityguts",
+      "characterName": "Gold City",
+      "cardType": "Guts",
+      "rating": "Distance Specific",
+      "releaseDate": "2027-02-23",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-16-atyhekovlr1yvzlq-ff1ed8c50197-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-16-atyhekovlr1yvzlq-ff1ed8c50197-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-16-atyhekovlr1yvzlq-ff1ed8c50197-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "18",
+      "slug": "cafewit",
+      "name": "cafewit",
+      "characterName": "Manhattan Cafe",
+      "cardType": "Wit",
+      "rating": null,
+      "releaseDate": "2027-03-16",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-18-atj7wjhhge8vcifr-3cdc79804ad6-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-18-atj7wjhhge8vcifr-3cdc79804ad6-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-18-atj7wjhhge8vcifr-3cdc79804ad6-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "19",
+      "slug": "pasaspd",
+      "name": "pasaspd",
+      "characterName": "El Condor Pasa",
+      "cardType": "Speed",
+      "rating": null,
+      "releaseDate": "2027-04-04",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-19-atsgb4ii4655vwr9-36f9567c205c-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-19-atsgb4ii4655vwr9-36f9567c205c-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-19-atsgb4ii4655vwr9-36f9567c205c-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "21",
+      "slug": "mcqueenwit",
+      "name": "mcqueenwit",
+      "characterName": "Mejiro McQueen",
+      "cardType": "Wit",
+      "rating": null,
+      "releaseDate": "2027-05-28",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-21-at98uwn2gtsgce8c-237048c96ac5-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-21-at98uwn2gtsgce8c-237048c96ac5-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-21-at98uwn2gtsgce8c-237048c96ac5-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "22",
+      "slug": "soestam",
+      "name": "soestam",
+      "characterName": "Sounds of Earth",
+      "cardType": "Stamina",
+      "rating": null,
+      "releaseDate": "2027-06-04",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-22-atviihtsdn6pe01h-5b9295ebce62-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-22-atviihtsdn6pe01h-5b9295ebce62-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-22-atviihtsdn6pe01h-5b9295ebce62-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "23",
+      "slug": "duraspd",
+      "name": "duraspd",
+      "characterName": "Duramente",
+      "cardType": "Speed",
+      "rating": null,
+      "releaseDate": "2027-06-29",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-23-atw7974zt6txuyu3-e99ebbb45964-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-23-atw7974zt6txuyu3-e99ebbb45964-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-23-atw7974zt6txuyu3-e99ebbb45964-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "24",
+      "slug": "diawit",
+      "name": "diawit",
+      "characterName": "Satono Diamond",
+      "cardType": "Wit",
+      "rating": null,
+      "releaseDate": "2027-06-29",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-24-atu548535symfkjj-6a3eecf16657-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-24-atu548535symfkjj-6a3eecf16657-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-24-atu548535symfkjj-6a3eecf16657-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "25",
+      "slug": "taishinwit",
+      "name": "taishinwit",
+      "characterName": "Narita Taishin",
+      "cardType": "Wit",
+      "rating": null,
+      "releaseDate": "2027-09-28",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-25-atszwz35p3d8xsvm-063e99db0987-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-25-atszwz35p3d8xsvm-063e99db0987-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-25-atszwz35p3d8xsvm-063e99db0987-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "26",
+      "slug": "vivlosspd",
+      "name": "vivlosspd",
+      "characterName": "Vivlos",
+      "cardType": "Speed",
+      "rating": null,
+      "releaseDate": "2027-10-18",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-26-ath42wdjdbo8bifd-4610f4a2b0eb-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-26-ath42wdjdbo8bifd-4610f4a2b0eb-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-26-ath42wdjdbo8bifd-4610f4a2b0eb-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "27",
+      "slug": "nishinopwr",
+      "name": "nishinopwr",
+      "characterName": "Nishino Flower",
+      "cardType": "Power",
+      "rating": null,
+      "releaseDate": "2027-11-05",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-27-atwdudbji2lbaa5a-a032b2d5646c-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-27-atwdudbji2lbaa5a-a032b2d5646c-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-27-atwdudbji2lbaa5a-a032b2d5646c-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "28",
+      "slug": "falcospd",
+      "name": "falcospd",
+      "characterName": "Smart Falcon",
+      "cardType": "Speed",
+      "rating": null,
+      "releaseDate": "2027-11-29",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-28-ath0z5y9q2imx9h5-eca7c7ad4cb5-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-28-ath0z5y9q2imx9h5-eca7c7ad4cb5-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-28-ath0z5y9q2imx9h5-eca7c7ad4cb5-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "29",
+      "slug": "rickeywit",
+      "name": "rickeywit",
+      "characterName": "Copano Rickey",
+      "cardType": "Wit",
+      "rating": null,
+      "releaseDate": "2027-11-29",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-29-at1t5xwcsao5kfxg-3dd044643f95-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-29-at1t5xwcsao5kfxg-3dd044643f95-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-29-at1t5xwcsao5kfxg-3dd044643f95-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "30",
+      "slug": "stillspd",
+      "name": "stillspd",
+      "characterName": "Still in Love",
+      "cardType": "Speed",
+      "rating": null,
+      "releaseDate": "2027-12-20",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-30-ato8yn7yjqmyhke1-57154cbf6dbc-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-30-ato8yn7yjqmyhke1-57154cbf6dbc-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-30-ato8yn7yjqmyhke1-57154cbf6dbc-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "31",
+      "slug": "daiwawit",
+      "name": "daiwawit",
+      "characterName": "Daiwa Scarlet",
+      "cardType": "Wit",
+      "rating": null,
+      "releaseDate": "2028-02-07",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-31-atyt3tv9ib6qfaha-2430f428ad6f-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-31-atyt3tv9ib6qfaha-2430f428ad6f-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-31-atyt3tv9ib6qfaha-2430f428ad6f-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "32",
+      "slug": "shakurstam",
+      "name": "shakurstam",
+      "characterName": "Air Shakur",
+      "cardType": "Stamina",
+      "rating": null,
+      "releaseDate": "2028-02-07",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-32-at4rf3fjpv1httel-4ab2aa673dde-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-32-at4rf3fjpv1httel-4ab2aa673dde-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-32-at4rf3fjpv1httel-4ab2aa673dde-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "33",
+      "slug": "rudolfwit",
+      "name": "rudolfwit",
+      "characterName": "Symboli Rudolf",
+      "cardType": "Wit",
+      "rating": null,
+      "releaseDate": "2028-03-19",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-33-atn9lsdpjpjyzq3z-510e15d7a0d7-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-33-atn9lsdpjpjyzq3z-510e15d7a0d7-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-33-atn9lsdpjpjyzq3z-510e15d7a0d7-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "34",
+      "slug": "almondspd",
+      "name": "almondspd",
+      "characterName": "Almond Eye",
+      "cardType": "Speed",
+      "rating": null,
+      "releaseDate": "2028-04-29",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-34-at9q9ur5sjzr7kcd-ba1c284d3e5c-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-34-at9q9ur5sjzr7kcd-ba1c284d3e5c-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-34-at9q9ur5sjzr7kcd-ba1c284d3e5c-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "35",
+      "slug": "tactwit",
+      "name": "tactwit",
+      "characterName": "Daring Tact",
+      "cardType": "Wit",
+      "rating": null,
+      "releaseDate": "2028-06-02",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-35-attekrk621u1jr1r-dcdcac80b4e8-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-35-attekrk621u1jr1r-dcdcac80b4e8-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-35-attekrk621u1jr1r-dcdcac80b4e8-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "36",
+      "slug": "tamamopwr",
+      "name": "tamamopwr",
+      "characterName": "Tamamo Cross",
+      "cardType": "Power",
+      "rating": null,
+      "releaseDate": "2028-07-24",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-36-atic01ovmj1wpgok-ab24b6b0c558-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-36-atic01ovmj1wpgok-ab24b6b0c558-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-36-atic01ovmj1wpgok-ab24b6b0c558-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "37",
+      "slug": "staygoldguts",
+      "name": "staygoldguts",
+      "characterName": "Stay Gold",
+      "cardType": "Guts",
+      "rating": null,
+      "releaseDate": "2028-09-06",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-37-at37r2myc7bhl15k-463dd06d034c-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-37-at37r2myc7bhl15k-463dd06d034c-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-37-at37r2myc7bhl15k-463dd06d034c-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "38",
+      "slug": "groovespd",
+      "name": "groovespd",
+      "characterName": "Admire Groove",
+      "cardType": "Speed",
+      "rating": null,
+      "releaseDate": "2028-09-06",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-38-atb29frcndpgmh76-cf9b75382fff-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-38-atb29frcndpgmh76-cf9b75382fff-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-38-atb29frcndpgmh76-cf9b75382fff-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "39",
+      "slug": "dreamspd",
+      "name": "dreamspd",
+      "characterName": "Dream Journey",
+      "cardType": "Speed",
+      "rating": null,
+      "releaseDate": "2028-05-26",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-39-at7y16y6fh16bqao-ff453fa827f0-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-39-at7y16y6fh16bqao-ff453fa827f0-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-39-at7y16y6fh16bqao-ff453fa827f0-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "40",
+      "slug": "rheinspd",
+      "name": "rheinspd",
+      "characterName": "Rhein Kraft",
+      "cardType": "Speed",
+      "rating": null,
+      "releaseDate": "2028-07-05",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-40-atypnr0f87biqmhl-52a25930721a-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-40-atypnr0f87biqmhl-52a25930721a-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-40-atypnr0f87biqmhl-52a25930721a-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "41",
+      "slug": "shionwit",
+      "name": "shionwit",
+      "characterName": "Win Variation",
+      "cardType": "Wit",
+      "rating": null,
+      "releaseDate": "2028-08-18",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-41-at7ujasy9kozlw8e-8aac252f6e21-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-41-at7ujasy9kozlw8e-8aac252f6e21-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-41-at7ujasy9kozlw8e-8aac252f6e21-240.webp",
+          "width": 240,
+          "height": 160
+        }
+      }
+    },
+    {
+      "id": "42",
+      "slug": "flashspd",
+      "name": "flashspd",
+      "characterName": "Eishin Flash",
+      "cardType": "Speed",
+      "rating": null,
+      "releaseDate": "2028-10-03",
+      "styles": [],
+      "eventIds": [],
+      "image": {
+        "width": 240,
+        "height": 160,
+        "sources": {
+          "avif": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-42-atycz1h90z9m53s6-616063301c69-240.avif",
+              "width": 240,
+              "height": 160
+            }
+          ],
+          "webp": [
+            {
+              "url": "/generated/nocodb/uma-support/support-card-42-atycz1h90z9m53s6-616063301c69-240.webp",
+              "width": 240,
+              "height": 160
+            }
+          ]
+        },
+        "fallback": {
+          "url": "/generated/nocodb/uma-support/support-card-42-atycz1h90z9m53s6-616063301c69-240.webp",
           "width": 240,
           "height": 160
         }
