@@ -24,3 +24,4 @@ public/assets/
 
 # Built site files are committed for deployment to public/
 # public/*.html, public/*.js, public/*.css, public/static/ are tracked
+site/public/data/uma/*.json
