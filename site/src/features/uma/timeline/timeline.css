@@ -112,6 +112,7 @@
 .uma-details-card picture,.uma-details-card img,.uma-details-card > .uma-support-image-fallback { display:block; width:46px; height:58px; object-fit:cover; }
 .uma-details-card > span:last-child { display:grid; gap:3px; min-width:0; }
 .uma-details-card strong { color:var(--ink); font-size:.8rem; }
+.uma-details-card__breakpoints { color:#f5c57a !important; font-weight:700; }
 .uma-details-card:hover strong { color:var(--course-color,var(--accent)); }
 .uma-details-card:focus-visible { outline:2px solid var(--course-color,var(--accent)); outline-offset:3px; }
 .uma-details-card.is-selected picture,.uma-details-card.is-selected > .uma-support-image-fallback { outline:2px solid var(--course-color,var(--accent)); outline-offset:2px; }
@@ -149,6 +150,12 @@
 .uma-event-marker--loh { width:19px; height:19px; }
 .uma-release-lane { grid-template-columns:180px minmax(2442px,1fr); min-height:108px; }
 .uma-card-release { top:calc(18px + (var(--stack) * 8px)); width:52px; height:66px; }
+.uma-release-lane.has-release-tracks { min-height:max(108px,calc(var(--release-track-height) + 52px)); }
+.uma-card-release.is-release-tracked { top:18px; transform:translateX(0) translateY(var(--active-track-y,var(--track-y))); transition:transform 180ms ease; }
+.uma-card-release.is-release-tracked:hover { transform:translateX(0) translateY(calc(var(--active-track-y,var(--track-y)) - 3px)); }
+.uma-card-release.is-emphasized { z-index:5; }
+.uma-release-date-guide { position:absolute; top:0; bottom:0; z-index:1; width:1px; background:#f5c57a; pointer-events:none; }
+.uma-release-date-guide span { position:absolute; top:4px; left:6px; color:#f5c57a; font-size:.62rem; font-weight:700; letter-spacing:.04em; white-space:nowrap; }
 .uma-card-release--style { border-color:#c990ef; }
 .uma-card-release--distance { border-color:#e6c45c; }
 .uma-card-release--parenting { border-color:#ef8f8f; }
@@ -161,6 +168,27 @@
 .uma-card-release--type-wisdom > b { background:#78c48e; }
 .uma-card-release--type-friend > b { background:#78c48e; }
 .uma-card-release--type-group > b { background:#f08b78; }
+.uma-lb-power-rail { --lb-rail:rgba(207,220,255,.35); --lb-inactive:#4b5368; --lb-active:#f0bf57; position:relative; display:block; pointer-events:none; }
+.uma-lb-power-rail__track { position:absolute; top:50%; right:2px; left:2px; height:1px; background:var(--lb-rail); transform:translateY(-50%); }
+.uma-lb-power-rail i { position:absolute; top:50%; z-index:1; width:4px; height:4px; border:1px solid var(--lb-inactive); border-radius:50%; background:var(--page-soft); transform:translate(-50%,-50%); }
+.uma-lb-power-rail i.is-active { width:6px; height:6px; border-color:#b7ead0; background:#78c48e; box-shadow:0 0 0 1px rgba(9,10,18,.8); }
+.uma-lb-power-rail i:nth-of-type(1) { left:2px; }
+.uma-lb-power-rail i:nth-of-type(2) { left:25%; }
+.uma-lb-power-rail i:nth-of-type(3) { left:50%; }
+.uma-lb-power-rail i:nth-of-type(4) { left:75%; }
+.uma-lb-power-rail i:nth-of-type(5) { right:2px; transform:translate(50%,-50%); }
+.uma-lb-power-rail i:nth-of-type(3).is-active,.uma-lb-power-rail i:nth-of-type(4).is-active { border-color:#bddbff; background:#68a9ff; }
+.uma-lb-power-rail i:nth-of-type(5).is-active { border-color:#ffe4a1; background:var(--lb-active); }
+.uma-card-release > .uma-lb-power-rail { position:absolute; bottom:-9px; left:-1px; width:50%; height:8px; transition:width 160ms ease; }
+.uma-card-release:hover > .uma-lb-power-rail,.uma-card-release.is-selected > .uma-lb-power-rail { width:calc(100% + 2px); }
+.uma-lb-power-rail--expanded { width:96px; height:16px; margin-top:4px; }
+.uma-lb-power-rail--expanded i { width:5px; height:5px; }
+.uma-lb-power-rail--expanded i.is-active { width:8px; height:8px; }
+.uma-lb-power-rail--expanded small { position:absolute; top:18px; left:0; color:#f0bf57; font-size:.68rem; font-weight:700; letter-spacing:.02em; white-space:nowrap; }
+.uma-card-breakpoints { position:absolute; bottom:-12px; left:-32px; z-index:2; display:flex; flex-direction:column; align-items:center; gap:0; }
+.uma-card-breakpoints em { display:grid; width:15px; height:15px; place-items:center; border:1px solid #c9d5eb; border-radius:50%; background:#56617a; color:#f5f7ff; font-size:.55rem; font-style:normal; font-weight:800; line-height:1; box-shadow:0 0 0 1px rgba(9,10,18,.8); }
+.uma-card-breakpoints em.is-mlb { width:15px; height:15px; border-color:#fff0b5; background:#f0bf57; color:#211a08; font-size:.52rem; }
+.uma-support-breakpoints { color:#d9e4fb !important; font-weight:600; white-space:nowrap; }
 .uma-card-release--style > i { background:#c990ef; color:#1a1020; }
 .uma-card-release--distance > i { background:#e6c45c; color:#241d08; }
 .uma-card-release--parenting > i { background:#ef8f8f; color:#2a1010; }

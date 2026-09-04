@@ -200,6 +200,7 @@ function createModel(scenarioRecords, eventRecords, supportCardRecords) {
       rating: text(field(fields, 'rating', 'Rating')),
       releaseDate: date(field(fields, 'release_date', 'Release Date')),
       styles: multiText(field(fields, 'styles', 'Styles')),
+      breakpoints: multiText(field(fields, 'breakpoints', 'Breakpoints')),
       eventIds: relationIds(field(fields, 'pvp_events', 'PvP Events')).filter((id) => eventIds.has(id)),
       imageTaskKey: taskKey,
     };
