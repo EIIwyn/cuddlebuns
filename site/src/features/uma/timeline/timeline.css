@@ -154,8 +154,8 @@
 .uma-card-release.is-release-tracked { top:18px; transform:translateX(0) translateY(var(--active-track-y,var(--track-y))); transition:transform 180ms ease; }
 .uma-card-release.is-release-tracked:hover { transform:translateX(0) translateY(calc(var(--active-track-y,var(--track-y)) - 3px)); }
 .uma-card-release.is-emphasized { z-index:5; }
-.uma-release-lane--borrow:hover,.uma-release-lane--borrow.is-expanded { min-height:max(108px,calc(var(--expanded-release-track-height) + 52px)); }
-.uma-release-lane--borrow:hover .uma-card-release.is-release-tracked,.uma-release-lane--borrow.is-expanded .uma-card-release.is-release-tracked { --active-track-y:var(--expanded-track-y); }
+.uma-release-lane--borrow.is-expanded { min-height:max(108px,calc(var(--expanded-release-track-height) + 52px)); }
+.uma-release-lane--borrow.is-expanded .uma-card-release.is-release-tracked { --active-track-y:var(--expanded-track-y); }
 .uma-release-date-guide { position:absolute; top:0; bottom:0; z-index:1; width:1px; background:#f5c57a; pointer-events:none; }
 .uma-release-date-guide span { position:absolute; top:4px; left:6px; color:#f5c57a; font-size:.62rem; font-weight:700; letter-spacing:.04em; white-space:nowrap; }
 .uma-card-release--style { border-color:#c990ef; }
