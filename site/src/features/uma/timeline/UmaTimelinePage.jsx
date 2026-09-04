@@ -4,6 +4,7 @@ import { fetchUmaTimeline } from '../api';
 import { ModernImage } from '../../../components/ModernImage';
 import { createTimelineModel, dateRangeLabel, eventTypeLabel, formatDate } from './timeline-model';
 import { CardReleaseLane, SelectedCardRows, SupportCardControls } from './SupportCardLanes';
+import { lbBreakpointLabels } from './lb-breakpoints';
 import './timeline.css';
 
 function TimelineLoading() {
@@ -19,6 +20,8 @@ function scenarioLabel(scenario) {
   const fullNameFits = width >= Math.max(8, scenario.name.length * 1.05);
   return fullNameFits || !scenario.shortName ? scenario.name : scenario.shortName;
 }
+
+const breakpointLabel = (card) => lbBreakpointLabels(card.breakpoints);
 
 function eventAriaLabel(event, selected) {
   const course = [event.surface, event.distanceClass, event.distanceM ? `${event.distanceM}m` : null].filter(Boolean).join(' ');
@@ -65,7 +68,7 @@ function EventDetails({ event, scenario, supportCards, selectedCardIds, onToggle
           {details.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
         </dl>
       )}
-      {supportCards.length > 0 && <section className="uma-details__cards" aria-label="Support cards linked to this event"><p className="eyebrow">Linked support cards</p><div>{supportCards.map((card) => <button key={card.id} className={`uma-details-card${selectedCardIds.has(card.id) ? ' is-selected' : ''}`} type="button" onClick={() => onToggleCard(card.id)} title={`${card.characterName || card.name} · ${card.rating || 'Unrated'} · ${card.cardType || 'Support card'}`} aria-pressed={selectedCardIds.has(card.id)} aria-label={`${selectedCardIds.has(card.id) ? 'Remove' : 'Add'} ${card.characterName || card.name} to selected cards`}>{card.image ? <ModernImage src={card.image} alt="" sizes="60px" /> : <span className="uma-support-image-fallback" aria-hidden="true" />}<span><strong>{card.characterName || card.name}</strong><small>{[card.rating, card.cardType].filter(Boolean).join(' · ')}</small></span></button>)}</div></section>}
+      {supportCards.length > 0 && <section className="uma-details__cards" aria-label="Support cards linked to this event"><p className="eyebrow">Linked support cards</p><div>{supportCards.map((card) => <button key={card.id} className={`uma-details-card${selectedCardIds.has(card.id) ? ' is-selected' : ''}`} type="button" onClick={() => onToggleCard(card.id)} title={`${card.characterName || card.name} · ${card.rating || 'Unrated'} · ${card.cardType || 'Support card'}`} aria-pressed={selectedCardIds.has(card.id)} aria-label={`${selectedCardIds.has(card.id) ? 'Remove' : 'Add'} ${card.characterName || card.name} to selected cards`}>{card.image ? <ModernImage src={card.image} alt="" sizes="60px" /> : <span className="uma-support-image-fallback" aria-hidden="true" />}<span><strong>{card.characterName || card.name}</strong><small>{[card.rating, card.cardType].filter(Boolean).join(' · ')}</small>{breakpointLabel(card) && <small className="uma-details-card__breakpoints">{breakpointLabel(card)}</small>}</span></button>)}</div></section>}
       {event.status === 'projected' && <p className="uma-details__projected">Projected information — subject to change.</p>}
     </aside>
   );
@@ -140,7 +143,7 @@ function TimelineChart({ model, selectedCards, selectedEvent, highlightedEventId
             })}
           </div>
         </div>
-        <CardReleaseLane cards={model.supportCards} selectedIds={selectedCardIds} onToggle={onToggleCard} onCardHighlight={onCardHighlight} />
+        <CardReleaseLane cards={model.supportCards} selectedIds={selectedCardIds} hoveredCardId={hoveredCardId} onToggle={onToggleCard} onCardHighlight={onCardHighlight} />
         <SelectedCardRows cards={selectedCards} eventById={eventById} scenarioById={scenarioById} selectedEvent={selectedEvent} onEventSelect={onSelect} onEventHighlight={onEventHighlight} onRemove={onRemoveCard} />
       </div>
     </section>
