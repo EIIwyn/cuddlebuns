@@ -51,7 +51,7 @@ export function CardReleaseLane({ cards, selectedIds, hoveredCardId, onToggle, o
   const ratingLanes = [
     ['Auto Include', ['Auto Include']],
     ['Style Core', ['Style Core']],
-    ['Specialized', ['Style Niche', 'Distance Specific']],
+    ['Specialized', ['Style Niche', 'Distance Specific', 'Parenting']],
     ['Borrow', ['Borrow']],
   ];
   const knownRatings = ratingLanes.flatMap(([, ratings]) => ratings);
