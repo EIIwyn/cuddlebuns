@@ -1,115 +1,125 @@
 cuddlebuns.moe {
-    # Root directory for the website
-    root * /var/www/cuddlebuns/current
-
     # ========================================
     # COMPRESSION
     # ========================================
-    # Compress responses for faster loading
     encode gzip zstd
+
+    # ========================================
+    # SHARED / LEGACY FILES
+    # ========================================
+    # If the exact requested path exists in /var/www/cuddlebuns/public,
+    # serve it from there first.
+    #
+    # Examples:
+    #   /scarymovie6.mp4
+    #   /miku/example.png
+    #   /nano_movies/movie.mp4
+    #
+    # React routes such as /gallery and /uma will NOT match here unless
+    # an actual file exists at that path inside /public.
+    @public_file file {
+        root /var/www/cuddlebuns/public
+        try_files {path}
+    }
+
+    handle @public_file {
+        root * /var/www/cuddlebuns/public
+
+        file_server {
+            hide .git .env .htaccess
+        }
+    }
 
     # ========================================
     # ASSET PROTECTION
     # ========================================
-
-    # Block common scraper bots and download tools
+    # Applies to the current site's /assets path.
     @bad_bots {
         path /assets/*
         header_regexp User-Agent (?i)(curl|wget|python-requests|scrapy|go-http-client|bot|crawler|spider)
     }
+
     respond @bad_bots "Access denied - Automated scraping is not permitted" 403
 
-    # Optional: Uncomment to enable hotlink protection
-    # (May interfere with social media sharing - test first!)
-    # @hotlink {
-    #     path /assets/*
-    #     not header Referer *cuddlebuns.moe*
-    #     not header Referer ""
-    # }
-    # respond @hotlink "Hotlinking not permitted. Please visit cuddlebuns.moe" 403
-
     # ========================================
-    # FILE SERVER & SPA ROUTING
+    # CURRENT SITE / SPA ROUTING
     # ========================================
-    # Serve static files, fallback to index.html for React Router routes
-    file_server {
-        # Hide sensitive files and directories
-        hide .git .env .htaccess
-        # Disable directory browsing (prevents listing /assets/commissions/)
-        # Note: Individual files still accessible, just can't browse folders
-    }
+    # Anything that wasn't an existing legacy/public file comes from the
+    # current atomic release.
+    handle {
+        root * /var/www/cuddlebuns/current
 
-    # SPA fallback - if file not found, serve index.html for client-side routing
-    handle_errors {
-        @notfound {
-            expression {http.error.status_code} == 404
-            not path /data/* /generated/* /assets/*
+        # Real files such as:
+        #   /assets/...
+        #   /data/cms/...
+        #   /data/uma/...
+        # are served directly.
+        #
+        # Routes such as:
+        #   /gallery
+        #   /gallery?character=...
+        #   /uma
+        #   /uma/timeline
+        # fall back to index.html for React Router.
+        try_files {path} /index.html
+
+        file_server {
+            hide .git .env .htaccess
         }
-        rewrite @notfound /index.html
-        file_server
     }
 
     # ========================================
     # CACHING HEADERS
     # ========================================
 
-    # Cache images and assets aggressively (1 year)
     @static_assets {
         path *.jpg *.jpeg *.png *.gif *.webp *.avif *.svg *.ico *.woff *.woff2 *.ttf *.eot
         path /assets/*
         path /generated/nocodb/*
     }
+
     header @static_assets {
         Cache-Control "public, max-age=31536000, immutable"
-        # Add source attribution header
         X-Image-Source "cuddlebuns.moe"
     }
 
-    # Cache CSS/JS for 30 days (shorter than images since they update more)
     @scripts {
         path *.css *.js
     }
+
     header @scripts Cache-Control "public, max-age=2592000"
 
-    # Never cache HTML (ensures users get updates immediately)
     @html {
         path *.html
     }
+
     header @html Cache-Control "no-cache, no-store, must-revalidate"
 
-    # CMS navigation/data should revalidate after each atomic release.
+    # Gallery CMS data and Uma timeline data should always revalidate
+    # after an atomic release.
     @cms_json {
-        path /data/cms/*.json /data/cms/*/*.json
+        path /data/cms/*.json /data/cms/*/*.json /data/uma/*.json
     }
+
     header @cms_json Cache-Control "no-cache, must-revalidate"
 
-    # Cache legacy JSON data for 1 hour
+    # Other JSON files, including legacy/public JSON.
     @json {
         path *.json
-        not path /data/cms/*
+        not path /data/cms/* /data/uma/*
     }
+
     header @json Cache-Control "public, max-age=3600"
 
     # ========================================
     # SECURITY HEADERS
     # ========================================
     header {
-        # Prevent clickjacking attacks
         X-Frame-Options "SAMEORIGIN"
-
-        # Prevent MIME type sniffing
         X-Content-Type-Options "nosniff"
-
-        # Enable XSS protection (legacy browsers)
         X-XSS-Protection "1; mode=block"
-
-        # Control referrer information
         Referrer-Policy "strict-origin-when-cross-origin"
 
-        # Add security policy hint
-        X-Content-Type-Options "nosniff"
-
-        # CORS - Allow cross-origin requests (needed for API/assets)
         Access-Control-Allow-Origin "*"
         Access-Control-Allow-Methods "GET, POST, OPTIONS"
         Access-Control-Allow-Headers "Content-Type, Authorization"
@@ -121,24 +131,12 @@ cuddlebuns.moe {
     @options {
         method OPTIONS
     }
+
     respond @options 204
 
     # ========================================
-    # CUSTOM ERROR PAGES (Optional)
+    # LOGGING (OPTIONAL)
     # ========================================
-    # Uncomment to add custom error pages
-    # handle_errors {
-    #     @404 {
-    #         expression {http.error.status_code} == 404
-    #     }
-    #     rewrite @404 /404.html
-    #     file_server
-    # }
-
-    # ========================================
-    # LOGGING (Optional but recommended)
-    # ========================================
-    # Uncomment to enable access logs
     # log {
     #     output file /var/log/caddy/cuddlebuns.log
     #     format json
@@ -146,9 +144,8 @@ cuddlebuns.moe {
 }
 
 # ========================================
-# OPTIONAL: WWW REDIRECT
+# OPTIONAL WWW REDIRECT
 # ========================================
-# Uncomment to redirect www to non-www
 # www.cuddlebuns.moe {
 #     redir https://cuddlebuns.moe{uri} permanent
 # }
