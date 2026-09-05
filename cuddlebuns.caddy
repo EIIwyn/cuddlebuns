@@ -95,8 +95,7 @@ cuddlebuns.moe {
 
     header @html Cache-Control "no-cache, no-store, must-revalidate"
 
-    # Gallery CMS data and Uma timeline data should always revalidate
-    # after an atomic release.
+    # CMS and timeline data should revalidate after each atomic release.
     @cms_json {
         path /data/cms/*.json /data/cms/*/*.json /data/uma/*.json
     }

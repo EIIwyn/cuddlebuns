@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ErrorScreen } from '../components/ErrorScreen';
 import { LoadingScreen } from '../components/LoadingScreen';
+import { ModernImage } from '../components/ModernImage';
 import { SiteNav } from '../components/SiteNav';
 
 function characterVersion(character) {
@@ -22,12 +23,24 @@ function categoryLabel(collection) {
 }
 
 function CharacterLink({ entry }) {
+  const thumbnail = entry.character.thumbnail || characterVersion(entry.character)?.referenceSheets?.[0];
+
   return (
     <article className="character-link" style={{ '--accent': entry.character.color }}>
       <Link to={characterUrl(entry.character)}>
-        <span className="character-link__marker" aria-hidden="true" />
-        <strong>{entry.character.name}</strong>
-        <small>{entry.character.subtitle || categoryLabel(entry.collection)}</small>
+        <span className="character-link__copy">
+          <strong>{entry.character.name}</strong>
+          <small>{entry.character.subtitle || categoryLabel(entry.collection)}</small>
+        </span>
+        <span className={`character-link__thumbnail${thumbnail ? '' : ' character-link__thumbnail--empty'}`} aria-hidden="true">
+          {thumbnail && (
+            <ModernImage
+              src={thumbnail}
+              alt=""
+              sizes="(max-width: 480px) 42vw, 120px"
+            />
+          )}
+        </span>
       </Link>
     </article>
   );
@@ -64,11 +77,11 @@ export function Hub() {
       collection.characters.map((character) => ({ character, collection }))),
   [activeCollection, collections]);
 
-  if (error) return <ErrorScreen message={error} artifact="data/cms/site.json" />;
-  if (!site) return <LoadingScreen />;
+  if (error) return <div className="site-shell gallery-shell"><ErrorScreen message={error} artifact="data/cms/site.json" /></div>;
+  if (!site) return <div className="site-shell gallery-shell"><LoadingScreen /></div>;
 
   return (
-    <div className="site-shell">
+    <div className="site-shell gallery-shell">
       <SiteNav />
       <main className="home-index page-width">
         <h1 className="visually-hidden">Characters</h1>

@@ -57,6 +57,9 @@ if (site) {
         if (!/^#[0-9a-f]{6}$/i.test(character.color ?? "")) {
           errors.push(`${character.slug}: invalid generated accent color.`);
         }
+        if (character.thumbnail) {
+          validateImage(character.thumbnail, `${character.slug} card thumbnail`);
+        }
         for (const version of character.versions ?? []) {
           const context = `${character.slug}/${version.slug}`;
           for (const [index, image] of (version.referenceSheets ?? []).entries()) {

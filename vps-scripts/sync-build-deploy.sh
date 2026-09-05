@@ -34,22 +34,32 @@ DEPLOYED_REVISION="$(cat "$DEPLOYED_REVISION_FILE" 2>/dev/null || true)"
 
 set +e
 node scripts/sync-nocodb.mjs --check
-SYNC_STATUS=$?
+GALLERY_SYNC_STATUS=$?
+node scripts/sync-uma-nocodb.mjs --check
+UMA_SYNC_STATUS=$?
 set -e
-if [[ "$SYNC_STATUS" -ne 0 && "$SYNC_STATUS" -ne 10 ]]; then
-  echo "NocoDB change check failed with status $SYNC_STATUS." >&2
-  exit "$SYNC_STATUS"
+if [[ "$GALLERY_SYNC_STATUS" -ne 0 && "$GALLERY_SYNC_STATUS" -ne 10 ]]; then
+  echo "Gallery NocoDB change check failed with status $GALLERY_SYNC_STATUS." >&2
+  exit "$GALLERY_SYNC_STATUS"
+fi
+if [[ "$UMA_SYNC_STATUS" -ne 0 && "$UMA_SYNC_STATUS" -ne 10 ]]; then
+  echo "Uma NocoDB change check failed with status $UMA_SYNC_STATUS." >&2
+  exit "$UMA_SYNC_STATUS"
 fi
 
-if [[ "$SYNC_STATUS" -eq 0 && "$SOURCE_REVISION" == "$DEPLOYED_REVISION" && -f "$CURRENT_LINK/index.html" ]]; then
+if [[ "$GALLERY_SYNC_STATUS" -eq 0 && "$UMA_SYNC_STATUS" -eq 0 && "$SOURCE_REVISION" == "$DEPLOYED_REVISION" && -f "$CURRENT_LINK/index.html" ]]; then
   echo "NocoDB and source code are unchanged; no deployment needed."
   exit 0
 fi
 
-if [[ "$SYNC_STATUS" -eq 10 ]]; then
+if [[ "$GALLERY_SYNC_STATUS" -eq 10 ]]; then
   npm run sync
 fi
+if [[ "$UMA_SYNC_STATUS" -eq 10 ]]; then
+  npm run sync:uma
+fi
 npm run validate:cms
+npm run validate:uma
 npm run build
 
 [[ -s dist/index.html ]] || { echo "Build is missing dist/index.html" >&2; exit 1; }
@@ -58,6 +68,7 @@ find dist/data/cms/gallery -maxdepth 1 -type f -name '*.json' -print -quit | gre
   echo "Build contains no per-version gallery JSON" >&2
   exit 1
 }
+[[ -s dist/data/uma/timeline.json ]] || { echo "Build is missing Uma timeline JSON" >&2; exit 1; }
 
 RELEASE_ID="$(date -u +%Y%m%dT%H%M%SZ)-$$"
 RELEASE_DIR="$RELEASES_DIR/$RELEASE_ID"
