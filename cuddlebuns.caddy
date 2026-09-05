@@ -31,36 +31,12 @@ cuddlebuns.moe {
     }
 
     # ========================================
-    # ASSET PROTECTION
-    # ========================================
-    # Applies to the current site's /assets path.
-    @bad_bots {
-        path /assets/*
-        header_regexp User-Agent (?i)(curl|wget|python-requests|scrapy|go-http-client|bot|crawler|spider)
-    }
-
-    respond @bad_bots "Access denied - Automated scraping is not permitted" 403
-
-    # ========================================
     # CURRENT SITE / SPA ROUTING
     # ========================================
     # Anything that wasn't an existing legacy/public file comes from the
     # current atomic release.
     handle {
         root * /var/www/cuddlebuns/current
-
-        # Real files such as:
-        #   /assets/...
-        #   /data/cms/...
-        #   /data/uma/...
-        # are served directly.
-        #
-        # Routes such as:
-        #   /gallery
-        #   /gallery?character=...
-        #   /uma
-        #   /uma/timeline
-        # fall back to index.html for React Router.
         try_files {path} /index.html
 
         file_server {
@@ -132,19 +108,5 @@ cuddlebuns.moe {
     }
 
     respond @options 204
-
-    # ========================================
-    # LOGGING (OPTIONAL)
-    # ========================================
-    # log {
-    #     output file /var/log/caddy/cuddlebuns.log
-    #     format json
-    # }
+    
 }
-
-# ========================================
-# OPTIONAL WWW REDIRECT
-# ========================================
-# www.cuddlebuns.moe {
-#     redir https://cuddlebuns.moe{uri} permanent
-# }
