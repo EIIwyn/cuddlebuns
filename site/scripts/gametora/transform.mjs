@@ -84,3 +84,56 @@ export function transformScenarios({ scenarios, foresight, now = new Date() }) {
   });
   return { rows, warnings };
 }
+
+export function transformEvents({ foresight, jpChampionsMeetings, scenarioRows }) {
+  const warnings = [];
+  const jpById = new Map((jpChampionsMeetings ?? []).map((cm) => [cm.id, cm]));
+  const rows = [];
+  for (const entry of foresight?.future_cm ?? []) {
+    const jp = jpById.get(entry.id);
+    if (!jp?.race) { warnings.push(`CM${entry.id}: no JP record with race data; skipped.`); continue; }
+    if (typeof entry.display_start !== 'number') { warnings.push(`CM${entry.id}: no display_start; skipped.`); continue; }
+    const race = jp.race;
+    const lookups = [
+      ['track', TRACKS[race.track]], ['ground', GROUND[race.ground]], ['turn', TURN[race.turn]],
+      ['condition', CONDITION[race.condition]], ['season', SEASON[race.season]], ['weather', WEATHER[race.weather]],
+    ];
+    const missing = lookups.find(([, value]) => !value);
+    if (missing || !Number.isFinite(race.distance)) {
+      warnings.push(`CM${entry.id}: unknown ${missing ? `${missing[0]} ${race[missing[0]]}` : 'distance'}; skipped.`);
+      continue;
+    }
+    const startDate = unixToDate(entry.display_start);
+    const durationDays = Number.isFinite(jp.start) && Number.isFinite(jp.end) ? Math.max(1, Math.round((jp.end - jp.start) / 86_400)) : 6;
+    const officialName = text(entry.name_en);
+    const distance = distanceClass(race.distance);
+    const scenario = (scenarioRows ?? []).find((row) => row.facts.era_start <= startDate && startDate < row.facts.era_end) ?? null;
+    rows.push({
+      gametoraId: entry.id,
+      label: officialName ? `CM${entry.id} ${officialName}` : `CM${entry.id}`,
+      facts: {
+        event_number: entry.id,
+        event_type: 'Champions Meeting',
+        start_date: startDate,
+        end_date: addDays(startDate, durationDays),
+        distance_class: distance,
+        distance_m: race.distance,
+        racecourse: TRACKS[race.track],
+        direction: TURN[race.turn],
+        season: SEASON[race.season],
+        track_condition: CONDITION[race.condition],
+        weather: WEATHER[race.weather],
+        surface: GROUND[race.ground],
+        status: entry.is_estimated === false ? 'confirmed' : 'projected',
+      },
+      seeds: {
+        name: seed(officialName ? `CM${entry.id} ${officialName.replace(/\s+Cup$/i, '')}` : `CM${entry.id} ${distance}`),
+        slug: seed(`cm${entry.id}`),
+      },
+      scenarioGametoraId: scenario?.gametoraId ?? null,
+      note: null,
+    });
+  }
+  rows.sort((a, b) => a.facts.start_date.localeCompare(b.facts.start_date) || a.gametoraId - b.gametoraId);
+  return { rows, warnings };
+}

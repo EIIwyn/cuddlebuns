@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  TRACKS, distanceClass, unixToDate, addDays, titleCaseSlug, transformScenarios, FINAL_ERA_DAYS,
+  TRACKS, distanceClass, unixToDate, addDays, titleCaseSlug, transformScenarios, FINAL_ERA_DAYS, transformEvents,
 } from '../gametora/transform.mjs';
 
 // Unix seconds for an ISO date at an odd time of day, like GameTora's display_start values.
@@ -62,4 +62,60 @@ test('transformScenarios warns and skips a future scenario with no matching reco
   const { rows, warnings } = transformScenarios({ scenarios, foresight: { future_scenarios: [{ id: 99, display_start: T('2028-01-01') }] }, now });
   assert.deepEqual(rows.map((r) => r.gametoraId), [3]);
   assert.match(warnings[0], /99/);
+});
+
+const jp = (id, race, name, startIso = '2022-11-13', days = 6) => ({
+  id, name, name_en: name, race, start: T(startIso), end: T(startIso) + days * 86_400,
+});
+const jpChampionsMeetings = [
+  jp(19, { condition: 1, distance: 2200, ground: 1, season: 3, track: 10008, turn: 1, weather: 1 }, 'Scorpio Cup'),
+  jp(27, { condition: 3, distance: 2400, ground: 1, season: 3, track: 10201, turn: 1, weather: 3 }, undefined),
+  jp(41, { condition: 1, distance: 1200, ground: 1, season: 3, track: 10003, turn: 2, weather: 2 }, undefined),
+  jp(44, { condition: 1, distance: 2200, ground: 1, season: 1, track: 10203, turn: 2, weather: 1 }, undefined, '2025-01-01', 9),
+  jp(45, { condition: 1, distance: 2000, ground: 2, season: 1, track: 99999, turn: 2, weather: 1 }, undefined),
+];
+const futureCm = [
+  { id: 19, name_en: 'Scorpio Cup', display_start: T('2026-09-20'), is_estimated: true },
+  { id: 27, display_start: T('2027-05-25'), is_estimated: false },
+  { id: 41, display_start: T('2028-11-25'), is_estimated: true },
+  { id: 44, display_start: T('2029-03-16'), is_estimated: true },
+  { id: 45, display_start: T('2029-04-08'), is_estimated: true },
+  { id: 46, display_start: T('2029-05-24'), is_estimated: true },
+];
+const scenarioRows = transformScenarios({ scenarios, foresight, now }).rows;
+
+test('transformEvents joins foresight with JP race data and maps every code', () => {
+  const { rows } = transformEvents({ foresight: { future_cm: futureCm }, jpChampionsMeetings, scenarioRows });
+  const cm19 = rows.find((r) => r.gametoraId === 19);
+  assert.deepEqual(cm19.facts, {
+    event_number: 19, event_type: 'Champions Meeting', start_date: '2026-09-20', end_date: '2026-09-26',
+    distance_class: 'Medium', distance_m: 2200, racecourse: 'Kyoto', direction: 'Right', season: 'Fall',
+    track_condition: 'Firm', weather: 'Sunny', surface: 'Turf', status: 'projected',
+  });
+  assert.deepEqual(cm19.seeds, { name: { value: 'CM19 Scorpio', alternatives: [] }, slug: { value: 'cm19', alternatives: [] } });
+  assert.equal(cm19.scenarioGametoraId, 3);
+});
+
+test('transformEvents names unnamed CMs by distance class and marks announced ones confirmed', () => {
+  const { rows } = transformEvents({ foresight: { future_cm: futureCm }, jpChampionsMeetings, scenarioRows });
+  const cm27 = rows.find((r) => r.gametoraId === 27);
+  assert.equal(cm27.seeds.name.value, 'CM27 Medium');
+  assert.equal(cm27.facts.racecourse, 'Longchamp');
+  assert.equal(cm27.facts.weather, 'Rain');
+  assert.equal(cm27.facts.status, 'confirmed');
+  assert.equal(cm27.scenarioGametoraId, 6);
+  const cm41 = rows.find((r) => r.gametoraId === 41);
+  assert.equal(cm41.facts.racecourse, 'Niigata');
+  assert.equal(cm41.facts.direction, 'Left');
+  const cm44 = rows.find((r) => r.gametoraId === 44);
+  assert.equal(cm44.facts.end_date, '2029-03-25');
+  assert.equal(cm44.scenarioGametoraId, null);
+});
+
+test('transformEvents skips CMs with no JP record or an unknown track and warns', () => {
+  const { rows, warnings } = transformEvents({ foresight: { future_cm: futureCm }, jpChampionsMeetings, scenarioRows });
+  assert.deepEqual(rows.map((r) => r.gametoraId), [19, 27, 41, 44]);
+  assert.equal(warnings.length, 2);
+  assert.match(warnings.find((w) => w.includes('45')), /track 99999/);
+  assert.match(warnings.find((w) => w.includes('46')), /no JP record/);
 });
