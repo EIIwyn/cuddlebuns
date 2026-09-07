@@ -109,6 +109,14 @@ test('events link by event_number, resolve the scenario link, and never touch Lo
   assert.equal(loh.suggestion, null);
 });
 
+test('an already-imported event with matching facts and link is a skip', () => {
+  const existing = [rec(7, { gametora_id: 19, name: 'CM19 Scorpio', slug: 'cm19', event_type: 'Champions Meeting', event_number: 19, start_date: '2026-09-20', end_date: '2026-09-26', distance_class: 'Medium', distance_m: 2200, racecourse: 'Kyoto', direction: 'Right', season: 'Fall', track_condition: 'Firm', weather: 'Sunny', surface: 'Turf', status: 'projected', lock_facts: false, scenario: [{ id: 1, fields: { name: 'Grand Live' } }] })];
+  const plan = buildPlan({ table: 'pvp_events', candidates: [eventCandidate(19)], existing, scenarioRecordIdByGametoraId: new Map([[3, '1']]) });
+  assert.deepEqual(summaryOf(plan), { skip: 1 });
+  assert.deepEqual(plan.entries[0].changes, {});
+  assert.equal(plan.entries[0].link, null);
+});
+
 test('an event whose derived scenario changed gets a link change', () => {
   const existing = [rec(7, { gametora_id: 19, name: 'CM19 Scorpio', slug: 'cm19', event_type: 'Champions Meeting', event_number: 19, start_date: '2026-09-20', end_date: '2026-09-26', distance_class: 'Medium', distance_m: 2200, racecourse: 'Kyoto', direction: 'Right', season: 'Fall', track_condition: 'Firm', weather: 'Sunny', surface: 'Turf', status: 'projected', scenario: [{ id: 1 }] })];
   const plan = buildPlan({ table: 'pvp_events', candidates: [eventCandidate(19, { scenarioGametoraId: 5 })], existing, scenarioRecordIdByGametoraId: new Map([[5, '2']]) });

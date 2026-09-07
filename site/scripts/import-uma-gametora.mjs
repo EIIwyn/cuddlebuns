@@ -65,8 +65,9 @@ async function loadDatasets(gametora) {
 function scenarioIdMap(records) {
   const map = new Map();
   for (const record of records) {
-    const id = Number(record.fields?.gametora_id);
-    if (Number.isFinite(id) && !map.has(id)) map.set(id, record.id);
+    const raw = record.fields?.gametora_id;
+    const id = Number(raw);
+    if (raw != null && raw !== '' && Number.isFinite(id) && !map.has(id)) map.set(id, record.id);
   }
   return map;
 }
