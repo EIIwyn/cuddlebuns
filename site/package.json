@@ -13,6 +13,8 @@
     "sync:uma:check": "node scripts/sync-uma-nocodb.mjs --check",
     "validate:cms": "node scripts/validate-cms-output.mjs",
     "validate:uma": "node scripts/validate-uma-output.mjs",
+    "import:uma": "node scripts/import-uma-gametora.mjs",
+    "import:uma:apply": "node scripts/import-uma-gametora.mjs --apply",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "node --test \"scripts/__tests__/**/*.test.mjs\""
