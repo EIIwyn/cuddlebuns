@@ -75,6 +75,29 @@ test('noFetch reads only from cache and throws when the key is not cached', asyn
   const client = createGametoraClient({ cacheDir, fetchImpl, noFetch: true, log: quiet });
   const manifest = await client.loadManifest();
   assert.deepEqual(await client.loadDataset(manifest, 'scenarios'), [{ id: 2 }]);
-  await assert.rejects(() => client.loadDataset({ 'support-cards': 'zz' }, 'support-cards'), /no cached copy/i);
+  await assert.rejects(() => client.loadDataset({ 'support-cards': 'zz' }, 'support-cards'), /no readable cached copy/i);
   assert.equal(calls.length, 0);
+});
+
+test('a corrupt exact-hash cache file is ignored with a warning and the dataset is fetched and rewritten', async () => {
+  const cacheDir = tempDir();
+  const url = 'https://gametora.com/data/umamusume/scenarios.xyz.json';
+  const exactFile = path.join(cacheDir, 'scenarios.xyz.json');
+  fs.writeFileSync(exactFile, 'not json');
+  const warnings = [];
+  const { fetchImpl, calls } = stubFetch({ [url]: [{ id: 3 }] });
+  const client = createGametoraClient({ cacheDir, fetchImpl, log: { warn: (m) => warnings.push(m), log() {} } });
+  const result = await client.loadDataset({ scenarios: 'xyz' }, 'scenarios');
+  assert.deepEqual(result, [{ id: 3 }]);
+  assert.match(warnings[0], /unreadable/i);
+  assert.deepEqual(JSON.parse(fs.readFileSync(exactFile, 'utf8')), [{ id: 3 }]);
+  assert.equal(calls.length, 1);
+});
+
+test('with fetch failing and the only cached copy corrupt, loadDataset rejects with an error mentioning both failures', async () => {
+  const cacheDir = tempDir();
+  fs.writeFileSync(path.join(cacheDir, 'scenarios.old.json'), 'not json');
+  const { fetchImpl } = stubFetch({ 'https://gametora.com/data/umamusume/scenarios.new.json': 'fail' });
+  const client = createGametoraClient({ cacheDir, fetchImpl, log: { warn() {}, log() {} } });
+  await assert.rejects(() => client.loadDataset({ scenarios: 'new' }, 'scenarios'), /unreadable|fetch failed/);
 });

@@ -5,6 +5,14 @@ export const DEFAULT_USER_AGENT = 'Mozilla/5.0 (compatible; cuddlebuns-uma-impor
 const BASE = 'https://gametora.com';
 
 function readJson(file) { return JSON.parse(fs.readFileSync(file, 'utf8')); }
+function readCachedJson(file, label, log) {
+  try {
+    return readJson(file);
+  } catch (error) {
+    log.warn(`${label}: cached copy ${path.basename(file)} is unreadable (${error.message}); ignoring it.`);
+    return null;
+  }
+}
 function writeJsonAtomic(file, value) {
   fs.mkdirSync(path.dirname(file), { recursive: true });
   const temporary = `${file}.${process.pid}.tmp`;
@@ -32,10 +40,15 @@ export function createGametoraClient({ cacheDir, fetchImpl = globalThis.fetch, u
   }
 
   async function loadWithCache({ url, exactFile, fallbackFile, label }) {
-    if (exactFile && fs.existsSync(exactFile)) return readJson(exactFile);
+    if (exactFile && fs.existsSync(exactFile)) {
+      const value = readCachedJson(exactFile, label, log);
+      if (value !== null) return value;
+    }
     if (noFetch) {
-      if (!fallbackFile) throw new Error(`${label}: --no-fetch set and no cached copy exists.`);
-      return readJson(fallbackFile);
+      if (!fallbackFile) throw new Error(`${label}: --no-fetch set and no readable cached copy exists.`);
+      const value = readCachedJson(fallbackFile, label, log);
+      if (value !== null) return value;
+      throw new Error(`${label}: --no-fetch set and no readable cached copy exists.`);
     }
     try {
       const value = await fetchJson(url, label);
@@ -44,7 +57,9 @@ export function createGametoraClient({ cacheDir, fetchImpl = globalThis.fetch, u
     } catch (error) {
       if (fallbackFile) {
         log.warn(`${label}: fetch failed (${error.message}); using cached copy ${path.basename(fallbackFile)}.`);
-        return readJson(fallbackFile);
+        const value = readCachedJson(fallbackFile, label, log);
+        if (value !== null) return value;
+        throw new Error(`${label}: fetch failed (${error.message}) and the cached copy is unreadable.`);
       }
       throw new Error(`${label}: fetch failed (${error.message}) and no cached copy exists.`);
     }
