@@ -1,0 +1,11 @@
+[Unit]
+Description=Nightly GameTora import for the Uma timeline
+
+[Timer]
+OnCalendar=*-*-* 23:30:00 UTC
+RandomizedDelaySec=10min
+Persistent=true
+Unit=cuddlebuns-uma-import.service
+
+[Install]
+WantedBy=timers.target
