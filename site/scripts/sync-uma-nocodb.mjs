@@ -81,10 +81,6 @@ function attachmentSnapshot(attachment) {
   return { id: attachment?.id ?? null, path: attachment?.path ?? null, signedPath: attachment?.signedPath ?? null, title: attachment?.title ?? null, mimetype: attachment?.mimetype ?? null, size: attachment?.size ?? null };
 }
 function imageFileExists(url) { return typeof url === 'string' && url.startsWith(PUBLIC_IMAGE_ROOT) && fs.existsSync(path.join(SITE_DIR, 'public', url.slice(1))); }
-function extensionFor(attachment) {
-  const extension = path.extname(attachment?.title || '').toLowerCase();
-  return /^\.(avif|jpe?g|png|webp)$/.test(extension) ? extension : '.img';
-}
 async function downloadImage(url) {
   const response = await fetch(url, { signal: AbortSignal.timeout(API_TIMEOUT_MS) });
   if (!response.ok) throw new Error(`Support-card image request failed: ${response.status} ${response.statusText}`);

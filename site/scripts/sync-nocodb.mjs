@@ -759,7 +759,11 @@ async function main() {
     ...collection,
     characters: collection.characters.map((character) => ({
       ...character,
-      versions: character.versions.map(({ characterId: _characterId, ...version }) => version),
+      versions: character.versions.map((version) => {
+        const publicVersion = { ...version };
+        delete publicVersion.characterId;
+        return publicVersion;
+      }),
     })),
   }));
   writeJsonAtomic(expectedSite, {
