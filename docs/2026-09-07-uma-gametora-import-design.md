@@ -39,7 +39,7 @@ this design depends on, and what was checked:
 
 | Dataset key | Used for | Verified |
 | --- | --- | --- |
-| `scenarios` | Scenario id, `url_name`, `bg_color`, `name_en` (ids 1 to 5 only; 6 to 14 have only `name_ja`) | 14 records |
+| `scenarios` | Scenario id, `url_name`, `bg_color`, `name_en` (official English name, ids 1 to 5 only), `name_en_old` (provisional English name, all 14; matches the names the admin has already entered) | 14 records |
 | `en/foresight/timeline` | `future_scenarios` (ids 5 to 14 with `display_start`, `is_estimated`); `future_cm` (ids 19 to 47 with `name_en`, `display_start`, `is_estimated`) | 10 scenarios, 29 CMs |
 | `events/champions-meeting` | JP record per CM id with `race.{distance,ground,track,turn,condition,season,weather}` and `start`/`end` | 47 records; ids 19 to 22 match the existing NocoDB rows field for field |
 | `support-cards` | `support_id`, `char_name`, `type`, `rarity`, `title_en`, `url_name`, `release_en` | 557 records |
@@ -217,7 +217,7 @@ are ignored; historical events are out of scope.
 
 | Table | Column | Seed value |
 | --- | --- | --- |
-| `scenarios` | `name` | `name_en`, else `name_en_full`, else `url_name` title-cased with hyphens as spaces |
+| `scenarios` | `name` | `name_en`, else `name_en_old`, else `url_name` title-cased with hyphens as spaces. See the upgrade rule below. |
 | `scenarios` | `short_name` | `url_name` with hyphens removed |
 | `pvp_events` | `name` | `CM<id> <name_en without trailing " Cup">`, else `CM<id> <distance_class>` when GameTora has no English name yet |
 | `pvp_events` | `slug` | `cm<id>` |
@@ -225,6 +225,17 @@ are ignored; historical events are out of scope.
 | `support_cards` | `slug` | `url_name` |
 
 Blank means null or whitespace-only.
+
+**Scenario name upgrade rule.** GameTora publishes a provisional `name_en_old` for every scenario
+and adds the official `name_en` only once it is announced for global. A scenario `name` is
+treated as still provisional when its current value equals, after trimming and case-folding, any
+lower-tier seed for that scenario: its `name_en_old` or its title-cased `url_name`. In that state
+the importer replaces it with `name_en` when one exists. A name that matches no seed tier was
+edited by the admin and is never changed. This is stateless: nothing extra is stored, the check
+is against the values the importer would itself have produced. Consequence on the first apply:
+the existing rows for Grand Live and Grand Masters equal their `name_en_old` and both have an
+official `name_en`, so they become "Brighter Together Our Grand Concert" and "Grandmasters
+Legacies Immortal" unless the admin edits or locks them beforehand. The dry-run plan shows this.
 
 ### Curated fields: never read for decisions, never written
 
@@ -325,6 +336,7 @@ and one already released.
 
 - `transform.test.mjs`: track and enum lookups, distance class bands, `era_end` chaining and the
   final-scenario fallback, scenario assignment by date, name seeding for named and unnamed CMs,
+  the scenario name upgrade rule (provisional name upgraded, hand-edited name kept, blank seeded),
   card type and rarity mapping including friend and group, exclusion of cards with no
   global date, UTC date conversion of `display_start`.
 - `plan.test.mjs`: each action in the table above, the two linking rules including the
@@ -372,6 +384,7 @@ Integration, done by hand with the admin:
   and CM43 is entered with a nine-day window where every JP record spans six days. The first apply
   will overwrite both and the dry-run plan will show it; the admin should check `lock_facts` on
   CM44 first if their source is better.
-- Scenario names for ids 6 to 14 have no English text on GameTora. The seed-once rule means the
-  existing hand-entered names survive linking, and new scenarios get a title-cased slug the
-  admin can rename once.
+- Scenario names for ids 6 to 14 have no official English text on GameTora yet, only the
+  provisional `name_en_old`, which is what the admin has been entering. The upgrade rule above
+  brings in the official name automatically once GameTora adds it, while leaving any hand-edited
+  name alone.
