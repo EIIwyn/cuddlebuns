@@ -1,0 +1,32 @@
+services:
+  pocketbase:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: cuddlebuns-pocketbase:0.40.3
+    container_name: cuddlebuns-pocketbase
+    user: "10001:10001"
+    restart: unless-stopped
+    init: true
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    ports:
+      - "127.0.0.1:8090:8090"
+    environment:
+      GOMEMLIMIT: "384MiB"
+    mem_limit: 512m
+    pids_limit: 128
+    volumes:
+      - "${POCKETBASE_DATA_DIR:-/var/lib/cuddlebuns/pb_data}:/pb/pb_data"
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--spider", "http://127.0.0.1:8090/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    stop_grace_period: 30s
