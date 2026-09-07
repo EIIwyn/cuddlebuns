@@ -3,12 +3,12 @@ import fs from 'node:fs';
 import path from 'node:path';
 import sharp from 'sharp';
 import { SITE_DIR, loadEnvironment } from './lib/env.mjs';
+import { createNocodbClient } from './lib/nocodb.mjs';
 const OUTPUT_FILE = path.join(SITE_DIR, 'public', 'data', 'uma', 'timeline.json');
 const MANIFEST_FILE = path.join(SITE_DIR, '.cache', 'uma', 'manifest.json');
 const IMAGE_DIR = path.join(SITE_DIR, 'public', 'generated', 'nocodb', 'uma-support');
 const PUBLIC_IMAGE_ROOT = '/generated/nocodb/uma-support';
 const CHECK_ONLY = process.argv.includes('--check');
-const API_PAGE_SIZE = 100;
 const API_TIMEOUT_MS = 120_000;
 
 function getConfig() {
@@ -102,22 +102,6 @@ function status(value) {
   return 'unspecified';
 }
 
-async function fetchTable(config, tableId, label) {
-  const records = [];
-  let next = `${config.url}/api/v3/data/${encodeURIComponent(config.baseId)}/${encodeURIComponent(tableId)}/records?pageSize=${API_PAGE_SIZE}&linksAsLtar=true`;
-  while (next) {
-    const returned = new URL(next, `${config.url}/`);
-    const url = new URL(`${returned.pathname}${returned.search}`, `${config.url}/`);
-    const response = await fetch(url, { headers: { 'xc-token': config.token }, signal: AbortSignal.timeout(API_TIMEOUT_MS) });
-    if (!response.ok) throw new Error(`${label} request failed: ${response.status} ${response.statusText}`);
-    const page = await response.json();
-    records.push(...(page.records ?? []));
-    next = page.next ?? null;
-  }
-  console.log(`Fetched ${records.length} ${label} record(s).`);
-  return records;
-}
-
 function createModel(scenarioRecords, eventRecords, supportCardRecords) {
   const errors = [];
   const scenarios = scenarioRecords.map((record) => {
@@ -197,9 +181,11 @@ function createModel(scenarioRecords, eventRecords, supportCardRecords) {
 async function main() {
   loadEnvironment();
   const config = getConfig();
-  const scenarios = await fetchTable(config, config.scenarios, 'Scenarios');
-  const events = await fetchTable(config, config.events, 'PvP events');
-  const supportCards = await fetchTable(config, config.supportCards, 'Support cards');
+  const client = createNocodbClient({ url: config.url, token: config.token, baseId: config.baseId, timeoutMs: API_TIMEOUT_MS });
+  const scenarios = await client.fetchAllRecords(config.scenarios, 'Scenarios');
+  const events = await client.fetchAllRecords(config.events, 'PvP events');
+  const supportCards = await client.fetchAllRecords(config.supportCards, 'Support cards');
+  console.log(`Fetched ${scenarios.length} scenario, ${events.length} PvP event, and ${supportCards.length} support card record(s).`);
   const model = createModel(scenarios, events, supportCards);
   const sourceFingerprint = fingerprint({ scenarios, events, supportCards });
   const previous = readJson(MANIFEST_FILE, {});
