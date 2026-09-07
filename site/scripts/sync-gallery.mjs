@@ -6,14 +6,13 @@ import { loadGallerySource } from './adapters/nocodb-gallery.mjs';
 import { createGalleryModel } from './lib/gallery-model.mjs';
 import { mapWithConcurrency } from './lib/image-pipeline.mjs';
 import { writeJsonAtomic } from './lib/output-writers.mjs';
+import { assertSourceAvailable, manifestPath, scopedFingerprint, selectSource } from './lib/source-selection.mjs';
 
 // Keep libvips conservative on a small VPS. This can be raised later if the server has headroom.
 sharp.concurrency(1);
 
 const SITE_DIR = path.resolve(import.meta.dirname, "..");
-const CACHE_DIR = path.join(SITE_DIR, ".cache", "gallery", "nocodb");
 const ORIGINALS_DIR = path.join(SITE_DIR, ".cache", "originals");
-const MANIFEST_FILE = path.join(CACHE_DIR, "manifest.json");
 const LEGACY_MANIFEST_FILE = path.join(SITE_DIR, ".cache", "nocodb", "manifest.json");
 const DATA_DIR = path.join(SITE_DIR, "public", "data", "cms");
 const GALLERY_DIR = path.join(DATA_DIR, "gallery");
@@ -613,12 +612,16 @@ function pruneGeneratedFiles(allowedUrls, allowedGalleryFiles) {
 
 async function main() {
   loadEnvironment();
+  const source = assertSourceAvailable(selectSource(process.argv.slice(2), process.env), ['nocodb']);
+  const currentManifestFile = manifestPath('gallery', source, SITE_DIR);
   const config = getConfig();
   console.log("Fetching Collections, Characters, Versions, Commissions, and Artists sequentially...");
   const tables = await loadGallerySource(config, fetchTable);
   const { commissions } = tables;
-  const sourceFingerprint = fingerprint(publicSourceSnapshot(tables));
-  const previous = readJson(MANIFEST_FILE, readJson(LEGACY_MANIFEST_FILE, { attachments: {} }));
+  const sourceSnapshot = publicSourceSnapshot(tables);
+  const sourceFingerprint = scopedFingerprint(source, sourceSnapshot);
+  const legacySourceFingerprint = fingerprint(sourceSnapshot);
+  const previous = readJson(currentManifestFile, readJson(LEGACY_MANIFEST_FILE, { attachments: {} }));
   const model = createModel(tables, config);
   const publishedCommissionCount = commissions.filter((record) => record.fields?.Published === true).length;
   console.log(
@@ -635,14 +638,16 @@ async function main() {
     previous.attachments?.[key]?.signature !== taskSignature(task) ||
     !cachedEntryIsComplete(previous.attachments?.[key], task),
   );
+  const fingerprintMatches = previous.sourceFingerprint === sourceFingerprint ||
+    (!fs.existsSync(currentManifestFile) && previous.sourceFingerprint === legacySourceFingerprint);
   const unchanged = previous.version === MANIFEST_VERSION &&
-    previous.sourceFingerprint === sourceFingerprint && outputPresent &&
+    fingerprintMatches && outputPresent &&
     incompleteCachedTasks.length === 0;
 
   if (CHECK_ONLY) {
     console.log(unchanged ? "No public NocoDB changes detected." : "Public NocoDB changes detected.");
     if (!unchanged) {
-      if (previous.sourceFingerprint !== sourceFingerprint) console.log("- Public record data changed.");
+      if (!fingerprintMatches) console.log("- Public record data changed.");
       if (!fs.existsSync(expectedSite)) console.log("- site.json is missing.");
       if (missingGalleryOutputs.length) console.log(`- ${missingGalleryOutputs.length} gallery output(s) are missing.`);
       if (incompleteCachedTasks.length) console.log(`- ${incompleteCachedTasks.length} cached image output(s) are missing.`);
@@ -734,7 +739,7 @@ async function main() {
 
   const allowedUrls = new Set(Object.values(attachmentEntries).flatMap((entry) => imageOutputFiles(entry.image)));
   pruneGeneratedFiles(allowedUrls, allowedGalleryFiles);
-  writeJsonAtomic(MANIFEST_FILE, {
+  writeJsonAtomic(currentManifestFile, {
     version: MANIFEST_VERSION,
     sourceFingerprint,
     attachments: attachmentEntries,

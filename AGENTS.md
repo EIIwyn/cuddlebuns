@@ -54,7 +54,9 @@ The browser never talks to NocoDB. Everything public is prebuilt:
 3. Both sync scripts support `--check`, which compares a fingerprint of the public-facing source
    data against the cached manifest and exits 10 when a rebuild is needed. The VPS timer relies on
    this exit code.
-4. `npm run build` bundles the React app; the generated JSON/images are plain `public/` assets.
+4. Both entry points select their backend with precedence `--source > CMS_SOURCE > nocodb`, reject
+   invalid or unavailable sources, and keep manifests under `.cache/{gallery,uma}/<source>/`.
+5. `npm run build` bundles the React app; the generated JSON/images are plain `public/` assets.
 
 All generated output (`public/data/cms/`, `public/data/uma/*.json`, `public/generated/nocodb/`,
 `.cache/`) is gitignored and regenerated on the VPS.

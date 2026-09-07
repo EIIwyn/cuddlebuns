@@ -5,10 +5,10 @@ import sharp from 'sharp';
 import { loadUmaSource } from './adapters/nocodb-uma.mjs';
 import { createUmaModel } from './lib/uma-model.mjs';
 import { writeJsonAtomic } from './lib/output-writers.mjs';
+import { assertSourceAvailable, manifestPath, scopedFingerprint, selectSource } from './lib/source-selection.mjs';
 
 const SITE_DIR = path.resolve(import.meta.dirname, '..');
 const OUTPUT_FILE = path.join(SITE_DIR, 'public', 'data', 'uma', 'timeline.json');
-const MANIFEST_FILE = path.join(SITE_DIR, '.cache', 'uma', 'nocodb', 'manifest.json');
 const LEGACY_MANIFEST_FILE = path.join(SITE_DIR, '.cache', 'uma', 'manifest.json');
 const IMAGE_DIR = path.join(SITE_DIR, 'public', 'generated', 'nocodb', 'uma-support');
 const PUBLIC_IMAGE_ROOT = '/generated/nocodb/uma-support';
@@ -204,12 +204,18 @@ function createModel(scenarioRecords, eventRecords, supportCardRecords) {
 
 async function main() {
   loadEnvironment();
+  const source = assertSourceAvailable(selectSource(process.argv.slice(2), process.env), ['nocodb']);
+  const currentManifestFile = manifestPath('uma', source, SITE_DIR);
   const config = getConfig();
   const { scenarios, events, supportCards } = await loadUmaSource(config, fetchTable);
   const model = createModel(scenarios, events, supportCards);
-  const sourceFingerprint = fingerprint({ scenarios, events, supportCards });
-  const previous = readJson(MANIFEST_FILE, readJson(LEGACY_MANIFEST_FILE, {}));
-  const current = previous.sourceFingerprint === sourceFingerprint && fs.existsSync(OUTPUT_FILE);
+  const sourceSnapshot = { scenarios, events, supportCards };
+  const sourceFingerprint = scopedFingerprint(source, sourceSnapshot);
+  const legacySourceFingerprint = fingerprint(sourceSnapshot);
+  const previous = readJson(currentManifestFile, readJson(LEGACY_MANIFEST_FILE, {}));
+  const fingerprintMatches = previous.sourceFingerprint === sourceFingerprint ||
+    (!fs.existsSync(currentManifestFile) && previous.sourceFingerprint === legacySourceFingerprint);
+  const current = fingerprintMatches && fs.existsSync(OUTPUT_FILE);
   if (CHECK_ONLY) {
     console.log(current ? 'No public Uma NocoDB changes detected.' : 'Public Uma NocoDB changes detected.');
     process.exitCode = current ? 0 : 10;
@@ -225,7 +231,7 @@ async function main() {
     delete card.imageTaskKey;
   }
   writeJsonAtomic(OUTPUT_FILE, { schemaVersion: 1, generatedAt: new Date().toISOString(), scenarios: model.scenarios, pvpEvents: model.events, supportCards: model.supportCards });
-  writeJsonAtomic(MANIFEST_FILE, { sourceFingerprint, attachments });
+  writeJsonAtomic(currentManifestFile, { sourceFingerprint, attachments });
   console.log(`Wrote public/data/uma/timeline.json with ${model.scenarios.length} scenario(s), ${model.events.length} PvP event(s), and ${model.supportCards.length} support card(s).`);
 }
 
