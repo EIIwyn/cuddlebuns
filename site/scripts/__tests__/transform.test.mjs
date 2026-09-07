@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  TRACKS, distanceClass, unixToDate, addDays, titleCaseSlug, transformScenarios, FINAL_ERA_DAYS, transformEvents,
+  TRACKS, distanceClass, unixToDate, addDays, titleCaseSlug, transformScenarios, FINAL_ERA_DAYS, transformEvents, transformSupportCards,
 } from '../gametora/transform.mjs';
 
 // Unix seconds for an ISO date at an odd time of day, like GameTora's display_start values.
@@ -118,4 +118,37 @@ test('transformEvents skips CMs with no JP record or an unknown track and warns'
   assert.equal(warnings.length, 2);
   assert.match(warnings.find((w) => w.includes('45')), /track 99999/);
   assert.match(warnings.find((w) => w.includes('46')), /no JP record/);
+});
+
+const supportCards = [
+  { support_id: 30146, char_name: 'Oguri Cap', type: 'intelligence', rarity: 3, title_en: '[Run Forth! Dash On! Ever Forward!]', url_name: '30146-oguri-cap', release_en: '2026-10-19' },
+  { support_id: 30118, char_name: 'Symboli Kris', type: 'stamina', rarity: 3, title_en: '[Kris Title]', url_name: '30118-symboli-kris' },
+  { support_id: 10021, char_name: 'Tazuna Hayakawa', type: 'friend', rarity: 3, title_en: '[Tracen Academy]', url_name: '10021-tazuna-hayakawa', release_en: '2025-06-26' },
+  { support_id: 30500, char_name: 'Someone', type: 'group', rarity: 2, title_en: '[Group]', url_name: '30500-someone' },
+  { support_id: 30900, char_name: 'Nobody', type: 'speed', rarity: 1, title_en: '[No Date]', url_name: '30900-nobody' },
+  { support_id: 30901, char_name: 'Odd', type: 'mystery', rarity: 3, title_en: '[Bad Type]', url_name: '30901-odd', release_en: '2026-01-01' },
+];
+const predictedReleases = { support_cards: {
+  30118: { banner_id: 1, banner_type: 'support', release_date: '2026-09-01' },
+  30500: { release_date: '2027-02-02' },
+} };
+
+test('transformSupportCards maps type, rarity, title and picks the global release date', () => {
+  const { rows } = transformSupportCards({ supportCards, predictedReleases });
+  const oguri = rows.find((r) => r.gametoraId === 30146);
+  assert.deepEqual(oguri.facts, { character_name: 'Oguri Cap', card_type: 'Wit', rarity: 'SSR', title: '[Run Forth! Dash On! Ever Forward!]', release_date: '2026-10-19' });
+  assert.deepEqual(oguri.seeds, { name: { value: 'Oguri Cap Wit SSR', alternatives: [] }, slug: { value: '30146-oguri-cap', alternatives: [] } });
+  const kris = rows.find((r) => r.gametoraId === 30118);
+  assert.equal(kris.facts.release_date, '2026-09-01');
+  assert.equal(rows.find((r) => r.gametoraId === 10021).facts.card_type, 'Friend');
+  assert.equal(rows.find((r) => r.gametoraId === 30500).facts.card_type, 'Group');
+  assert.equal(rows.find((r) => r.gametoraId === 30500).facts.rarity, 'SR');
+});
+
+test('transformSupportCards skips cards without a global date silently and unknown types with a warning', () => {
+  const { rows, warnings, skippedNoGlobalDate } = transformSupportCards({ supportCards, predictedReleases });
+  assert.deepEqual(rows.map((r) => r.gametoraId).sort((a, b) => a - b), [10021, 30118, 30146, 30500]);
+  assert.equal(skippedNoGlobalDate, 1);
+  assert.equal(warnings.length, 1);
+  assert.match(warnings[0], /30901.*mystery/);
 });

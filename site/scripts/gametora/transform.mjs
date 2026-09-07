@@ -137,3 +137,42 @@ export function transformEvents({ foresight, jpChampionsMeetings, scenarioRows }
   rows.sort((a, b) => a.facts.start_date.localeCompare(b.facts.start_date) || a.gametoraId - b.gametoraId);
   return { rows, warnings };
 }
+
+function isoDate(value) {
+  const normalized = typeof value === 'string' ? value.slice(0, 10) : null;
+  return normalized && /^\d{4}-\d{2}-\d{2}$/.test(normalized) ? normalized : null;
+}
+
+export function transformSupportCards({ supportCards, predictedReleases }) {
+  const warnings = [];
+  const rows = [];
+  let skippedNoGlobalDate = 0;
+  for (const card of supportCards ?? []) {
+    const releaseDate = isoDate(card.release_en) ?? isoDate(predictedReleases?.support_cards?.[card.support_id]?.release_date);
+    if (!releaseDate) { skippedNoGlobalDate += 1; continue; }
+    const cardType = CARD_TYPES[card.type];
+    if (!cardType) { warnings.push(`Support card ${card.support_id}: unknown type "${card.type}"; skipped.`); continue; }
+    const rarity = RARITY[card.rarity] ?? null;
+    const characterName = text(card.char_name);
+    if (!characterName) { warnings.push(`Support card ${card.support_id}: no character name; skipped.`); continue; }
+    rows.push({
+      gametoraId: card.support_id,
+      label: `${characterName} ${text(card.title_en) ?? ''}`.trim(),
+      facts: {
+        character_name: characterName,
+        card_type: cardType,
+        rarity,
+        title: text(card.title_en),
+        release_date: releaseDate,
+      },
+      seeds: {
+        name: seed([characterName, cardType, rarity].filter(Boolean).join(' ')),
+        slug: seed(text(card.url_name) ?? `support-card-${card.support_id}`),
+      },
+      scenarioGametoraId: null,
+      note: null,
+    });
+  }
+  rows.sort((a, b) => a.facts.release_date.localeCompare(b.facts.release_date) || a.gametoraId - b.gametoraId);
+  return { rows, warnings, skippedNoGlobalDate };
+}
