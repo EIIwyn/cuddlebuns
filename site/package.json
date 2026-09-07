@@ -15,7 +15,7 @@
     "validate:uma": "node scripts/validate-uma-output.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "node --test scripts/__tests__/"
+    "test": "node --test \"scripts/__tests__/**/*.test.mjs\""
   },
   "dependencies": {
     "react": "^19.2.0",
