@@ -2,10 +2,14 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import sharp from 'sharp';
+import { loadUmaSource } from './adapters/nocodb-uma.mjs';
+import { createUmaModel } from './lib/uma-model.mjs';
+import { writeJsonAtomic } from './lib/output-writers.mjs';
 
 const SITE_DIR = path.resolve(import.meta.dirname, '..');
 const OUTPUT_FILE = path.join(SITE_DIR, 'public', 'data', 'uma', 'timeline.json');
-const MANIFEST_FILE = path.join(SITE_DIR, '.cache', 'uma', 'manifest.json');
+const MANIFEST_FILE = path.join(SITE_DIR, '.cache', 'uma', 'nocodb', 'manifest.json');
+const LEGACY_MANIFEST_FILE = path.join(SITE_DIR, '.cache', 'uma', 'manifest.json');
 const IMAGE_DIR = path.join(SITE_DIR, 'public', 'generated', 'nocodb', 'uma-support');
 const PUBLIC_IMAGE_ROOT = '/generated/nocodb/uma-support';
 const CHECK_ONLY = process.argv.includes('--check');
@@ -47,12 +51,6 @@ function stable(value) {
 }
 function fingerprint(value) { return hash(JSON.stringify(stable(value))); }
 function readJson(file, fallback) { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return fallback; } }
-function writeJsonAtomic(file, value) {
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  const temporary = `${file}.${process.pid}.tmp`;
-  fs.writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`);
-  fs.renameSync(temporary, file);
-}
 function field(fields, ...names) {
   for (const name of names) if (fields?.[name] != null) return fields[name];
   return null;
@@ -201,21 +199,16 @@ function createModel(scenarioRecords, eventRecords, supportCardRecords) {
       imageTaskKey: taskKey,
     };
   });
-  scenarios.sort((left, right) => left.eraStart.localeCompare(right.eraStart) || left.name.localeCompare(right.name) || Number(left.id) - Number(right.id));
-  events.sort((left, right) => left.startDate.localeCompare(right.startDate) || (left.eventNumber ?? Infinity) - (right.eventNumber ?? Infinity) || left.name.localeCompare(right.name) || Number(left.id) - Number(right.id));
-  supportCards.sort((left, right) => String(left.releaseDate ?? '').localeCompare(String(right.releaseDate ?? '')) || left.name.localeCompare(right.name) || String(left.characterName ?? '').localeCompare(String(right.characterName ?? '')) || Number(left.id) - Number(right.id));
-  return { scenarios, events, supportCards, imageTasks, errors };
+  return createUmaModel({ scenarios, events, supportCards, imageTasks, errors });
 }
 
 async function main() {
   loadEnvironment();
   const config = getConfig();
-  const scenarios = await fetchTable(config, config.scenarios, 'Scenarios');
-  const events = await fetchTable(config, config.events, 'PvP events');
-  const supportCards = await fetchTable(config, config.supportCards, 'Support cards');
+  const { scenarios, events, supportCards } = await loadUmaSource(config, fetchTable);
   const model = createModel(scenarios, events, supportCards);
   const sourceFingerprint = fingerprint({ scenarios, events, supportCards });
-  const previous = readJson(MANIFEST_FILE, {});
+  const previous = readJson(MANIFEST_FILE, readJson(LEGACY_MANIFEST_FILE, {}));
   const current = previous.sourceFingerprint === sourceFingerprint && fs.existsSync(OUTPUT_FILE);
   if (CHECK_ONLY) {
     console.log(current ? 'No public Uma NocoDB changes detected.' : 'Public Uma NocoDB changes detected.');

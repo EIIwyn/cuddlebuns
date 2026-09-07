@@ -3,8 +3,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { test } from 'node:test'
 
-const galleryModulePath = path.resolve(import.meta.dirname, '../sync-nocodb.mjs')
-const umaModulePath = path.resolve(import.meta.dirname, '../sync-uma-nocodb.mjs')
+const galleryModulePath = path.resolve(import.meta.dirname, '../sync-gallery.mjs')
+const umaModulePath = path.resolve(import.meta.dirname, '../sync-uma.mjs')
 const fixture = JSON.parse(fs.readFileSync(new URL('./fixtures/nocodb-source.json', import.meta.url)))
 
 const attachmentFields = {
@@ -42,15 +42,15 @@ test('sync modules expose pure model functions without running their entry point
     assert.match(source, /isMainModule/)
   }
 
-  const gallery = await import('../sync-nocodb.mjs')
-  const uma = await import('../sync-uma-nocodb.mjs')
+  const gallery = await import('../sync-gallery.mjs')
+  const uma = await import('../sync-uma.mjs')
   assert.equal(typeof gallery.createModel, 'function')
   assert.equal(typeof gallery.publicSourceSnapshot, 'function')
   assert.equal(typeof uma.createModel, 'function')
 })
 
 test('gallery fixture preserves relationships, attachment order, filtering, and numeric ID ties', async () => {
-  const { createModel, publicSourceSnapshot } = await import('../sync-nocodb.mjs')
+  const { createModel, publicSourceSnapshot } = await import('../sync-gallery.mjs')
   const tables = Object.fromEntries(['collections', 'characters', 'versions', 'commissions', 'artists'].map((name) => [name, fixture[name]]))
   const snapshot = publicSourceSnapshot(tables)
   const model = createModel(tables, { url: 'https://cms.invalid' })
@@ -73,7 +73,7 @@ test('gallery fixture preserves relationships, attachment order, filtering, and 
 })
 
 test('Uma fixture preserves arrays, relation order, and numeric ID ties', async () => {
-  const { createModel } = await import('../sync-uma-nocodb.mjs')
+  const { createModel } = await import('../sync-uma.mjs')
   const model = createModel(fixture.uma_scenarios, fixture.uma_pvp_events, fixture.uma_support_cards)
 
   assert.deepEqual(model.scenarios.map(({ id }) => id), ['1', '2'])

@@ -140,7 +140,7 @@ npm.cmd run lint
 ```
 
 The first sync downloads every attachment and creates 480px, 960px, and 1600px AVIF
-and WebP derivatives. Later runs use `.cache/nocodb/manifest.json` and content hashes,
+and WebP derivatives. Later runs use `.cache/gallery/nocodb/manifest.json` and content hashes,
 so unchanged images are reused.
 
 Reference-sheet originals are also preserved in the generated image directory. The
@@ -151,7 +151,8 @@ source quality while allowing the browser to scale the display to the available 
 Generated and cached files are intentionally ignored by Git:
 
 ```text
-site/.cache/nocodb/
+site/.cache/gallery/nocodb/
+site/.cache/originals/
 site/public/data/cms/site.json
 site/public/data/cms/gallery/<character>--<version>.json
 site/public/generated/nocodb/images/<stable-name>-<hash>-<width>.<format>

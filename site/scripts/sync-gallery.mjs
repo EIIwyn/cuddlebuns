@@ -2,14 +2,19 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
+import { loadGallerySource } from './adapters/nocodb-gallery.mjs';
+import { createGalleryModel } from './lib/gallery-model.mjs';
+import { mapWithConcurrency } from './lib/image-pipeline.mjs';
+import { writeJsonAtomic } from './lib/output-writers.mjs';
 
 // Keep libvips conservative on a small VPS. This can be raised later if the server has headroom.
 sharp.concurrency(1);
 
 const SITE_DIR = path.resolve(import.meta.dirname, "..");
-const CACHE_DIR = path.join(SITE_DIR, ".cache", "nocodb");
-const ORIGINALS_DIR = path.join(CACHE_DIR, "originals");
+const CACHE_DIR = path.join(SITE_DIR, ".cache", "gallery", "nocodb");
+const ORIGINALS_DIR = path.join(SITE_DIR, ".cache", "originals");
 const MANIFEST_FILE = path.join(CACHE_DIR, "manifest.json");
+const LEGACY_MANIFEST_FILE = path.join(SITE_DIR, ".cache", "nocodb", "manifest.json");
 const DATA_DIR = path.join(SITE_DIR, "public", "data", "cms");
 const GALLERY_DIR = path.join(DATA_DIR, "gallery");
 const IMAGE_DIR = path.join(SITE_DIR, "public", "generated", "nocodb", "images");
@@ -82,17 +87,6 @@ function slugify(value, fallback) {
   return slug || fallback;
 }
 
-function numericOrder(value) {
-  const number = Number(value);
-  return Number.isFinite(number) ? number : Number.MAX_SAFE_INTEGER;
-}
-
-function byOrderThenName(left, right) {
-  return numericOrder(left.order) - numericOrder(right.order) ||
-    String(left.name).localeCompare(String(right.name)) ||
-    numericOrder(left.id) - numericOrder(right.id);
-}
-
 function relationIds(value) {
   if (!value) return [];
   const values = Array.isArray(value) ? value : [value];
@@ -157,13 +151,6 @@ function readJson(file, fallback = null) {
   } catch {
     return fallback;
   }
-}
-
-function writeJsonAtomic(file, value) {
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  const temporary = `${file}.${process.pid}.tmp`;
-  fs.writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`);
-  fs.renameSync(temporary, file);
 }
 
 function sleep(ms) {
@@ -440,22 +427,9 @@ function createModel(tables, config) {
   for (const character of characters) {
     character.versions = versions.filter((version) => version.characterId === character.id);
   }
-  for (const version of versions) {
-    const items = galleries.get(version.id);
-    items.sort((left, right) =>
-      numericOrder(left.displayOrder) - numericOrder(right.displayOrder) ||
-      String(right.date ?? "").localeCompare(String(left.date ?? "")) ||
-      numericOrder(left.recordId) - numericOrder(right.recordId) ||
-      left.attachmentOrdinal - right.attachmentOrdinal,
-    );
-    version.commissionCount = items.length;
-  }
+  for (const version of versions) version.commissionCount = galleries.get(version.id).length;
 
-  collections.sort(byOrderThenName);
-  for (const collection of collections) collection.characters.sort(byOrderThenName);
-  for (const character of characters) character.versions.sort(byOrderThenName);
-
-  return { collections, galleries, versions, imageTasks, errors };
+  return createGalleryModel({ collections, galleries, versions, imageTasks, errors });
 }
 
 function thumbnailFallbackUrl(attachment, baseUrl) {
@@ -615,19 +589,6 @@ async function processImage(task, previous) {
   return { signature, contentHash, usedThumbnailFallback, image };
 }
 
-async function mapWithConcurrency(items, concurrency, operation) {
-  const output = new Array(items.length);
-  let cursor = 0;
-  async function worker() {
-    while (cursor < items.length) {
-      const index = cursor++;
-      output[index] = await operation(items[index]);
-    }
-  }
-  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, worker));
-  return output;
-}
-
 function imageOutputFiles(image) {
   return [
     ...Object.values(image.sources ?? {}).flat().map((source) => source.url),
@@ -654,14 +615,10 @@ async function main() {
   loadEnvironment();
   const config = getConfig();
   console.log("Fetching Collections, Characters, Versions, Commissions, and Artists sequentially...");
-  const collections = await fetchTable(config, config.collections, "Collections");
-  const characters = await fetchTable(config, config.characters, "Characters");
-  const versions = await fetchTable(config, config.versions, "Versions");
-  const commissions = await fetchTable(config, config.commissions, "Commissions");
-  const artists = await fetchTable(config, config.artists, "Artists");
-  const tables = { collections, characters, versions, commissions, artists };
+  const tables = await loadGallerySource(config, fetchTable);
+  const { commissions } = tables;
   const sourceFingerprint = fingerprint(publicSourceSnapshot(tables));
-  const previous = readJson(MANIFEST_FILE, { attachments: {} });
+  const previous = readJson(MANIFEST_FILE, readJson(LEGACY_MANIFEST_FILE, { attachments: {} }));
   const model = createModel(tables, config);
   const publishedCommissionCount = commissions.filter((record) => record.fields?.Published === true).length;
   console.log(
