@@ -6,6 +6,10 @@ import { promisify } from 'node:util'
 import { fileURLToPath } from 'node:url'
 import { test } from 'node:test'
 
+import { getPocketBaseConfig } from '../lib/env.mjs'
+import { createPocketBaseClient } from '../lib/pocketbase-client.mjs'
+import { runMigration } from '../migrate/migration-core.mjs'
+
 const execFile = promisify(execFileCallback)
 const repositoryRoot = fileURLToPath(new URL('../../..', import.meta.url))
 const pocketBaseDirectory = fileURLToPath(new URL('../../../vps-scripts/pocketbase/', import.meta.url))
@@ -59,6 +63,13 @@ function imageBlob(size = pngBytes.length) {
   const bytes = new Uint8Array(size)
   bytes.set(pngBytes.subarray(0, Math.min(size, pngBytes.length)))
   return new Blob([bytes], { type: 'image/png' })
+}
+
+function migrationFile(field, ordinal, filename, bytes, detectedFormat) {
+  return {
+    field, ordinal, filename, size: bytes.length, detectedFormat,
+    read: async () => Buffer.from(bytes),
+  }
 }
 
 async function waitForHealth(baseUrl, timeoutMs = 30_000) {
@@ -333,6 +344,67 @@ test('PocketBase disposable container enforces schema, auth, relations, and file
       await api(baseUrl, 'POST', '/api/collections/versions/records', {
         body: tooManyReferences, expected: 400, token: adminToken,
       })
+    })
+
+    await t.test('migration encoder converges scalar, relation, JSON, and file changes exactly', async () => {
+      const gifBytes = Buffer.from('R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==', 'base64')
+      const client = createPocketBaseClient(getPocketBaseConfig({
+        POCKETBASE_URL: baseUrl,
+        POCKETBASE_MIGRATION_EMAIL: adminEmail,
+        POCKETBASE_MIGRATION_PASSWORD: adminPassword,
+      }, 'migration'))
+      const records = [
+        { collection: 'artists', legacyId: 500, fields: { name: 'Migration One', url: '' }, relations: {}, files: [] },
+        { collection: 'artists', legacyId: 501, fields: { name: 'Migration Two', url: '' }, relations: {}, files: [] },
+        { collection: 'collections', legacyId: 500, fields: {
+          name: 'Migration Project', slug: 'migration-project', display_order: 0, visible: true, collapsible: false,
+        }, relations: {}, files: [] },
+        { collection: 'characters', legacyId: 500, fields: {
+          name: 'Migration Character', slug: 'migration-character', subtitle: '', accent_color: '',
+          display_order: 0, visible: true, social_label: '', social_url: '',
+        }, relations: { collection: { collection: 'collections', legacyIds: [500] } }, files: [
+          migrationFile('card_thumbnail', 0, 'thumbnail.png', pngBytes, 'png'),
+        ] },
+        { collection: 'versions', legacyId: 500, fields: {
+          name: 'Migration Version', slug: 'migration-version', display_order: 0, visible: true,
+        }, relations: { character: { collection: 'characters', legacyIds: [500] } }, files: [] },
+        { collection: 'commissions', legacyId: 500, fields: {
+          name: 'Private migration title', type: 'Portrait', source_url: '', date: '2026-01-01 00:00:00.000Z',
+          published: true, display_order: 0,
+        }, relations: {
+          versions: { collection: 'versions', legacyIds: [500], many: true },
+          artists: { collection: 'artists', legacyIds: [501, 500], many: true },
+        }, files: [
+          migrationFile('image', 0, 'first.png', pngBytes, 'png'),
+          migrationFile('image', 1, 'second.gif', gifBytes, 'gif'),
+        ] },
+        { collection: 'uma_support_cards', legacyId: 500, fields: {
+          name: 'Migration Support', character_name: '', slug: 'migration-support', card_type: '',
+          rating: '', release_date: '2026-01-04 00:00:00.000Z', styles: ['Front'], breakpoints: ['LB0', 'LB4'],
+        }, relations: { pvp_events: { collection: 'uma_pvp_events', legacyIds: [], many: true } }, files: [] },
+      ]
+
+      const first = await runMigration(records, { client })
+      assert.deepEqual(first.counts, { source: 7, created: 7, updated: 0, unchanged: 0, failed: 0 })
+      const second = await runMigration(records, { client })
+      assert.deepEqual(second.counts, { source: 7, created: 0, updated: 0, unchanged: 7, failed: 0 })
+
+      records[0].fields.name = 'Migration One Changed'
+      records[3].files = []
+      records[5].relations.artists.legacyIds = [500]
+      records[5].files = [migrationFile('image', 0, 'replacement.gif', gifBytes, 'gif')]
+      const changed = await runMigration(records, { client })
+      assert.deepEqual(changed.counts, { source: 7, created: 0, updated: 3, unchanged: 4, failed: 0 })
+
+      const destinationCommission = await client.getByLegacyId('commissions', 500)
+      assert.deepEqual(destinationCommission.artists, [await client.getByLegacyId('artists', 500).then(({ id }) => id)])
+      assert.equal(destinationCommission.image.length, 1)
+      assert.match(destinationCommission.image[0], /^replacement_/)
+      const destinationCharacter = await client.getByLegacyId('characters', 500)
+      assert.equal(destinationCharacter.card_thumbnail, '')
+      const destinationSupport = await client.getByLegacyId('uma_support_cards', 500)
+      assert.deepEqual(destinationSupport.styles, ['Front'])
+      assert.deepEqual(destinationSupport.breakpoints, ['LB0', 'LB4'])
     })
 
     await t.test('initialized restart and no-op migration rerun preserve state', async () => {

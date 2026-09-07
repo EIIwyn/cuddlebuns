@@ -91,6 +91,31 @@ test('protected-file helpers request a token and encode every URL segment', asyn
     'http://127.0.0.1:8090/api/files/support%20cards/record%2Fid/image%20name.png?token=file-token')
 })
 
+test('migration client downloads protected destination files for hash comparison', async () => {
+  const config = getPocketBaseConfig({
+    POCKETBASE_URL: 'http://localhost:8090', POCKETBASE_MIGRATION_EMAIL: 'admin@example.invalid',
+    POCKETBASE_MIGRATION_PASSWORD: 'migration-secret',
+  }, 'migration')
+  let tokenRequests = 0
+  let fileRequests = 0
+  const fetch = async (url) => {
+    const address = String(url)
+    if (address.includes('auth-with-password')) return response(200, { token: 'migration-token' })
+    if (address.includes('/api/files/token')) {
+      tokenRequests += 1
+      return response(200, { token: 'file-token' })
+    }
+    fileRequests += 1
+    assert.match(address, /\/api\/files\/commissions\/record\/one.png\?token=file-token$/)
+    return new Response(Buffer.from('file-bytes'), { status: 200 })
+  }
+  const client = createPocketBaseClient(config, { fetch })
+  assert.deepEqual(await client.downloadFile('commissions', { id: 'record' }, 'one.png'), Buffer.from('file-bytes'))
+  assert.deepEqual(await client.downloadFile('commissions', { id: 'record' }, 'one.png'), Buffer.from('file-bytes'))
+  assert.equal(tokenRequests, 1)
+  assert.equal(fileRequests, 2)
+})
+
 test('migration mutations are explicit and non-retrying, and errors redact secrets', async () => {
   const config = getPocketBaseConfig({
     POCKETBASE_URL: 'http://localhost:8090', POCKETBASE_MIGRATION_EMAIL: 'admin@example.invalid',
