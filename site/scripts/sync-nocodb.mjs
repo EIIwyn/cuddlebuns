@@ -89,7 +89,8 @@ function numericOrder(value) {
 
 function byOrderThenName(left, right) {
   return numericOrder(left.order) - numericOrder(right.order) ||
-    String(left.name).localeCompare(String(right.name));
+    String(left.name).localeCompare(String(right.name)) ||
+    numericOrder(left.id) - numericOrder(right.id);
 }
 
 function relationIds(value) {
@@ -426,6 +427,7 @@ function createModel(tables, config) {
         sourceUrl,
         date: fields.Date || null,
         displayOrder: fields["Display Order"] ?? null,
+        attachmentOrdinal: attachmentIndex,
         taskKey,
       };
       for (const versionId of linkedVersionIds) galleries.get(versionId).push({ ...item });
@@ -443,7 +445,8 @@ function createModel(tables, config) {
     items.sort((left, right) =>
       numericOrder(left.displayOrder) - numericOrder(right.displayOrder) ||
       String(right.date ?? "").localeCompare(String(left.date ?? "")) ||
-      left.id.localeCompare(right.id),
+      numericOrder(left.recordId) - numericOrder(right.recordId) ||
+      left.attachmentOrdinal - right.attachmentOrdinal,
     );
     version.commissionCount = items.length;
   }
@@ -742,7 +745,7 @@ async function main() {
     version.referenceSheets = version.referenceSheets.map(resolveImage);
     const character = modelCharacters.find((item) => item.id === version.characterId);
     const items = model.galleries.get(version.id).map((item) => {
-      const { taskKey, ...publicItem } = item;
+      const { taskKey, attachmentOrdinal: _attachmentOrdinal, ...publicItem } = item;
       return { ...publicItem, image: attachmentEntries[taskKey].image };
     });
     const galleryFile = path.join(SITE_DIR, "public", version.galleryUrl.slice(1));
@@ -785,7 +788,15 @@ async function main() {
   console.log("Wrote public/data/cms/site.json.");
 }
 
-main().catch((error) => {
-  console.error(`NocoDB sync failed: ${error.message}`);
-  process.exitCode = 1;
-});
+function isMainModule() {
+  return Boolean(process.argv[1]) && path.resolve(process.argv[1]) === path.resolve(import.meta.filename);
+}
+
+if (isMainModule()) {
+  main().catch((error) => {
+    console.error(`NocoDB sync failed: ${error.message}`);
+    process.exitCode = 1;
+  });
+}
+
+export { createModel, publicSourceSnapshot };

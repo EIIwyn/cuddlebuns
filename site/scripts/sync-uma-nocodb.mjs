@@ -201,8 +201,9 @@ function createModel(scenarioRecords, eventRecords, supportCardRecords) {
       imageTaskKey: taskKey,
     };
   });
-  scenarios.sort((left, right) => left.eraStart.localeCompare(right.eraStart) || left.name.localeCompare(right.name));
-  events.sort((left, right) => left.startDate.localeCompare(right.startDate) || (left.eventNumber ?? Infinity) - (right.eventNumber ?? Infinity) || left.name.localeCompare(right.name));
+  scenarios.sort((left, right) => left.eraStart.localeCompare(right.eraStart) || left.name.localeCompare(right.name) || Number(left.id) - Number(right.id));
+  events.sort((left, right) => left.startDate.localeCompare(right.startDate) || (left.eventNumber ?? Infinity) - (right.eventNumber ?? Infinity) || left.name.localeCompare(right.name) || Number(left.id) - Number(right.id));
+  supportCards.sort((left, right) => String(left.releaseDate ?? '').localeCompare(String(right.releaseDate ?? '')) || left.name.localeCompare(right.name) || String(left.characterName ?? '').localeCompare(String(right.characterName ?? '')) || Number(left.id) - Number(right.id));
   return { scenarios, events, supportCards, imageTasks, errors };
 }
 
@@ -235,4 +236,12 @@ async function main() {
   console.log(`Wrote public/data/uma/timeline.json with ${model.scenarios.length} scenario(s), ${model.events.length} PvP event(s), and ${model.supportCards.length} support card(s).`);
 }
 
-main().catch((error) => { console.error(`Uma NocoDB sync failed: ${error.message}`); process.exitCode = 1; });
+function isMainModule() {
+  return Boolean(process.argv[1]) && path.resolve(process.argv[1]) === path.resolve(import.meta.filename);
+}
+
+if (isMainModule()) {
+  main().catch((error) => { console.error(`Uma NocoDB sync failed: ${error.message}`); process.exitCode = 1; });
+}
+
+export { createModel };
