@@ -35,6 +35,8 @@ function getConfig() {
   return config;
 }
 
+function info(message) { (JSON_OUTPUT ? console.error : console.log)(message); }
+
 function describeChange(column, { from, to }) { return `${column}: ${JSON.stringify(from)} -> ${JSON.stringify(to)}`; }
 
 function printPlan(table, plan) {
@@ -79,7 +81,7 @@ async function main() {
   const events = transformEvents({ foresight: datasets.foresight ?? {}, jpChampionsMeetings: datasets.jpChampionsMeetings ?? [], scenarioRows: scenarios.rows });
   const cards = transformSupportCards({ supportCards: datasets.supportCards ?? [], predictedReleases: datasets.predictedReleases ?? {} });
   for (const warning of [...scenarios.warnings, ...events.warnings, ...cards.warnings]) console.warn(`- ${warning}`);
-  console.log(`GameTora: ${scenarios.rows.length} scenario(s), ${events.rows.length} Champions Meeting(s), ${cards.rows.length} support card(s) with a global date (${cards.skippedNoGlobalDate} without one skipped).`);
+  info(`GameTora: ${scenarios.rows.length} scenario(s), ${events.rows.length} Champions Meeting(s), ${cards.rows.length} support card(s) with a global date (${cards.skippedNoGlobalDate} without one skipped).`);
 
   const client = createNocodbClient({ url: config.url, token: config.token, baseId: config.baseId });
   const tables = [
@@ -112,12 +114,12 @@ async function main() {
     if (!JSON_OUTPUT) printPlan(table, plan);
     if (!APPLY) continue;
     const result = await applyPlan({ client, tableId, plan, linkFieldId: columnIdByTitle.get('scenario') ?? null });
-    console.log(`  applied ${table}: ${result.created} created, ${result.updated} updated, ${result.failures.length} failed.`);
+    info(`  applied ${table}: ${result.created} created, ${result.updated} updated, ${result.failures.length} failed.`);
     failures += result.failures.length;
     if (table === 'scenarios') scenarioIds = scenarioIdMap(await client.fetchAllRecords(tableId, table));
   }
   if (JSON_OUTPUT) console.log(JSON.stringify(output, null, 2));
-  if (!APPLY) console.log('\nDry run only. Re-run with --apply to write the plan above.');
+  if (!APPLY) info('\nDry run only. Re-run with --apply to write the plan above.');
   if (failures) process.exitCode = 1;
 }
 
