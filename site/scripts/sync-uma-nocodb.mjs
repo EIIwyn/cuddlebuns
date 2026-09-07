@@ -2,8 +2,7 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import sharp from 'sharp';
-
-const SITE_DIR = path.resolve(import.meta.dirname, '..');
+import { SITE_DIR, loadEnvironment } from './lib/env.mjs';
 const OUTPUT_FILE = path.join(SITE_DIR, 'public', 'data', 'uma', 'timeline.json');
 const MANIFEST_FILE = path.join(SITE_DIR, '.cache', 'uma', 'manifest.json');
 const IMAGE_DIR = path.join(SITE_DIR, 'public', 'generated', 'nocodb', 'uma-support');
@@ -11,21 +10,6 @@ const PUBLIC_IMAGE_ROOT = '/generated/nocodb/uma-support';
 const CHECK_ONLY = process.argv.includes('--check');
 const API_PAGE_SIZE = 100;
 const API_TIMEOUT_MS = 120_000;
-
-function loadEnvironment() {
-  const envFile = path.join(SITE_DIR, '.env.local');
-  if (!fs.existsSync(envFile)) return;
-  for (const line of fs.readFileSync(envFile, 'utf8').split(/\r?\n/)) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-    const separator = trimmed.indexOf('=');
-    if (separator < 1) continue;
-    const key = trimmed.slice(0, separator).trim();
-    let value = trimmed.slice(separator + 1).trim();
-    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) value = value.slice(1, -1);
-    if (!process.env[key]) process.env[key] = value;
-  }
-}
 
 function getConfig() {
   const names = {

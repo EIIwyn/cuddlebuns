@@ -14,7 +14,8 @@
     "validate:cms": "node scripts/validate-cms-output.mjs",
     "validate:uma": "node scripts/validate-uma-output.mjs",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test scripts/__tests__/"
   },
   "dependencies": {
     "react": "^19.2.0",
