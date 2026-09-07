@@ -87,8 +87,11 @@ Distance class follows the game's bands: Sprint up to 1400 m, Mile 1401 to 1800,
 to 2400, Long 2401 and up.
 
 Support card `type` values are `speed`, `stamina`, `power`, `guts`, `intelligence`, `friend`,
-`group`. `intelligence` maps to `Wit`. Cards typed `friend` or `group` are excluded because the
-NocoDB `card_type` select has no option for them; the importer reports how many it skipped.
+`group`. `intelligence` maps to `Wit`; the others map to their capitalised form. Friend and group
+cards are included: GameTora lists 23 friend and 5 group cards, 28 of them with a global date.
+The NocoDB `card_type` select needs `Friend` and `Group` added (admin checklist). The frontend
+already has badge and colour branches for both types in `SupportCardLanes.jsx` and
+`timeline.css`, so no UI change is needed.
 
 ## Architecture
 
@@ -173,6 +176,7 @@ startup and exits 1 with the missing column names if any are absent.
 | --- | --- | --- | --- |
 | all three | `gametora_id` | Number | Join key. Scenario id, CM id, or `support_id`. |
 | `pvp_events` | `racecourse` options | add Hakodate, Fukushima, Kokura, Santa Anita | Tracks GameTora can reference that the select lacks today. |
+| `support_cards` | `card_type` options | add Friend, Group | So friend and group cards can be imported. |
 | all three | `lock_facts` | Checkbox | When checked, the importer skips this row entirely. |
 | `pvp_events` | `status` | SingleSelect: `confirmed`, `projected` | The sync already reads this column; today it is absent and every event publishes as `unspecified`. |
 | `support_cards` | `rarity` | SingleSelect: `R`, `SR`, `SSR` | Tells two cards of one character and type apart. |
@@ -315,12 +319,13 @@ The importer never deletes rows, never writes curated columns, and never writes 
 
 Unit tests use `node:test` and live under `site/scripts/__tests__/`. Fixture files are trimmed
 copies of the GameTora datasets captured on 2026-09-07, small enough to read: three scenarios,
-five CMs including one unnamed and one with a foreign track, and eight support cards covering
-each type, one `friend`, one without any global date, and one already released.
+five CMs including one unnamed and one with a foreign track, and nine support cards covering
+each of the seven types including one `friend` and one `group`, one without any global date,
+and one already released.
 
 - `transform.test.mjs`: track and enum lookups, distance class bands, `era_end` chaining and the
   final-scenario fallback, scenario assignment by date, name seeding for named and unnamed CMs,
-  card type and rarity mapping, exclusion of friend and group cards, exclusion of cards with no
+  card type and rarity mapping including friend and group, exclusion of cards with no
   global date, UTC date conversion of `display_start`.
 - `plan.test.mjs`: each action in the table above, the two linking rules including the
   character-name guard and the duplicate-candidate case, locked rows, dropped rows, field-level
