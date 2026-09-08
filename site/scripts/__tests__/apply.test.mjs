@@ -1,35 +1,64 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { REQUIRED_COLUMNS, checkSchema, fieldsForEntry, applyPlan } from '../gametora/apply.mjs';
+import { REQUIRED_COLUMNS, checkSchema, fieldsForEntry, resolveScenarioLink, applyPlan } from '../gametora/apply.mjs';
 import { BATCH_SIZE } from '../lib/nocodb.mjs';
 
-const col = (title, uidt = 'SingleLineText', options = null) => ({ id: `c_${title}`, title, uidt, options });
+const col = (title, uidt = 'SingleLineText', options = null, relatedTableId = null) => ({ id: `c_${title}`, title, uidt, options, relatedTableId });
 const eventMeta = { columns: [
   ...REQUIRED_COLUMNS.pvp_events.filter((t) => !['weather', 'racecourse', 'status', 'scenario'].includes(t)).map((t) => col(t)),
   col('weather', 'SingleSelect', ['Sunny', 'Cloudy', 'Rain', 'Snow']),
   col('racecourse', 'SingleSelect', ['Kyoto', 'Nakayama']),
   col('status', 'SingleSelect', ['confirmed', 'projected']),
-  col('scenario', 'LinkToAnotherRecord'),
+  col('scenario', 'LinkToAnotherRecord', null, 'mLive'),
+  col('scenario copy_1', 'LinkToAnotherRecord', null, 'mStaging'),
 ] };
 const candidate = (facts) => ({ gametoraId: 1, label: 'x', facts, seeds: {}, scenarioGametoraId: null, note: null });
 
 test('checkSchema passes when every column and option exists and returns column ids', () => {
-  const { errors, columnIdByTitle } = checkSchema({ table: 'pvp_events', meta: eventMeta, candidates: [candidate({ weather: 'Rain', racecourse: 'Kyoto', status: 'projected' })] });
+  const { errors, columnIdByTitle, scenarioLink } = checkSchema({ table: 'pvp_events', meta: eventMeta, candidates: [candidate({ weather: 'Rain', racecourse: 'Kyoto', status: 'projected' })], scenariosTableId: 'mStaging' });
   assert.deepEqual(errors, []);
-  assert.equal(columnIdByTitle.get('scenario'), 'c_scenario');
+  assert.deepEqual(scenarioLink, { id: 'c_scenario copy_1', title: 'scenario copy_1' });
 });
 
 test('checkSchema reports missing columns and missing select options', () => {
   const meta = { columns: eventMeta.columns.filter((c) => c.title !== 'lock_facts') };
-  const { errors } = checkSchema({ table: 'pvp_events', meta, candidates: [candidate({ weather: 'Rain', racecourse: 'Hakodate', status: 'projected' })] });
+  const { errors } = checkSchema({ table: 'pvp_events', meta, candidates: [candidate({ weather: 'Rain', racecourse: 'Hakodate', status: 'projected' })], scenariosTableId: 'mStaging' });
   assert.equal(errors.length, 2);
   assert.match(errors[0], /missing column.*lock_facts/);
   assert.match(errors[1], /racecourse.*Hakodate/);
 });
 
-test('fieldsForEntry collects the target values and skips the link', () => {
-  const entry = { action: 'create', changes: { gametora_id: { from: null, to: 19 }, name: { from: null, to: 'CM19' }, start_date: { from: '2026-09-17', to: '2026-09-20' } }, link: { field: 'scenario', from: null, to: '3' } };
-  assert.deepEqual(fieldsForEntry(entry), { gametora_id: 19, name: 'CM19', start_date: '2026-09-20' });
+test('resolveScenarioLink picks the link column by related table, ignoring a same-titled column that points elsewhere', () => {
+  const { link, errors } = resolveScenarioLink({ meta: eventMeta, scenariosTableId: 'mStaging' });
+  assert.deepEqual(errors, []);
+  assert.deepEqual(link, { id: 'c_scenario copy_1', title: 'scenario copy_1' });
+});
+
+test('resolveScenarioLink errors when no link column points at the scenarios table', () => {
+  const { link, errors } = resolveScenarioLink({ meta: eventMeta, scenariosTableId: 'mNowhere' });
+  assert.equal(link, null);
+  assert.equal(errors.length, 1);
+  assert.match(errors[0], /no link column points at the import scenarios table mNowhere/);
+  assert.match(errors[0], /scenario -> mLive/);
+  assert.match(errors[0], /scenario copy_1 -> mStaging/);
+});
+
+test('resolveScenarioLink errors when two link columns point at the scenarios table', () => {
+  const meta = { columns: [...eventMeta.columns, col('scenario again', 'Links', null, 'mStaging')] };
+  const { link, errors } = resolveScenarioLink({ meta, scenariosTableId: 'mStaging' });
+  assert.equal(link, null);
+  assert.match(errors[0], /2 link columns point at the import scenarios table mStaging/);
+});
+
+test('checkSchema on pvp_events carries the resolve error and a null scenarioLink', () => {
+  const { errors, scenarioLink } = checkSchema({ table: 'pvp_events', meta: eventMeta, candidates: [], scenariosTableId: 'mNowhere' });
+  assert.equal(scenarioLink, null);
+  assert.ok(errors.some((e) => /no link column points at/.test(e)));
+});
+
+test('fieldsForEntry excludes whatever field the entry links through', () => {
+  const entry = { action: 'create', changes: { gametora_id: { from: null, to: 1 }, 'scenario copy_1': { from: null, to: 'x' } }, link: { field: 'scenario copy_1', from: null, to: '3' } };
+  assert.deepEqual(fieldsForEntry(entry), { gametora_id: 1 });
 });
 
 function stubClient(failOn = () => false) {

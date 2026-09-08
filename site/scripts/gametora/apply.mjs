@@ -3,12 +3,24 @@ import { BATCH_SIZE, chunkByBatch } from '../lib/nocodb.mjs';
 const COMMON = ['gametora_id', 'lock_facts', 'name', 'slug'];
 export const REQUIRED_COLUMNS = {
   scenarios: [...COMMON, 'short_name', 'era_start', 'era_end', 'display_color'],
-  pvp_events: [...COMMON, 'event_number', 'event_type', 'start_date', 'end_date', 'distance_class', 'distance_m', 'racecourse', 'direction', 'season', 'track_condition', 'weather', 'surface', 'status', 'scenario'],
+  pvp_events: [...COMMON, 'event_number', 'event_type', 'start_date', 'end_date', 'distance_class', 'distance_m', 'racecourse', 'direction', 'season', 'track_condition', 'weather', 'surface', 'status'],
   support_cards: [...COMMON, 'character_name', 'card_type', 'rarity', 'title', 'release_date'],
 };
-const LINK_FIELDS = new Set(['scenario']);
 
-export function checkSchema({ table, meta, candidates }) {
+// The scenario link must be identified by the table it points at: a duplicated table keeps
+// link columns that still point at the original tables under their original titles.
+export function resolveScenarioLink({ meta, scenariosTableId }) {
+  const links = (meta.columns ?? []).filter((column) => /Link/.test(column.uidt ?? ''));
+  const matches = links.filter((column) => column.relatedTableId === scenariosTableId);
+  if (matches.length === 1) return { link: { id: matches[0].id, title: matches[0].title }, errors: [] };
+  const found = links.length ? links.map((column) => `${column.title} -> ${column.relatedTableId ?? 'unknown'}`).join(', ') : 'none';
+  const error = matches.length === 0
+    ? `pvp_events: no link column points at the import scenarios table ${scenariosTableId}; found: ${found}.`
+    : `pvp_events: ${matches.length} link columns point at the import scenarios table ${scenariosTableId} (${matches.map((column) => column.title).join(', ')}); keep exactly one.`;
+  return { link: null, errors: [error] };
+}
+
+export function checkSchema({ table, meta, candidates, scenariosTableId }) {
   const errors = [];
   const byTitle = new Map((meta.columns ?? []).map((column) => [column.title, column]));
   for (const title of REQUIRED_COLUMNS[table] ?? []) if (!byTitle.has(title)) errors.push(`${table}: missing column "${title}".`);
@@ -25,11 +37,18 @@ export function checkSchema({ table, meta, candidates }) {
     if (!columnMeta || !Array.isArray(columnMeta.options)) continue;
     for (const value of values) if (!columnMeta.options.includes(value)) errors.push(`${table}: column "${column}" has no select option "${value}"; add it in NocoDB.`);
   }
-  return { errors, columnIdByTitle: new Map([...byTitle].map(([title, column]) => [title, column.id])) };
+  let scenarioLink = null;
+  if (table === 'pvp_events') {
+    const resolved = resolveScenarioLink({ meta, scenariosTableId });
+    errors.push(...resolved.errors);
+    scenarioLink = resolved.link;
+  }
+  return { errors, columnIdByTitle: new Map([...byTitle].map(([title, column]) => [title, column.id])), scenarioLink };
 }
 
 export function fieldsForEntry(entry) {
-  return Object.fromEntries(Object.entries(entry.changes ?? {}).filter(([column]) => !LINK_FIELDS.has(column)).map(([column, change]) => [column, change.to]));
+  const linkField = entry.link?.field ?? null;
+  return Object.fromEntries(Object.entries(entry.changes ?? {}).filter(([column]) => column !== linkField).map(([column, change]) => [column, change.to]));
 }
 
 function inlineLink(entry) {

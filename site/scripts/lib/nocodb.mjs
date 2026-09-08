@@ -44,6 +44,7 @@ export function createNocodbClient({ url, token, baseId, fetchImpl = globalThis.
         columns: (meta.columns ?? []).map((column) => ({
           id: column.id, title: column.title, uidt: column.uidt,
           options: Array.isArray(column.colOptions?.options) ? column.colOptions.options.map((option) => option.title) : null,
+          relatedTableId: column.colOptions?.fk_related_model_id ?? null,
         })),
       };
     },

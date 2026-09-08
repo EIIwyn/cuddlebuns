@@ -3,7 +3,6 @@
 // seeds are written when blank or still provisional; curated columns are never read for decisions.
 
 const ACTIONS = ['create', 'link', 'update', 'skip', 'locked', 'unmatched', 'dropped'];
-const LINK_FIELD = { pvp_events: 'scenario' };
 
 export function relationIds(value) {
   const values = Array.isArray(value) ? value : value == null ? [] : [value];
@@ -90,8 +89,7 @@ function diffFields(candidate, fields) {
   return changes;
 }
 
-function linkChange(table, candidate, fields, scenarioRecordIdByGametoraId) {
-  const field = LINK_FIELD[table];
+function linkChange(field, candidate, fields, scenarioRecordIdByGametoraId) {
   if (!field) return null;
   const from = fields ? relationIds(fields[field])[0] ?? null : null;
   const wanted = candidate.scenarioGametoraId;
@@ -99,8 +97,9 @@ function linkChange(table, candidate, fields, scenarioRecordIdByGametoraId) {
   return from === to ? null : { field, from, to };
 }
 
-export function buildPlan({ table, candidates, existing, scenarioRecordIdByGametoraId = new Map() }) {
+export function buildPlan({ table, candidates, existing, scenarioRecordIdByGametoraId = new Map(), scenarioLinkField = 'scenario' }) {
   const entries = [];
+  const linkField = table === 'pvp_events' ? scenarioLinkField : null;
   const candidatesById = new Map(candidates.map((c) => [c.gametoraId, c]));
   const claimed = new Set();
 
@@ -137,7 +136,7 @@ export function buildPlan({ table, candidates, existing, scenarioRecordIdByGamet
       const changes = { gametora_id: { from: null, to: candidate.gametoraId } };
       for (const [column, value] of Object.entries(candidate.facts)) changes[column] = { from: null, to: normalizeValue(value) };
       for (const [column, { value }] of Object.entries(candidate.seeds ?? {})) changes[column] = { from: null, to: normalizeValue(value) };
-      entries.push({ ...base, action: 'create', recordId: null, changes, link: linkChange(table, candidate, null, scenarioRecordIdByGametoraId) });
+      entries.push({ ...base, action: 'create', recordId: null, changes, link: linkChange(linkField, candidate, null, scenarioRecordIdByGametoraId) });
       continue;
     }
     claimed.add(record.id);
@@ -145,7 +144,7 @@ export function buildPlan({ table, candidates, existing, scenarioRecordIdByGamet
     if (isLocked(fields)) { entries.push({ ...base, action: 'locked', recordId: record.id, changes: {}, link: null }); continue; }
     const changes = diffFields(candidate, fields);
     if (linked) changes.gametora_id = { from: null, to: candidate.gametoraId };
-    const link = linkChange(table, candidate, fields, scenarioRecordIdByGametoraId);
+    const link = linkChange(linkField, candidate, fields, scenarioRecordIdByGametoraId);
     const action = linked ? 'link' : Object.keys(changes).length || link ? 'update' : 'skip';
     entries.push({ ...base, action, recordId: record.id, changes, link });
   }

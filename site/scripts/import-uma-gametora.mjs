@@ -94,9 +94,9 @@ async function main() {
   const schemaErrors = [];
   for (const [table, tableId, candidates] of tables) {
     const meta = await client.getTableMeta(tableId);
-    const { errors, columnIdByTitle } = checkSchema({ table, meta, candidates });
+    const { errors, scenarioLink } = checkSchema({ table, meta, candidates, scenariosTableId: config.scenarios });
     schemaErrors.push(...errors);
-    state[table] = { tableId, candidates, columnIdByTitle, existing: await client.fetchAllRecords(tableId, table) };
+    state[table] = { tableId, candidates, scenarioLink, existing: await client.fetchAllRecords(tableId, table) };
   }
   if (schemaErrors.length) {
     console.error(`Schema check failed with ${schemaErrors.length} issue(s); nothing written:`);
@@ -109,12 +109,12 @@ async function main() {
   let failures = 0;
   let scenarioIds = scenarioIdMap(state.scenarios.existing);
   for (const [table] of tables) {
-    const { tableId, candidates, columnIdByTitle, existing } = state[table];
-    const plan = buildPlan({ table, candidates, existing, scenarioRecordIdByGametoraId: scenarioIds });
+    const { tableId, candidates, scenarioLink, existing } = state[table];
+    const plan = buildPlan({ table, candidates, existing, scenarioRecordIdByGametoraId: scenarioIds, scenarioLinkField: scenarioLink?.title });
     output[table] = plan;
     if (!JSON_OUTPUT) printPlan(table, plan);
     if (!APPLY) continue;
-    const result = await applyPlan({ client, tableId, plan, linkFieldId: columnIdByTitle.get('scenario') ?? null });
+    const result = await applyPlan({ client, tableId, plan, linkFieldId: scenarioLink?.id ?? null });
     info(`  applied ${table}: ${result.created} created, ${result.updated} updated, ${result.failures.length} failed.`);
     failures += result.failures.length;
     if (table === 'scenarios') scenarioIds = scenarioIdMap(await client.fetchAllRecords(tableId, table));

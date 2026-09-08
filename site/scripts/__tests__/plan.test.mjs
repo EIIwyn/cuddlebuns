@@ -153,6 +153,13 @@ test('two unlinked rows pointing at one candidate are both left unmatched', () =
   assert.match(plan.entries.find((e) => e.recordId === '1').note, /ambiguous/);
 });
 
+test('buildPlan reads and writes the scenario link through the configured field name', () => {
+  const existing = [rec(7, { gametora_id: 19, name: 'CM19 Scorpio', slug: 'cm19', event_type: 'Champions Meeting', event_number: 19, start_date: '2026-09-20', end_date: '2026-09-26', distance_class: 'Medium', distance_m: 2200, racecourse: 'Kyoto', direction: 'Right', season: 'Fall', track_condition: 'Firm', weather: 'Sunny', surface: 'Turf', status: 'projected', scenario: [{ id: 10 }], 'scenario copy_1': [{ id: 1 }] })];
+  const plan = buildPlan({ table: 'pvp_events', candidates: [eventCandidate(19)], existing, scenarioRecordIdByGametoraId: new Map([[3, '2']]), scenarioLinkField: 'scenario copy_1' });
+  assert.equal(plan.entries[0].action, 'update');
+  assert.deepEqual(plan.entries[0].link, { field: 'scenario copy_1', from: '1', to: '2' });
+});
+
 test('unmatched scenarios get the nearest era_start as a suggestion', () => {
   const existing = [rec(1, { name: 'Grand Masters', era_start: '2026-11-28', era_end: '2027-04-04' })];
   const plan = buildPlan({ table: 'scenarios', candidates: [scenarioCandidate(5), scenarioCandidate(6, { facts: { era_start: '2027-04-18' } })], existing });

@@ -33,15 +33,15 @@ test('getTableMeta exposes column ids, titles, types and select options', async 
   const { fetchImpl, calls } = stubFetch(() => ({ columns: [
     { id: 'c1', title: 'name', uidt: 'SingleLineText' },
     { id: 'c2', title: 'weather', uidt: 'SingleSelect', colOptions: { options: [{ title: 'Sunny' }, { title: 'Rain' }] } },
-    { id: 'c3', title: 'scenario', uidt: 'LinkToAnotherRecord' },
+    { id: 'c3', title: 'scenario', uidt: 'LinkToAnotherRecord', colOptions: { fk_related_model_id: 'mScen' } },
   ] }));
   const client = createNocodbClient({ ...config, fetchImpl });
   const meta = await client.getTableMeta('t1');
   assert.equal(calls[0].url, 'https://noco.example/api/v2/meta/tables/t1');
   assert.deepEqual(meta.columns, [
-    { id: 'c1', title: 'name', uidt: 'SingleLineText', options: null },
-    { id: 'c2', title: 'weather', uidt: 'SingleSelect', options: ['Sunny', 'Rain'] },
-    { id: 'c3', title: 'scenario', uidt: 'LinkToAnotherRecord', options: null },
+    { id: 'c1', title: 'name', uidt: 'SingleLineText', options: null, relatedTableId: null },
+    { id: 'c2', title: 'weather', uidt: 'SingleSelect', options: ['Sunny', 'Rain'], relatedTableId: null },
+    { id: 'c3', title: 'scenario', uidt: 'LinkToAnotherRecord', options: null, relatedTableId: 'mScen' },
   ]);
 });
 
