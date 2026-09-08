@@ -42,19 +42,21 @@ screen until you run `sync` and `sync:uma` (or point at a copy of the generated 
 
 The browser never talks to NocoDB. Everything public is prebuilt:
 
-1. `scripts/sync-nocodb.mjs` fetches Collections, Characters, Versions, Commissions, Artists and
+1. `scripts/sync-gallery.mjs` fetches Collections, Characters, Versions, Commissions, Artists and
    writes `public/data/cms/site.json` (navigation + reference-sheet metadata) and one
    `public/data/cms/gallery/<character>--<version>.json` per visible Version. Images are downloaded
-   once, cached under `.cache/nocodb/`, and emitted as content-hashed AVIF/WebP derivatives
+   once, cached under `.cache/gallery/nocodb/`, and emitted as content-hashed AVIF/WebP derivatives
    (480/960/1600px; 480/600/720px for card thumbnails) under `public/generated/nocodb/images/`.
    Invalid published records are reported and omitted rather than published half-configured.
-2. `scripts/sync-uma-nocodb.mjs` does the same for a separate NocoDB base (Scenarios, PvP Events,
+2. `scripts/sync-uma.mjs` does the same for a separate NocoDB base (Scenarios, PvP Events,
    Support Cards tables) into `public/data/uma/timeline.json` (`{ schemaVersion: 1, scenarios,
    pvpEvents, supportCards }`) and thumbnails under `public/generated/nocodb/uma-support/`.
 3. Both sync scripts support `--check`, which compares a fingerprint of the public-facing source
    data against the cached manifest and exits 10 when a rebuild is needed. The VPS timer relies on
    this exit code.
-4. `npm run build` bundles the React app; the generated JSON/images are plain `public/` assets.
+4. Both entry points select their backend with precedence `--source > CMS_SOURCE > nocodb`, reject
+   invalid or unavailable sources, and keep manifests under `.cache/{gallery,uma}/<source>/`.
+5. `npm run build` bundles the React app; the generated JSON/images are plain `public/` assets.
 
 All generated output (`public/data/cms/`, `public/data/uma/*.json`, `public/generated/nocodb/`,
 `.cache/`) is gitignored and regenerated on the VPS.
@@ -98,7 +100,7 @@ hashed images, and no-cache for HTML and CMS JSON.
 - Public commission cards are titled `[Type] by Artist`; the NocoDB `Title` field is internal and
   must not be written to public JSON.
 - If you change what the sync scripts emit, update the matching validator and any consumer in
-  `src/` in the same change, and bump `MANIFEST_VERSION` in `sync-nocodb.mjs` if the cache
+  `src/` in the same change, and bump `MANIFEST_VERSION` in `sync-gallery.mjs` if the cache
   manifest shape changes. For the Uma side, bump `schemaVersion` in both the sync and `api.js`
   if the timeline JSON shape changes incompatibly.
 - ESLint runs with `varsIgnorePattern: '^[A-Z_]'` for unused vars. The `scripts/**/*.js` node

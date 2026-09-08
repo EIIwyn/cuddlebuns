@@ -33,9 +33,9 @@ SOURCE_REVISION="$(
 DEPLOYED_REVISION="$(cat "$DEPLOYED_REVISION_FILE" 2>/dev/null || true)"
 
 set +e
-node scripts/sync-nocodb.mjs --check
+node scripts/sync-gallery.mjs --check
 GALLERY_SYNC_STATUS=$?
-node scripts/sync-uma-nocodb.mjs --check
+node scripts/sync-uma.mjs --check
 UMA_SYNC_STATUS=$?
 set -e
 if [[ "$GALLERY_SYNC_STATUS" -ne 0 && "$GALLERY_SYNC_STATUS" -ne 10 ]]; then

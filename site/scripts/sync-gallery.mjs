@@ -2,14 +2,21 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
+import { loadGallerySource } from './adapters/nocodb-gallery.mjs';
+import { loadPocketBaseGallerySource } from './adapters/pocketbase-gallery.mjs';
+import { getPocketBaseConfig } from './lib/env.mjs';
+import { createGalleryModel } from './lib/gallery-model.mjs';
+import { mapWithConcurrency } from './lib/image-pipeline.mjs';
+import { writeJsonAtomic } from './lib/output-writers.mjs';
+import { createPocketBaseClient } from './lib/pocketbase-client.mjs';
+import { assertSourceAvailable, manifestPath, scopedFingerprint, selectSource } from './lib/source-selection.mjs';
 
 // Keep libvips conservative on a small VPS. This can be raised later if the server has headroom.
 sharp.concurrency(1);
 
 const SITE_DIR = path.resolve(import.meta.dirname, "..");
-const CACHE_DIR = path.join(SITE_DIR, ".cache", "nocodb");
-const ORIGINALS_DIR = path.join(CACHE_DIR, "originals");
-const MANIFEST_FILE = path.join(CACHE_DIR, "manifest.json");
+const ORIGINALS_DIR = path.join(SITE_DIR, ".cache", "originals");
+const LEGACY_MANIFEST_FILE = path.join(SITE_DIR, ".cache", "nocodb", "manifest.json");
 const DATA_DIR = path.join(SITE_DIR, "public", "data", "cms");
 const GALLERY_DIR = path.join(DATA_DIR, "gallery");
 const IMAGE_DIR = path.join(SITE_DIR, "public", "generated", "nocodb", "images");
@@ -82,16 +89,6 @@ function slugify(value, fallback) {
   return slug || fallback;
 }
 
-function numericOrder(value) {
-  const number = Number(value);
-  return Number.isFinite(number) ? number : Number.MAX_SAFE_INTEGER;
-}
-
-function byOrderThenName(left, right) {
-  return numericOrder(left.order) - numericOrder(right.order) ||
-    String(left.name).localeCompare(String(right.name));
-}
-
 function relationIds(value) {
   if (!value) return [];
   const values = Array.isArray(value) ? value : [value];
@@ -156,13 +153,6 @@ function readJson(file, fallback = null) {
   } catch {
     return fallback;
   }
-}
-
-function writeJsonAtomic(file, value) {
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  const temporary = `${file}.${process.pid}.tmp`;
-  fs.writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`);
-  fs.renameSync(temporary, file);
 }
 
 function sleep(ms) {
@@ -316,7 +306,7 @@ function createModel(tables, config) {
     const attachment = character.thumbnailAttachment;
     delete character.thumbnailAttachment;
     if (!attachment) continue;
-    if (!attachment.signedPath) {
+    if (!attachment.signedPath && !attachment.read) {
       errors.push(`Character ${character.id}: Card Thumbnail has no downloadable path; skipped.`);
       continue;
     }
@@ -324,7 +314,8 @@ function createModel(tables, config) {
     imageTasks.set(taskKey, {
       key: taskKey,
       attachment,
-      sourceUrl: new URL(attachment.signedPath, `${config.url}/`).href,
+      sourceUrl: attachment.signedPath ? new URL(attachment.signedPath, `${config.url}/`).href : null,
+      read: attachment.read,
       fallbackUrl: thumbnailFallbackUrl(attachment, config.url),
       derivativeWidths: THUMBNAIL_WIDTHS,
     });
@@ -356,7 +347,7 @@ function createModel(tables, config) {
 
   for (const version of versions) {
     for (const [index, attachment] of version.referenceAttachments.entries()) {
-      if (!attachment?.signedPath) {
+      if (!attachment?.signedPath && !attachment?.read) {
         errors.push(`Version ${version.id}: reference sheet ${index + 1} has no downloadable path.`);
         continue;
       }
@@ -364,7 +355,8 @@ function createModel(tables, config) {
       imageTasks.set(taskKey, {
         key: taskKey,
         attachment,
-        sourceUrl: new URL(attachment.signedPath, `${config.url}/`).href,
+        sourceUrl: attachment.signedPath ? new URL(attachment.signedPath, `${config.url}/`).href : null,
+        read: attachment.read,
         fallbackUrl: thumbnailFallbackUrl(attachment, config.url),
         preserveOriginal: true,
       });
@@ -405,7 +397,7 @@ function createModel(tables, config) {
     }
 
     attachments.forEach((attachment, attachmentIndex) => {
-      if (!attachment?.signedPath) {
+      if (!attachment?.signedPath && !attachment?.read) {
         errors.push(`${label}: image ${attachmentIndex + 1} has no downloadable path; skipped.`);
         return;
       }
@@ -413,7 +405,8 @@ function createModel(tables, config) {
       imageTasks.set(taskKey, {
         key: taskKey,
         attachment,
-        sourceUrl: new URL(attachment.signedPath, `${config.url}/`).href,
+        sourceUrl: attachment.signedPath ? new URL(attachment.signedPath, `${config.url}/`).href : null,
+        read: attachment.read,
         fallbackUrl: thumbnailFallbackUrl(attachment, config.url),
       });
       const item = {
@@ -426,6 +419,7 @@ function createModel(tables, config) {
         sourceUrl,
         date: fields.Date || null,
         displayOrder: fields["Display Order"] ?? null,
+        attachmentOrdinal: attachmentIndex,
         taskKey,
       };
       for (const versionId of linkedVersionIds) galleries.get(versionId).push({ ...item });
@@ -438,21 +432,9 @@ function createModel(tables, config) {
   for (const character of characters) {
     character.versions = versions.filter((version) => version.characterId === character.id);
   }
-  for (const version of versions) {
-    const items = galleries.get(version.id);
-    items.sort((left, right) =>
-      numericOrder(left.displayOrder) - numericOrder(right.displayOrder) ||
-      String(right.date ?? "").localeCompare(String(left.date ?? "")) ||
-      left.id.localeCompare(right.id),
-    );
-    version.commissionCount = items.length;
-  }
+  for (const version of versions) version.commissionCount = galleries.get(version.id).length;
 
-  collections.sort(byOrderThenName);
-  for (const collection of collections) collection.characters.sort(byOrderThenName);
-  for (const character of characters) character.versions.sort(byOrderThenName);
-
-  return { collections, galleries, versions, imageTasks, errors };
+  return createGalleryModel({ collections, galleries, versions, imageTasks, errors });
 }
 
 function thumbnailFallbackUrl(attachment, baseUrl) {
@@ -478,6 +460,7 @@ async function downloadTask(task) {
   let lastError = null;
   for (let attempt = 1; attempt <= IMAGE_MAX_ATTEMPTS; attempt += 1) {
     try {
+      if (task.read) return Buffer.from(await task.read());
       const response = await fetch(task.sourceUrl, {
         signal: AbortSignal.timeout(IMAGE_TIMEOUT_MS),
       });
@@ -612,19 +595,6 @@ async function processImage(task, previous) {
   return { signature, contentHash, usedThumbnailFallback, image };
 }
 
-async function mapWithConcurrency(items, concurrency, operation) {
-  const output = new Array(items.length);
-  let cursor = 0;
-  async function worker() {
-    while (cursor < items.length) {
-      const index = cursor++;
-      output[index] = await operation(items[index]);
-    }
-  }
-  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, worker));
-  return output;
-}
-
 function imageOutputFiles(image) {
   return [
     ...Object.values(image.sources ?? {}).flat().map((source) => source.url),
@@ -649,16 +619,26 @@ function pruneGeneratedFiles(allowedUrls, allowedGalleryFiles) {
 
 async function main() {
   loadEnvironment();
-  const config = getConfig();
-  console.log("Fetching Collections, Characters, Versions, Commissions, and Artists sequentially...");
-  const collections = await fetchTable(config, config.collections, "Collections");
-  const characters = await fetchTable(config, config.characters, "Characters");
-  const versions = await fetchTable(config, config.versions, "Versions");
-  const commissions = await fetchTable(config, config.commissions, "Commissions");
-  const artists = await fetchTable(config, config.artists, "Artists");
-  const tables = { collections, characters, versions, commissions, artists };
-  const sourceFingerprint = fingerprint(publicSourceSnapshot(tables));
-  const previous = readJson(MANIFEST_FILE, { attachments: {} });
+  const source = assertSourceAvailable(selectSource(process.argv.slice(2), process.env), ['nocodb', 'pocketbase']);
+  const currentManifestFile = manifestPath('gallery', source, SITE_DIR);
+  let config;
+  let tables;
+  if (source === 'nocodb') {
+    config = getConfig();
+    console.log("Fetching Collections, Characters, Versions, Commissions, and Artists sequentially...");
+    tables = await loadGallerySource(config, fetchTable);
+  } else {
+    config = getPocketBaseConfig(process.env, 'sync');
+    console.log('Fetching gallery collections from PocketBase...');
+    tables = await loadPocketBaseGallerySource(createPocketBaseClient(config));
+  }
+  const { commissions } = tables;
+  const sourceSnapshot = publicSourceSnapshot(tables);
+  const sourceFingerprint = scopedFingerprint(source, sourceSnapshot);
+  const legacySourceFingerprint = fingerprint(sourceSnapshot);
+  const previous = readJson(currentManifestFile, source === 'nocodb'
+    ? readJson(LEGACY_MANIFEST_FILE, { attachments: {} })
+    : { attachments: {} });
   const model = createModel(tables, config);
   const publishedCommissionCount = commissions.filter((record) => record.fields?.Published === true).length;
   console.log(
@@ -675,14 +655,17 @@ async function main() {
     previous.attachments?.[key]?.signature !== taskSignature(task) ||
     !cachedEntryIsComplete(previous.attachments?.[key], task),
   );
+  const fingerprintMatches = previous.sourceFingerprint === sourceFingerprint ||
+    (source === 'nocodb' && !fs.existsSync(currentManifestFile) &&
+      previous.sourceFingerprint === legacySourceFingerprint);
   const unchanged = previous.version === MANIFEST_VERSION &&
-    previous.sourceFingerprint === sourceFingerprint && outputPresent &&
+    fingerprintMatches && outputPresent &&
     incompleteCachedTasks.length === 0;
 
   if (CHECK_ONLY) {
-    console.log(unchanged ? "No public NocoDB changes detected." : "Public NocoDB changes detected.");
+    console.log(unchanged ? `No public ${source} changes detected.` : `Public ${source} changes detected.`);
     if (!unchanged) {
-      if (previous.sourceFingerprint !== sourceFingerprint) console.log("- Public record data changed.");
+      if (!fingerprintMatches) console.log("- Public record data changed.");
       if (!fs.existsSync(expectedSite)) console.log("- site.json is missing.");
       if (missingGalleryOutputs.length) console.log(`- ${missingGalleryOutputs.length} gallery output(s) are missing.`);
       if (incompleteCachedTasks.length) console.log(`- ${incompleteCachedTasks.length} cached image output(s) are missing.`);
@@ -691,7 +674,7 @@ async function main() {
     return;
   }
   if (unchanged) {
-    console.log("No public NocoDB changes detected; generated files are current.");
+    console.log(`No public ${source} changes detected; generated files are current.`);
     return;
   }
 
@@ -742,7 +725,7 @@ async function main() {
     version.referenceSheets = version.referenceSheets.map(resolveImage);
     const character = modelCharacters.find((item) => item.id === version.characterId);
     const items = model.galleries.get(version.id).map((item) => {
-      const { taskKey, ...publicItem } = item;
+      const { taskKey, attachmentOrdinal: _attachmentOrdinal, ...publicItem } = item;
       return { ...publicItem, image: attachmentEntries[taskKey].image };
     });
     const galleryFile = path.join(SITE_DIR, "public", version.galleryUrl.slice(1));
@@ -759,7 +742,11 @@ async function main() {
     ...collection,
     characters: collection.characters.map((character) => ({
       ...character,
-      versions: character.versions.map(({ characterId: _characterId, ...version }) => version),
+      versions: character.versions.map((version) => {
+        const publicVersion = { ...version };
+        delete publicVersion.characterId;
+        return publicVersion;
+      }),
     })),
   }));
   writeJsonAtomic(expectedSite, {
@@ -770,7 +757,7 @@ async function main() {
 
   const allowedUrls = new Set(Object.values(attachmentEntries).flatMap((entry) => imageOutputFiles(entry.image)));
   pruneGeneratedFiles(allowedUrls, allowedGalleryFiles);
-  writeJsonAtomic(MANIFEST_FILE, {
+  writeJsonAtomic(currentManifestFile, {
     version: MANIFEST_VERSION,
     sourceFingerprint,
     attachments: attachmentEntries,
@@ -781,7 +768,15 @@ async function main() {
   console.log("Wrote public/data/cms/site.json.");
 }
 
-main().catch((error) => {
-  console.error(`NocoDB sync failed: ${error.message}`);
-  process.exitCode = 1;
-});
+function isMainModule() {
+  return Boolean(process.argv[1]) && path.resolve(process.argv[1]) === path.resolve(import.meta.filename);
+}
+
+if (isMainModule()) {
+  main().catch((error) => {
+    console.error(`Gallery sync failed: ${error.message}`);
+    process.exitCode = 1;
+  });
+}
+
+export { createModel, publicSourceSnapshot };

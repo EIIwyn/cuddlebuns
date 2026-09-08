@@ -22,6 +22,7 @@ for local work or `/etc/cuddlebuns/gallery.env` on the VPS. Never prefix it with
 Copy `.env.example` to `.env.local` and fill in all values:
 
 ```dotenv
+CMS_SOURCE=nocodb
 NOCODB_URL=https://noco.cuddlebuns.moe
 NOCODB_TOKEN=YOUR_TOKEN_HERE
 NOCODB_BASE_ID=YOUR_BASE_ID
@@ -123,6 +124,9 @@ npm.cmd run sync:uma
 # Exit 0 when current; exit 10 when public Uma data changed
 npm.cmd run sync:uma:check
 
+# Override CMS_SOURCE for an explicit backend check (PocketBase is added later)
+npm.cmd run sync:check -- --source=nocodb
+
 # Pure Vite build; it does not edit source JSON
 npm.cmd run build
 
@@ -139,8 +143,12 @@ npm.cmd run build:fresh
 npm.cmd run lint
 ```
 
+Source selection follows `--source > CMS_SOURCE > nocodb`. Invalid or unavailable sources fail;
+the commands never fall back silently. Backend manifests are isolated under
+`.cache/{gallery,uma}/<source>/manifest.json` while original bytes are shared.
+
 The first sync downloads every attachment and creates 480px, 960px, and 1600px AVIF
-and WebP derivatives. Later runs use `.cache/nocodb/manifest.json` and content hashes,
+and WebP derivatives. Later runs use `.cache/gallery/nocodb/manifest.json` and content hashes,
 so unchanged images are reused.
 
 Reference-sheet originals are also preserved in the generated image directory. The
@@ -151,7 +159,8 @@ source quality while allowing the browser to scale the display to the available 
 Generated and cached files are intentionally ignored by Git:
 
 ```text
-site/.cache/nocodb/
+site/.cache/gallery/nocodb/
+site/.cache/originals/
 site/public/data/cms/site.json
 site/public/data/cms/gallery/<character>--<version>.json
 site/public/generated/nocodb/images/<stable-name>-<hash>-<width>.<format>
