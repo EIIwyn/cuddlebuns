@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { test } from 'node:test'
 
 const pocketBaseDirectory = new URL('../../../vps-scripts/pocketbase/', import.meta.url)
+const repositoryRoot = new URL('../../..', import.meta.url)
 
 async function read(name) {
   return readFile(new URL(name, pocketBaseDirectory), 'utf8')
@@ -52,4 +53,12 @@ test('PocketBase Docker context contains only the build inputs', async () => {
   assert.match(dockerignore, /^!pb_migrations\/$/m)
   assert.match(dockerignore, /^!pb_migrations\/\*\.js$/m)
   assert.doesNotMatch(dockerignore, /pb_data|\.env/)
+})
+
+test('PocketBase Docker build inputs use LF bytes on every checkout platform', async () => {
+  const attributes = await readFile(new URL('.gitattributes', repositoryRoot), 'utf8')
+
+  assert.match(attributes, /^vps-scripts\/pocketbase\/Dockerfile text eol=lf$/m)
+  assert.match(attributes, /^vps-scripts\/pocketbase\/\.dockerignore text eol=lf$/m)
+  assert.match(attributes, /^vps-scripts\/pocketbase\/pb_migrations\/\*\.js text eol=lf$/m)
 })

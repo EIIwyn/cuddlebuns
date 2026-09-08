@@ -1,0 +1,5 @@
+# Docker layers include copied file bytes. Keep the PocketBase build context
+# platform-neutral so the verified image can be reproduced from a Git checkout.
+vps-scripts/pocketbase/Dockerfile text eol=lf
+vps-scripts/pocketbase/.dockerignore text eol=lf
+vps-scripts/pocketbase/pb_migrations/*.js text eol=lf
