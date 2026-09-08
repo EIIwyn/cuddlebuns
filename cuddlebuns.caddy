@@ -1,6 +1,11 @@
 cms.cuddlebuns.moe {
     encode gzip zstd
 
+    log {
+        output file /var/log/caddy/cms-access.log
+        format json
+    }
+
     # A Version may carry six 24 MiB reference sheets (144 MiB total).
     # Leave multipart framing and a small operational margin before Caddy
     # rejects an otherwise schema-valid upload with 413.

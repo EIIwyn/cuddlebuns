@@ -9,6 +9,7 @@ test('CMS Caddy block is private-upstream, upload-safe, and preserves the client
   const block = source.match(/cms\.cuddlebuns\.moe\s*\{([\s\S]*?)^\}/m)?.[1]
 
   assert.ok(block, 'missing cms.cuddlebuns.moe block')
+  assert.match(block, /log\s*\{\s*output file \/var\/log\/caddy\/cms-access\.log\s*format json\s*\}/m)
   assert.match(block, /request_body\s*\{\s*max_size 160MB\s*\}/m)
   assert.match(block, /reverse_proxy 127\.0\.0\.1:8090\s*\{/)
   assert.doesNotMatch(block, /reverse_proxy\s+(?:0\.0\.0\.0|86\.38\.200\.117)/)
