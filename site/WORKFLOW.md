@@ -141,6 +141,15 @@ checks every column and select option on startup and refuses to write if any is 
 ### Staging walkthrough
 
 1. Duplicate the three tables with data inside the Uma base, apply the checklist to the copies.
+   Then untangle the links: NocoDB's duplicate keeps each copy's link columns pointing at the
+   ORIGINAL tables and adds `... copy` columns for the duplicates, on both sides. On the events
+   copy delete `scenario` and `support_cards` and rename `scenario copy_1` to `scenario` and
+   `support_cards copy` to `support_cards`; on the scenarios copy and the cards copy delete
+   `pvp_events` and rename `pvp_events copy` to `pvp_events`. Deleting a link column removes
+   its inverse, so this also removes the `... copy` columns the duplication added to the live
+   tables. The importer resolves the scenario link by the table it points at and refuses to
+   start if the events copy has no link to the staging scenarios copy, so a skipped untangle
+   shows up as a clear error rather than a write to the wrong table.
 2. `npm run import:uma`. Expect Champions Meetings to show as `link`, most cards as `link`
    (matched by the number at the start of the attachment filename), scenarios and League of
    Heroes rows as `unmatched`. Set `gametora_id` on the scenario rows by hand using the printed
