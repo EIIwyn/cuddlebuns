@@ -127,7 +127,8 @@ export function createPocketBaseClient(config, options = {}) {
     async downloadFile(collection, record, filename) {
       fileToken ??= await this.getFileToken()
       let response = await send(this.fileUrl(collection, record.id, filename, fileToken), { method: 'GET' })
-      if ([401, 403].includes(response.status)) {
+      // Protected files deliberately use 404 for invalid or expired file tokens.
+      if ([401, 403, 404].includes(response.status)) {
         fileToken = await this.getFileToken()
         response = await send(this.fileUrl(collection, record.id, filename, fileToken), { method: 'GET' })
       }

@@ -117,6 +117,25 @@ test('migration client downloads protected destination files for hash comparison
   assert.equal(fileRequests, 2)
 })
 
+test('protected file download refreshes a token hidden behind PocketBase 404 semantics', async () => {
+  const config = getPocketBaseConfig(syncEnv, 'sync')
+  let tokenRequests = 0
+  let downloads = 0
+  const fetch = async (url) => {
+    const address = String(url)
+    if (address.includes('auth-with-password')) return response(200, { token: 'auth-token' })
+    if (address.includes('/api/files/token')) return response(200, { token: `file-token-${++tokenRequests}` })
+    downloads += 1
+    if (address.endsWith('token=file-token-1')) return response(404, { message: 'Not Found.' })
+    return new Response(Buffer.from('refreshed-file'), { status: 200 })
+  }
+  const client = createPocketBaseClient(config, { fetch })
+  assert.deepEqual(await client.downloadFile('versions', { id: 'record' }, 'reference.png'),
+    Buffer.from('refreshed-file'))
+  assert.equal(tokenRequests, 2)
+  assert.equal(downloads, 2)
+})
+
 test('migration mutations are explicit and non-retrying, and errors redact secrets', async () => {
   const config = getPocketBaseConfig({
     POCKETBASE_URL: 'http://localhost:8090', POCKETBASE_MIGRATION_EMAIL: 'admin@example.invalid',
