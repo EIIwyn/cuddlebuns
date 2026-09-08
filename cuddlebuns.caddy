@@ -12,8 +12,6 @@ cms.cuddlebuns.moe {
         # Replace, rather than forward, client-provided values. PocketBase
         # trusts X-Real-IP only from this localhost Caddy hop.
         header_up X-Real-IP {remote_host}
-        header_up X-Forwarded-For {remote_host}
-        header_up X-Forwarded-Proto {scheme}
 
         transport http {
             read_timeout 6m
