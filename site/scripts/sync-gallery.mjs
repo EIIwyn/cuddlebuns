@@ -3,9 +3,12 @@ import fs from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
 import { loadGallerySource } from './adapters/nocodb-gallery.mjs';
+import { loadPocketBaseGallerySource } from './adapters/pocketbase-gallery.mjs';
+import { getPocketBaseConfig } from './lib/env.mjs';
 import { createGalleryModel } from './lib/gallery-model.mjs';
 import { mapWithConcurrency } from './lib/image-pipeline.mjs';
 import { writeJsonAtomic } from './lib/output-writers.mjs';
+import { createPocketBaseClient } from './lib/pocketbase-client.mjs';
 import { assertSourceAvailable, manifestPath, scopedFingerprint, selectSource } from './lib/source-selection.mjs';
 
 // Keep libvips conservative on a small VPS. This can be raised later if the server has headroom.
@@ -303,7 +306,7 @@ function createModel(tables, config) {
     const attachment = character.thumbnailAttachment;
     delete character.thumbnailAttachment;
     if (!attachment) continue;
-    if (!attachment.signedPath) {
+    if (!attachment.signedPath && !attachment.read) {
       errors.push(`Character ${character.id}: Card Thumbnail has no downloadable path; skipped.`);
       continue;
     }
@@ -311,7 +314,8 @@ function createModel(tables, config) {
     imageTasks.set(taskKey, {
       key: taskKey,
       attachment,
-      sourceUrl: new URL(attachment.signedPath, `${config.url}/`).href,
+      sourceUrl: attachment.signedPath ? new URL(attachment.signedPath, `${config.url}/`).href : null,
+      read: attachment.read,
       fallbackUrl: thumbnailFallbackUrl(attachment, config.url),
       derivativeWidths: THUMBNAIL_WIDTHS,
     });
@@ -343,7 +347,7 @@ function createModel(tables, config) {
 
   for (const version of versions) {
     for (const [index, attachment] of version.referenceAttachments.entries()) {
-      if (!attachment?.signedPath) {
+      if (!attachment?.signedPath && !attachment?.read) {
         errors.push(`Version ${version.id}: reference sheet ${index + 1} has no downloadable path.`);
         continue;
       }
@@ -351,7 +355,8 @@ function createModel(tables, config) {
       imageTasks.set(taskKey, {
         key: taskKey,
         attachment,
-        sourceUrl: new URL(attachment.signedPath, `${config.url}/`).href,
+        sourceUrl: attachment.signedPath ? new URL(attachment.signedPath, `${config.url}/`).href : null,
+        read: attachment.read,
         fallbackUrl: thumbnailFallbackUrl(attachment, config.url),
         preserveOriginal: true,
       });
@@ -392,7 +397,7 @@ function createModel(tables, config) {
     }
 
     attachments.forEach((attachment, attachmentIndex) => {
-      if (!attachment?.signedPath) {
+      if (!attachment?.signedPath && !attachment?.read) {
         errors.push(`${label}: image ${attachmentIndex + 1} has no downloadable path; skipped.`);
         return;
       }
@@ -400,7 +405,8 @@ function createModel(tables, config) {
       imageTasks.set(taskKey, {
         key: taskKey,
         attachment,
-        sourceUrl: new URL(attachment.signedPath, `${config.url}/`).href,
+        sourceUrl: attachment.signedPath ? new URL(attachment.signedPath, `${config.url}/`).href : null,
+        read: attachment.read,
         fallbackUrl: thumbnailFallbackUrl(attachment, config.url),
       });
       const item = {
@@ -454,6 +460,7 @@ async function downloadTask(task) {
   let lastError = null;
   for (let attempt = 1; attempt <= IMAGE_MAX_ATTEMPTS; attempt += 1) {
     try {
+      if (task.read) return Buffer.from(await task.read());
       const response = await fetch(task.sourceUrl, {
         signal: AbortSignal.timeout(IMAGE_TIMEOUT_MS),
       });
@@ -612,16 +619,26 @@ function pruneGeneratedFiles(allowedUrls, allowedGalleryFiles) {
 
 async function main() {
   loadEnvironment();
-  const source = assertSourceAvailable(selectSource(process.argv.slice(2), process.env), ['nocodb']);
+  const source = assertSourceAvailable(selectSource(process.argv.slice(2), process.env), ['nocodb', 'pocketbase']);
   const currentManifestFile = manifestPath('gallery', source, SITE_DIR);
-  const config = getConfig();
-  console.log("Fetching Collections, Characters, Versions, Commissions, and Artists sequentially...");
-  const tables = await loadGallerySource(config, fetchTable);
+  let config;
+  let tables;
+  if (source === 'nocodb') {
+    config = getConfig();
+    console.log("Fetching Collections, Characters, Versions, Commissions, and Artists sequentially...");
+    tables = await loadGallerySource(config, fetchTable);
+  } else {
+    config = getPocketBaseConfig(process.env, 'sync');
+    console.log('Fetching gallery collections from PocketBase...');
+    tables = await loadPocketBaseGallerySource(createPocketBaseClient(config));
+  }
   const { commissions } = tables;
   const sourceSnapshot = publicSourceSnapshot(tables);
   const sourceFingerprint = scopedFingerprint(source, sourceSnapshot);
   const legacySourceFingerprint = fingerprint(sourceSnapshot);
-  const previous = readJson(currentManifestFile, readJson(LEGACY_MANIFEST_FILE, { attachments: {} }));
+  const previous = readJson(currentManifestFile, source === 'nocodb'
+    ? readJson(LEGACY_MANIFEST_FILE, { attachments: {} })
+    : { attachments: {} });
   const model = createModel(tables, config);
   const publishedCommissionCount = commissions.filter((record) => record.fields?.Published === true).length;
   console.log(
@@ -639,13 +656,14 @@ async function main() {
     !cachedEntryIsComplete(previous.attachments?.[key], task),
   );
   const fingerprintMatches = previous.sourceFingerprint === sourceFingerprint ||
-    (!fs.existsSync(currentManifestFile) && previous.sourceFingerprint === legacySourceFingerprint);
+    (source === 'nocodb' && !fs.existsSync(currentManifestFile) &&
+      previous.sourceFingerprint === legacySourceFingerprint);
   const unchanged = previous.version === MANIFEST_VERSION &&
     fingerprintMatches && outputPresent &&
     incompleteCachedTasks.length === 0;
 
   if (CHECK_ONLY) {
-    console.log(unchanged ? "No public NocoDB changes detected." : "Public NocoDB changes detected.");
+    console.log(unchanged ? `No public ${source} changes detected.` : `Public ${source} changes detected.`);
     if (!unchanged) {
       if (!fingerprintMatches) console.log("- Public record data changed.");
       if (!fs.existsSync(expectedSite)) console.log("- site.json is missing.");
@@ -656,7 +674,7 @@ async function main() {
     return;
   }
   if (unchanged) {
-    console.log("No public NocoDB changes detected; generated files are current.");
+    console.log(`No public ${source} changes detected; generated files are current.`);
     return;
   }
 
@@ -756,7 +774,7 @@ function isMainModule() {
 
 if (isMainModule()) {
   main().catch((error) => {
-    console.error(`NocoDB sync failed: ${error.message}`);
+    console.error(`Gallery sync failed: ${error.message}`);
     process.exitCode = 1;
   });
 }

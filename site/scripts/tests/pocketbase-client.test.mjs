@@ -50,6 +50,7 @@ test('read client authenticates once, paginates, filters, and has no mutation me
   assert.equal(requests[1].options.headers.Authorization, 'auth-token')
   assert.equal(client.createRecord, undefined)
   assert.equal(client.updateRecord, undefined)
+  assert.equal(typeof client.downloadFile, 'function')
 })
 
 test('client reauthenticates once after an unauthorized read', async () => {

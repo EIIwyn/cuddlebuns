@@ -23,14 +23,18 @@ test('source-neutral sync entry points replace backend-named commands everywhere
   assert.doesNotMatch(references, /sync-nocodb\.mjs|sync-uma-nocodb\.mjs/)
 })
 
-test('NocoDB adapters and shared pipeline modules expose backend-neutral boundaries', async () => {
+test('NocoDB and PocketBase adapters expose the same shared pipeline boundaries', async () => {
   const galleryAdapter = await import('../adapters/nocodb-gallery.mjs')
   const umaAdapter = await import('../adapters/nocodb-uma.mjs')
+  const pocketBaseGalleryAdapter = await import('../adapters/pocketbase-gallery.mjs')
+  const pocketBaseUmaAdapter = await import('../adapters/pocketbase-uma.mjs')
   const galleryModel = await import('../lib/gallery-model.mjs')
   const umaModel = await import('../lib/uma-model.mjs')
 
   assert.equal(typeof galleryAdapter.loadGallerySource, 'function')
   assert.equal(typeof umaAdapter.loadUmaSource, 'function')
+  assert.equal(typeof pocketBaseGalleryAdapter.loadPocketBaseGallerySource, 'function')
+  assert.equal(typeof pocketBaseUmaAdapter.loadPocketBaseUmaSource, 'function')
   assert.equal(typeof galleryModel.createGalleryModel, 'function')
   assert.equal(typeof umaModel.createUmaModel, 'function')
 })

@@ -6,6 +6,8 @@ import { promisify } from 'node:util'
 import { fileURLToPath } from 'node:url'
 import { test } from 'node:test'
 
+import { loadPocketBaseGallerySource } from '../adapters/pocketbase-gallery.mjs'
+import { loadPocketBaseUmaSource } from '../adapters/pocketbase-uma.mjs'
 import { getPocketBaseConfig } from '../lib/env.mjs'
 import { createPocketBaseClient } from '../lib/pocketbase-client.mjs'
 import { runMigration } from '../migrate/migration-core.mjs'
@@ -316,6 +318,24 @@ test('PocketBase disposable container enforces schema, auth, relations, and file
       )
       assert.equal(withToken.status, 200)
       assert.deepEqual(Buffer.from(await withToken.arrayBuffer()), pngBytes)
+    })
+
+    await t.test('read-only PocketBase adapters restore legacy relations and download protected originals', async () => {
+      const readClient = createPocketBaseClient(getPocketBaseConfig({
+        POCKETBASE_URL: baseUrl,
+        POCKETBASE_SYNC_EMAIL: syncEmail,
+        POCKETBASE_SYNC_PASSWORD: syncPassword,
+      }, 'sync'))
+      const gallery = await loadPocketBaseGallerySource(readClient)
+      const mappedCommission = gallery.commissions.find(({ id }) => id === 1)
+      assert.deepEqual(mappedCommission.fields.Versions.map(({ id }) => id), [1, 2])
+      assert.deepEqual(mappedCommission.fields.Artists.map(({ id }) => id), [1, 2])
+      assert.deepEqual(await mappedCommission.fields.Image[0].read(), pngBytes)
+      const uma = await loadPocketBaseUmaSource(readClient)
+      const mappedSupport = uma.supportCards.find(({ id }) => id === 1)
+      assert.deepEqual(mappedSupport.fields.pvp_events.map(({ id }) => id), [1, 2])
+      assert.deepEqual(mappedSupport.fields.styles, ['front', 'pace'])
+      assert.deepEqual(await mappedSupport.fields.image[0].read(), pngBytes)
     })
 
     await t.test('file count and per-file size limits accept the boundary and reject overflow', async () => {

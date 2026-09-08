@@ -123,6 +123,17 @@ export function createPocketBaseClient(config, options = {}) {
     fileUrl(collection, recordId, filename, token) {
       return urlFor(`/api/files/${encodePath(collection)}/${encodePath(recordId)}/${encodePath(filename)}`, { token }).href
     },
+
+    async downloadFile(collection, record, filename) {
+      fileToken ??= await this.getFileToken()
+      let response = await send(this.fileUrl(collection, record.id, filename, fileToken), { method: 'GET' })
+      if ([401, 403].includes(response.status)) {
+        fileToken = await this.getFileToken()
+        response = await send(this.fileUrl(collection, record.id, filename, fileToken), { method: 'GET' })
+      }
+      if (!response.ok) throw new Error(`PocketBase file request failed: ${response.status}`)
+      return Buffer.from(await response.arrayBuffer())
+    },
   }
 
   if (config.role === 'migration') {
@@ -130,16 +141,6 @@ export function createPocketBaseClient(config, options = {}) {
       'POST', `/api/collections/${encodePath(collection)}/records`, { body, retryAuth: false })
     client.updateRecord = (collection, recordId, body) => request(
       'PATCH', `/api/collections/${encodePath(collection)}/records/${encodePath(recordId)}`, { body, retryAuth: false })
-    client.downloadFile = async (collection, record, filename) => {
-      fileToken ??= await client.getFileToken()
-      let response = await send(client.fileUrl(collection, record.id, filename, fileToken), { method: 'GET' })
-      if ([401, 403].includes(response.status)) {
-        fileToken = await client.getFileToken()
-        response = await send(client.fileUrl(collection, record.id, filename, fileToken), { method: 'GET' })
-      }
-      if (!response.ok) throw new Error(`PocketBase file request failed: ${response.status}`)
-      return Buffer.from(await response.arrayBuffer())
-    }
   }
 
   return Object.freeze(client)

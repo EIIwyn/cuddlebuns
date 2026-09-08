@@ -3,8 +3,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import sharp from 'sharp';
 import { loadUmaSource } from './adapters/nocodb-uma.mjs';
+import { loadPocketBaseUmaSource } from './adapters/pocketbase-uma.mjs';
+import { getPocketBaseConfig } from './lib/env.mjs';
 import { createUmaModel } from './lib/uma-model.mjs';
 import { writeJsonAtomic } from './lib/output-writers.mjs';
+import { createPocketBaseClient } from './lib/pocketbase-client.mjs';
 import { assertSourceAvailable, manifestPath, scopedFingerprint, selectSource } from './lib/source-selection.mjs';
 
 const SITE_DIR = path.resolve(import.meta.dirname, '..');
@@ -79,7 +82,9 @@ function attachmentSnapshot(attachment) {
   return { id: attachment?.id ?? null, path: attachment?.path ?? null, signedPath: attachment?.signedPath ?? null, title: attachment?.title ?? null, mimetype: attachment?.mimetype ?? null, size: attachment?.size ?? null };
 }
 function imageFileExists(url) { return typeof url === 'string' && url.startsWith(PUBLIC_IMAGE_ROOT) && fs.existsSync(path.join(SITE_DIR, 'public', url.slice(1))); }
-async function downloadImage(url) {
+async function downloadImage(source) {
+  if (typeof source === 'function') return Buffer.from(await source());
+  const url = source;
   const response = await fetch(url, { signal: AbortSignal.timeout(API_TIMEOUT_MS) });
   if (!response.ok) throw new Error(`Support-card image request failed: ${response.status} ${response.statusText}`);
   return Buffer.from(await response.arrayBuffer());
@@ -87,7 +92,7 @@ async function downloadImage(url) {
 async function processImage(task, previous, baseUrl) {
   const signature = fingerprint(attachmentSnapshot(task.attachment));
   if (previous?.signature === signature && imageFileExists(previous.image?.fallback?.url)) return previous;
-  let buffer = await downloadImage(new URL(task.attachment.signedPath, `${baseUrl}/`).href);
+  let buffer = await downloadImage(task.read ?? new URL(task.attachment.signedPath, `${baseUrl}/`).href);
   try { await sharp(buffer).metadata(); } catch {
     const fallback = task.attachment?.thumbnails?.small?.signedPath || task.attachment?.thumbnails?.card_cover?.signedPath;
     if (!fallback) throw new Error(`${task.key}: attachment cannot be decoded and has no thumbnail fallback.`);
@@ -184,8 +189,8 @@ function createModel(scenarioRecords, eventRecords, supportCardRecords) {
     const name = text(field(fields, 'name', 'Name'));
     const characterName = text(field(fields, 'character_name', 'Character Name'));
     const attachment = Array.isArray(field(fields, 'image', 'Image')) ? field(fields, 'image', 'Image')[0] : null;
-    const taskKey = attachment?.signedPath ? `support-card:${record.id}:${attachment.id ?? 0}` : null;
-    if (taskKey) imageTasks.set(taskKey, { key: taskKey, attachment });
+    const taskKey = attachment?.signedPath || attachment?.read ? `support-card:${record.id}:${attachment.id ?? 0}` : null;
+    if (taskKey) imageTasks.set(taskKey, { key: taskKey, attachment, read: attachment.read });
     else if (attachment) errors.push(`Support card ${record.id}: image has no downloadable path; omitted.`);
     return {
       id: String(record.id), slug: slugify(field(fields, 'slug', 'Slug') || name || characterName, `support-card-${record.id}`),
@@ -204,20 +209,29 @@ function createModel(scenarioRecords, eventRecords, supportCardRecords) {
 
 async function main() {
   loadEnvironment();
-  const source = assertSourceAvailable(selectSource(process.argv.slice(2), process.env), ['nocodb']);
+  const source = assertSourceAvailable(selectSource(process.argv.slice(2), process.env), ['nocodb', 'pocketbase']);
   const currentManifestFile = manifestPath('uma', source, SITE_DIR);
-  const config = getConfig();
-  const { scenarios, events, supportCards } = await loadUmaSource(config, fetchTable);
+  let config;
+  let tables;
+  if (source === 'nocodb') {
+    config = getConfig();
+    tables = await loadUmaSource(config, fetchTable);
+  } else {
+    config = getPocketBaseConfig(process.env, 'sync');
+    tables = await loadPocketBaseUmaSource(createPocketBaseClient(config));
+  }
+  const { scenarios, events, supportCards } = tables;
   const model = createModel(scenarios, events, supportCards);
   const sourceSnapshot = { scenarios, events, supportCards };
   const sourceFingerprint = scopedFingerprint(source, sourceSnapshot);
   const legacySourceFingerprint = fingerprint(sourceSnapshot);
-  const previous = readJson(currentManifestFile, readJson(LEGACY_MANIFEST_FILE, {}));
+  const previous = readJson(currentManifestFile, source === 'nocodb' ? readJson(LEGACY_MANIFEST_FILE, {}) : {});
   const fingerprintMatches = previous.sourceFingerprint === sourceFingerprint ||
-    (!fs.existsSync(currentManifestFile) && previous.sourceFingerprint === legacySourceFingerprint);
+    (source === 'nocodb' && !fs.existsSync(currentManifestFile) &&
+      previous.sourceFingerprint === legacySourceFingerprint);
   const current = fingerprintMatches && fs.existsSync(OUTPUT_FILE);
   if (CHECK_ONLY) {
-    console.log(current ? 'No public Uma NocoDB changes detected.' : 'Public Uma NocoDB changes detected.');
+    console.log(current ? `No public Uma ${source} changes detected.` : `Public Uma ${source} changes detected.`);
     process.exitCode = current ? 0 : 10;
     return;
   }
@@ -240,7 +254,7 @@ function isMainModule() {
 }
 
 if (isMainModule()) {
-  main().catch((error) => { console.error(`Uma NocoDB sync failed: ${error.message}`); process.exitCode = 1; });
+  main().catch((error) => { console.error(`Uma sync failed: ${error.message}`); process.exitCode = 1; });
 }
 
 export { createModel };
