@@ -1,3 +1,29 @@
+cms.cuddlebuns.moe {
+    encode gzip zstd
+
+    log {
+        output file /var/log/caddy/cms-access.log
+        format json
+    }
+
+    # A Version may carry six 24 MiB reference sheets (144 MiB total).
+    # Leave multipart framing and a small operational margin before Caddy
+    # rejects an otherwise schema-valid upload with 413.
+    request_body {
+        max_size 160MB
+    }
+
+    reverse_proxy 127.0.0.1:8090 {
+        # Replace, rather than forward, client-provided values. PocketBase
+        # trusts X-Real-IP only from this localhost Caddy hop.
+        header_up X-Real-IP {remote_host}
+
+        transport http {
+            read_timeout 6m
+        }
+    }
+}
+
 cuddlebuns.moe {
     # ========================================
     # COMPRESSION

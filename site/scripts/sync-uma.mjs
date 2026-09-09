@@ -1,12 +1,18 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
-import { SITE_DIR, loadEnvironment } from './lib/env.mjs';
+import { loadUmaSource } from './adapters/nocodb-uma.mjs';
+import { loadPocketBaseUmaSource } from './adapters/pocketbase-uma.mjs';
+import { SITE_DIR, loadEnvironment, getPocketBaseConfig } from './lib/env.mjs';
 import { createNocodbClient } from './lib/nocodb.mjs';
+import { createUmaModel } from './lib/uma-model.mjs';
+import { writeJsonAtomic } from './lib/output-writers.mjs';
+import { createPocketBaseClient } from './lib/pocketbase-client.mjs';
+import { assertSourceAvailable, manifestPath, scopedFingerprint, selectSource } from './lib/source-selection.mjs';
+
 const OUTPUT_FILE = path.join(SITE_DIR, 'public', 'data', 'uma', 'timeline.json');
-const MANIFEST_FILE = path.join(SITE_DIR, '.cache', 'uma', 'manifest.json');
+const LEGACY_MANIFEST_FILE = path.join(SITE_DIR, '.cache', 'uma', 'manifest.json');
 const IMAGE_DIR = path.join(SITE_DIR, 'public', 'generated', 'nocodb', 'uma-support');
 const PUBLIC_IMAGE_ROOT = '/generated/nocodb/uma-support';
 const GAMETORA_THUMB_DIR = path.join(SITE_DIR, '.cache', 'uma', 'gametora-thumbs');
@@ -34,12 +40,6 @@ function stable(value) {
 }
 function fingerprint(value) { return hash(JSON.stringify(stable(value))); }
 function readJson(file, fallback) { try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch { return fallback; } }
-function writeJsonAtomic(file, value) {
-  fs.mkdirSync(path.dirname(file), { recursive: true });
-  const temporary = `${file}.${process.pid}.tmp`;
-  fs.writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`);
-  fs.renameSync(temporary, file);
-}
 function field(fields, ...names) {
   for (const name of names) if (fields?.[name] != null) return fields[name];
   return null;
@@ -68,11 +68,9 @@ function attachmentSnapshot(attachment) {
   return { id: attachment?.id ?? null, path: attachment?.path ?? null, signedPath: attachment?.signedPath ?? null, title: attachment?.title ?? null, mimetype: attachment?.mimetype ?? null, size: attachment?.size ?? null };
 }
 function imageFileExists(url) { return typeof url === 'string' && url.startsWith(PUBLIC_IMAGE_ROOT) && fs.existsSync(path.join(SITE_DIR, 'public', url.slice(1))); }
-function extensionFor(attachment) {
-  const extension = path.extname(attachment?.title || '').toLowerCase();
-  return /^\.(avif|jpe?g|png|webp)$/.test(extension) ? extension : '.img';
-}
-async function downloadImage(url) {
+async function downloadImage(source) {
+  if (typeof source === 'function') return Buffer.from(await source());
+  const url = source;
   const response = await fetch(url, { signal: AbortSignal.timeout(API_TIMEOUT_MS) });
   if (!response.ok) throw new Error(`Support-card image request failed: ${response.status} ${response.statusText}`);
   return Buffer.from(await response.arrayBuffer());
@@ -87,7 +85,7 @@ async function loadImageBuffer(task, baseUrl) {
     fs.writeFileSync(file, buffer);
     return buffer;
   }
-  let buffer = await downloadImage(new URL(task.attachment.signedPath, `${baseUrl}/`).href);
+  let buffer = await downloadImage(task.read ?? new URL(task.attachment.signedPath, `${baseUrl}/`).href);
   try { await sharp(buffer).metadata(); } catch {
     const fallback = task.attachment?.thumbnails?.small?.signedPath || task.attachment?.thumbnails?.card_cover?.signedPath;
     if (!fallback) throw new Error(`${task.key}: attachment cannot be decoded and has no thumbnail fallback.`);
@@ -119,7 +117,7 @@ function status(value) {
   return 'unspecified';
 }
 
-export function createModel(scenarioRecords, eventRecords, supportCardRecords) {
+function createModel(scenarioRecords, eventRecords, supportCardRecords) {
   const errors = [];
   const scenarios = scenarioRecords.map((record) => {
     const fields = record.fields ?? {};
@@ -180,9 +178,9 @@ export function createModel(scenarioRecords, eventRecords, supportCardRecords) {
     const gametoraId = Number(field(fields, 'gametora_id'));
     const attachment = Array.isArray(field(fields, 'image', 'Image')) ? field(fields, 'image', 'Image')[0] : null;
     let taskKey = null;
-    if (attachment?.signedPath) {
+    if (attachment?.signedPath || attachment?.read) {
       taskKey = `support-card:${record.id}:${attachment.id ?? 0}`;
-      imageTasks.set(taskKey, { key: taskKey, kind: 'attachment', attachment });
+      imageTasks.set(taskKey, { key: taskKey, kind: 'attachment', attachment, read: attachment.read });
     } else if (attachment) {
       errors.push(`Support card ${record.id}: image has no downloadable path; omitted.`);
     } else if (Number.isFinite(gametoraId) && gametoraId > 0) {
@@ -203,25 +201,36 @@ export function createModel(scenarioRecords, eventRecords, supportCardRecords) {
       imageTaskKey: taskKey,
     };
   }).filter(Boolean);
-  scenarios.sort((left, right) => left.eraStart.localeCompare(right.eraStart) || left.name.localeCompare(right.name));
-  events.sort((left, right) => left.startDate.localeCompare(right.startDate) || (left.eventNumber ?? Infinity) - (right.eventNumber ?? Infinity) || left.name.localeCompare(right.name));
-  return { scenarios, events, supportCards, imageTasks, errors, unrated };
+  return createUmaModel({ scenarios, events, supportCards, imageTasks, errors, unrated });
 }
 
 async function main() {
   loadEnvironment();
-  const config = getConfig();
-  const client = createNocodbClient({ url: config.url, token: config.token, baseId: config.baseId, timeoutMs: API_TIMEOUT_MS });
-  const scenarios = await client.fetchAllRecords(config.scenarios, 'Scenarios');
-  const events = await client.fetchAllRecords(config.events, 'PvP events');
-  const supportCards = await client.fetchAllRecords(config.supportCards, 'Support cards');
-  console.log(`Fetched ${scenarios.length} scenario, ${events.length} PvP event, and ${supportCards.length} support card record(s).`);
+  const source = assertSourceAvailable(selectSource(process.argv.slice(2), process.env), ['nocodb', 'pocketbase']);
+  const currentManifestFile = manifestPath('uma', source, SITE_DIR);
+  let config;
+  let tables;
+  if (source === 'nocodb') {
+    config = getConfig();
+    const client = createNocodbClient({ url: config.url, token: config.token, baseId: config.baseId, timeoutMs: API_TIMEOUT_MS });
+    tables = await loadUmaSource(config, (cfg, tableId, label) => client.fetchAllRecords(tableId, label));
+    console.log(`Fetched ${tables.scenarios.length} scenario, ${tables.events.length} PvP event, and ${tables.supportCards.length} support card record(s).`);
+  } else {
+    config = getPocketBaseConfig(process.env, 'sync');
+    tables = await loadPocketBaseUmaSource(createPocketBaseClient(config));
+  }
+  const { scenarios, events, supportCards } = tables;
   const model = createModel(scenarios, events, supportCards);
-  const sourceFingerprint = fingerprint({ scenarios, events, supportCards });
-  const previous = readJson(MANIFEST_FILE, {});
-  const current = previous.sourceFingerprint === sourceFingerprint && fs.existsSync(OUTPUT_FILE);
+  const sourceSnapshot = { scenarios, events, supportCards };
+  const sourceFingerprint = scopedFingerprint(source, sourceSnapshot);
+  const legacySourceFingerprint = fingerprint(sourceSnapshot);
+  const previous = readJson(currentManifestFile, source === 'nocodb' ? readJson(LEGACY_MANIFEST_FILE, {}) : {});
+  const fingerprintMatches = previous.sourceFingerprint === sourceFingerprint ||
+    (source === 'nocodb' && !fs.existsSync(currentManifestFile) &&
+      previous.sourceFingerprint === legacySourceFingerprint);
+  const current = fingerprintMatches && fs.existsSync(OUTPUT_FILE);
   if (CHECK_ONLY) {
-    console.log(current ? 'No public Uma NocoDB changes detected.' : 'Public Uma NocoDB changes detected.');
+    console.log(current ? `No public Uma ${source} changes detected.` : `Public Uma ${source} changes detected.`);
     process.exitCode = current ? 0 : 10;
     return;
   }
@@ -243,10 +252,16 @@ async function main() {
     delete card.imageTaskKey;
   }
   writeJsonAtomic(OUTPUT_FILE, { schemaVersion: 1, generatedAt: new Date().toISOString(), scenarios: model.scenarios, pvpEvents: model.events, supportCards: model.supportCards });
-  writeJsonAtomic(MANIFEST_FILE, { sourceFingerprint, attachments });
+  writeJsonAtomic(currentManifestFile, { sourceFingerprint, attachments });
   console.log(`Wrote public/data/uma/timeline.json with ${model.scenarios.length} scenario(s), ${model.events.length} PvP event(s), and ${model.supportCards.length} support card(s).`);
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  main().catch((error) => { console.error(`Uma NocoDB sync failed: ${error.message}`); process.exitCode = 1; });
+function isMainModule() {
+  return Boolean(process.argv[1]) && path.resolve(process.argv[1]) === path.resolve(import.meta.filename);
 }
+
+if (isMainModule()) {
+  main().catch((error) => { console.error(`Uma sync failed: ${error.message}`); process.exitCode = 1; });
+}
+
+export { createModel };
