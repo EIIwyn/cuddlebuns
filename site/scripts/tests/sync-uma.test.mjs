@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createModel } from '../sync-uma-nocodb.mjs';
+import { createModel } from '../sync-uma.mjs';
 
 const scenarioRecords = [{ id: '1', fields: { name: 'Grand Live', slug: 'grandlive', era_start: '2026-07-22', era_end: '2026-11-28' } }];
 const eventRecords = [{ id: '1', fields: { name: 'CM19 Scorpio', slug: 'cm19', start_date: '2026-09-17', end_date: '2026-09-23', scenario: [{ id: 1 }], status: 'projected' } }];

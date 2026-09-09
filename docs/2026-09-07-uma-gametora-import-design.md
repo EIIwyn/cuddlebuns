@@ -97,7 +97,7 @@ already has badge and colour branches for both types in `SupportCardLanes.jsx` a
 
 ```text
 GameTora CDN                       NocoDB (Uma base)                    site build
-  manifest + datasets   ------>    scenarios / pvp_events /   ------>   sync-uma-nocodb.mjs
+  manifest + datasets   ------>    scenarios / pvp_events /   ------>   sync-uma.mjs
         |                          support_cards                            |
         v                              ^        ^                           v
   .cache/gametora/  (per key+hash)     |        |                    timeline.json
@@ -125,14 +125,14 @@ New, under `site/scripts/`:
 
 Changed:
 
-- `sync-uma-nocodb.mjs` uses `lib/env.mjs` and `lib/nocodb.mjs`, publishes only rated cards,
+- `sync-uma.mjs` uses `lib/env.mjs` and `lib/nocodb.mjs`, publishes only rated cards,
   fetches GameTora thumbnails when a card has no attachment, and emits `rarity` and `title`.
 - `validate-uma-output.mjs` accepts the two new optional string fields.
 - `package.json` gains `import:uma` and `import:uma:apply`.
 - `.env.example`, `WORKFLOW.md`, `AGENTS.md` document the new variables and commands.
 - `vps-scripts/import-uma-gametora.sh` and `vps-scripts/systemd/cuddlebuns-uma-import.{service,timer}`.
 
-The gallery sync script (`sync-nocodb.mjs`) is not touched. Its own copies of the env loader
+The gallery sync script (`sync-gallery.mjs`) is not touched. Its own copies of the env loader
 and fetch helper stay where they are; unifying them is out of scope.
 
 ### Configuration

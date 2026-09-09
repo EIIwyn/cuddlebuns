@@ -45,7 +45,7 @@ Modified:
 
 | File | Change |
 | --- | --- |
-| `scripts/sync-uma-nocodb.mjs` | Use `lib/env.mjs` and `lib/nocodb.mjs`; rated-only publishing; GameTora thumbnails; emit `rarity`, `title`. |
+| `scripts/sync-uma.mjs` | Use `lib/env.mjs` and `lib/nocodb.mjs`; rated-only publishing; GameTora thumbnails; emit `rarity`, `title`. |
 | `scripts/validate-uma-output.mjs` | Accept `rarity` and `title`. |
 | `package.json` | `test`, `import:uma`, `import:uma:apply` scripts. |
 | `.env.example`, `WORKFLOW.md`, `../AGENTS.md` | Document variables, commands, admin checklist, cutover. |
@@ -94,7 +94,7 @@ A **plan entry** produced by the planner and consumed by the CLI:
 **Files:**
 - Create: `site/scripts/lib/env.mjs`
 - Create: `site/scripts/__tests__/env.test.mjs`
-- Modify: `site/scripts/sync-uma-nocodb.mjs:6-27` (remove local `SITE_DIR` and `loadEnvironment`, import them)
+- Modify: `site/scripts/sync-uma.mjs:6-27` (remove local `SITE_DIR` and `loadEnvironment`, import them)
 - Modify: `site/package.json` (add `test` script)
 
 **Interfaces:**
@@ -187,7 +187,7 @@ Expected: 4 passing.
 
 - [ ] **Step 6: Point the sync script at the shared loader**
 
-In `site/scripts/sync-uma-nocodb.mjs`, delete the `const SITE_DIR = ...` line and the whole local `function loadEnvironment() { ... }` (lines 6 and 15 to 27 in the current file), and add after the `sharp` import:
+In `site/scripts/sync-uma.mjs`, delete the `const SITE_DIR = ...` line and the whole local `function loadEnvironment() { ... }` (lines 6 and 15 to 27 in the current file), and add after the `sharp` import:
 
 ```js
 import { SITE_DIR, loadEnvironment } from './lib/env.mjs';
@@ -203,7 +203,7 @@ Expected: prints `No public Uma NocoDB changes detected.` or `Public Uma NocoDB 
 - [ ] **Step 8: Commit**
 
 ```bash
-git add site/package.json site/scripts/lib/env.mjs site/scripts/__tests__/env.test.mjs site/scripts/sync-uma-nocodb.mjs
+git add site/package.json site/scripts/lib/env.mjs site/scripts/__tests__/env.test.mjs site/scripts/sync-uma.mjs
 git commit -m "Extract shared .env.local loader for Uma scripts"
 ```
 
@@ -214,7 +214,7 @@ git commit -m "Extract shared .env.local loader for Uma scripts"
 **Files:**
 - Create: `site/scripts/lib/nocodb.mjs`
 - Create: `site/scripts/__tests__/nocodb.test.mjs`
-- Modify: `site/scripts/sync-uma-nocodb.mjs` (replace local `fetchTable` with the client)
+- Modify: `site/scripts/sync-uma.mjs` (replace local `fetchTable` with the client)
 
 **Interfaces:**
 - Produces:
@@ -414,7 +414,7 @@ Expected: all passing (4 env + 6 nocodb).
 
 - [ ] **Step 5: Use the client in the sync script**
 
-In `site/scripts/sync-uma-nocodb.mjs`:
+In `site/scripts/sync-uma.mjs`:
 
 1. Add `import { createNocodbClient } from './lib/nocodb.mjs';` after the env import.
 2. Delete the whole `async function fetchTable(config, tableId, label) { ... }` function and the constants `API_PAGE_SIZE` and `API_TIMEOUT_MS` is still used by `downloadImage`, so keep `API_TIMEOUT_MS` and delete only `API_PAGE_SIZE`.
@@ -438,7 +438,7 @@ Expected: sync writes `public/data/uma/timeline.json` and prints the counts; val
 - [ ] **Step 7: Commit**
 
 ```bash
-git add site/scripts/lib/nocodb.mjs site/scripts/__tests__/nocodb.test.mjs site/scripts/sync-uma-nocodb.mjs
+git add site/scripts/lib/nocodb.mjs site/scripts/__tests__/nocodb.test.mjs site/scripts/sync-uma.mjs
 git commit -m "Add shared NocoDB v3 client and use it in the Uma sync"
 ```
 
@@ -1877,7 +1877,7 @@ git commit -m "Add Uma GameTora importer CLI (dry run by default)"
 ### Task 10: Sync publishes rated cards, GameTora thumbnails, rarity and title
 
 **Files:**
-- Modify: `site/scripts/sync-uma-nocodb.mjs` (`processImage` at lines 88 to 113, the card block at lines 188 to 207, `main()` at lines 218 to 239, the module-level `main()` call)
+- Modify: `site/scripts/sync-uma.mjs` (`processImage` at lines 88 to 113, the card block at lines 188 to 207, `main()` at lines 218 to 239, the module-level `main()` call)
 - Modify: `site/scripts/validate-uma-output.mjs:23`
 - Create: `site/scripts/__tests__/sync-uma.test.mjs`
 
@@ -1887,7 +1887,7 @@ git commit -m "Add Uma GameTora importer CLI (dry run by default)"
 
 - [ ] **Step 1: Make the sync importable and write the failing test**
 
-At the bottom of `site/scripts/sync-uma-nocodb.mjs`, replace:
+At the bottom of `site/scripts/sync-uma.mjs`, replace:
 
 ```js
 main().catch((error) => { console.error(`Uma NocoDB sync failed: ${error.message}`); process.exitCode = 1; });
@@ -1908,7 +1908,7 @@ Create `site/scripts/__tests__/sync-uma.test.mjs`:
 ```js
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createModel } from '../sync-uma-nocodb.mjs';
+import { createModel } from '../sync-uma.mjs';
 
 const scenarioRecords = [{ id: '1', fields: { name: 'Grand Live', slug: 'grandlive', era_start: '2026-07-22', era_end: '2026-11-28' } }];
 const eventRecords = [{ id: '1', fields: { name: 'CM19 Scorpio', slug: 'cm19', start_date: '2026-09-17', end_date: '2026-09-23', scenario: [{ id: 1 }], status: 'projected' } }];
@@ -2098,7 +2098,7 @@ Expected: sync completes; every live card has a rating today so `Held back` is n
 - [ ] **Step 8: Commit**
 
 ```bash
-git add site/scripts/sync-uma-nocodb.mjs site/scripts/validate-uma-output.mjs site/scripts/__tests__/sync-uma.test.mjs
+git add site/scripts/sync-uma.mjs site/scripts/validate-uma-output.mjs site/scripts/__tests__/sync-uma.test.mjs
 git commit -m "Uma sync: publish rated cards only, GameTora thumbnails, rarity and title"
 ```
 

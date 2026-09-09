@@ -15,7 +15,7 @@ const eventMeta = { columns: [
 const candidate = (facts) => ({ gametoraId: 1, label: 'x', facts, seeds: {}, scenarioGametoraId: null, note: null });
 
 test('checkSchema passes when every column and option exists and returns column ids', () => {
-  const { errors, columnIdByTitle, scenarioLink } = checkSchema({ table: 'pvp_events', meta: eventMeta, candidates: [candidate({ weather: 'Rain', racecourse: 'Kyoto', status: 'projected' })], scenariosTableId: 'mStaging' });
+  const { errors, scenarioLink } = checkSchema({ table: 'pvp_events', meta: eventMeta, candidates: [candidate({ weather: 'Rain', racecourse: 'Kyoto', status: 'projected' })], scenariosTableId: 'mStaging' });
   assert.deepEqual(errors, []);
   assert.deepEqual(scenarioLink, { id: 'c_scenario copy_1', title: 'scenario copy_1' });
 });
