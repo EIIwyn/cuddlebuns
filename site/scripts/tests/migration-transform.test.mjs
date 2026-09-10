@@ -60,6 +60,29 @@ test('NocoDB transform maps every collection, relations, private fields, and JSO
   assert.equal(attachmentCalls.filter(({ collection }) => collection === 'commissions').length, 3)
 })
 
+test('NocoDB transform canonicalizes a blank gallery display order as zero', async () => {
+  const fixture = JSON.parse(await readFile(fixtureUrl, 'utf8'))
+  fixture.versions.find(({ id }) => id === 10).fields['Display Order'] = null
+
+  const records = await transformNocoDbSources({
+    gallery: {
+      artists: fixture.artists,
+      collections: fixture.collections,
+      characters: fixture.characters,
+      versions: fixture.versions,
+      commissions: fixture.commissions,
+    },
+    uma: {
+      scenarios: fixture.uma_scenarios,
+      events: fixture.uma_pvp_events,
+      supportCards: fixture.uma_support_cards,
+    },
+  }, { resolveAttachment: async () => ({}) })
+
+  const version = records.find(({ collection, legacyId }) => collection === 'versions' && legacyId === 10)
+  assert.equal(version.fields.display_order, 0)
+})
+
 test('NocoDB transform rejects a record ID that cannot be represented as a positive legacy_id', async () => {
   await assert.rejects(() => transformNocoDbSources({
     gallery: {

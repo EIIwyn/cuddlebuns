@@ -59,8 +59,33 @@ test('equivalent snapshots accept only documented normalization and different ba
   assert.equal(result.equal, true)
   assert.deepEqual(result.differences, [])
   assert.deepEqual(result.normalized, [
-    'generatedAt', 'backendId after complete legacyId mapping', 'generated URL after source SHA-256 mapping',
+    'generatedAt', 'backendId after complete legacyId mapping', 'generated URL and commission card attachment ID after source SHA-256 mapping',
+    'blank display order null/0 equivalence',
   ])
+})
+
+test('equivalent snapshots normalize opaque commission card attachment IDs', () => {
+  const right = snapshot('right')
+  right.publicFiles['data/cms/gallery/item.json'].commissions[0].id = 'pocketbase-stored-filename'
+
+  const result = compareSnapshots(snapshot('left'), right)
+  assert.equal(result.equal, true)
+  assert.deepEqual(result.differences, [])
+})
+
+test('equivalent snapshots normalize blank public display order as zero only', () => {
+  const left = snapshot('left')
+  const right = snapshot('right')
+  left.publicFiles['data/cms/site.json'].collections[0].order = null
+  right.publicFiles['data/cms/site.json'].collections[0].order = 0
+
+  const equivalent = compareSnapshots(left, right)
+  assert.equal(equivalent.equal, true)
+
+  right.publicFiles['data/cms/site.json'].collections[0].order = 2
+  const changed = compareSnapshots(left, right)
+  assert.equal(changed.equal, false)
+  assert.ok(changed.differences.includes('public JSON shapes, values, order, or image descriptors differ'))
 })
 
 test('independent semantic and image mutations are rejected', () => {

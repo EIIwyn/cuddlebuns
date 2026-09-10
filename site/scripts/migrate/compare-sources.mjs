@@ -14,8 +14,9 @@ import { transformNocoDbSources } from './nocodb-transform.mjs'
 export const NORMALIZED_FIELDS = [
   'generatedAt',
   'backendId after complete legacyId mapping',
-  'generated URL after source SHA-256 mapping',
+  'generated URL and commission card attachment ID after source SHA-256 mapping',
 ]
+  'blank display order null/0 equivalence',
 
 function stable(value) {
   if (Array.isArray(value)) return value.map(stable)
@@ -65,13 +66,23 @@ function looksLikeGeneratedImageUrl(value) {
   return pathname.startsWith('/') && /\.(?:avif|gif|jpe?g|png|webp)$/i.test(pathname)
 }
 
+function cardAttachmentIdentity(value, urlMap) {
+  const fallbackUrl = value?.image?.fallback?.url
+  return typeof fallbackUrl === 'string' ? urlMap[fallbackUrl] ?? null : null
+}
+
 function canonicalPublic(value, urlMap, location, unmapped) {
   if (Array.isArray(value)) {
     return value.map((item, index) => canonicalPublic(item, urlMap, `${location}[${index}]`, unmapped))
   }
   if (value && typeof value === 'object') {
+    const attachmentIdentity = cardAttachmentIdentity(value, urlMap)
     return Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'generatedAt')
-      .map(([key, item]) => [key, canonicalPublic(item, urlMap, `${location}.${key}`, unmapped)]))
+      .map(([key, item]) => [key, key === 'id' && attachmentIdentity
+        ? { mappedAttachmentId: stable(attachmentIdentity) }
+        : (key === 'order' || key === 'displayOrder') && item === null
+          ? 0
+          : canonicalPublic(item, urlMap, `${location}.${key}`, unmapped)]))
   }
   if (looksLikeGeneratedImageUrl(value)) {
     const mapped = urlMap[value]
