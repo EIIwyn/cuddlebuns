@@ -144,7 +144,7 @@ System fields such as `id`, `created`, and `updated` are left to PocketBase.
 
 | Collection | Fields |
 |---|---|
-| `artists` | `legacy_id` number required/unique/positive; `name` text; `url` URL |
+| `artists` | `legacy_id` number required/unique/positive; `name` text; `url` URL; `commission_subject` JSON; `date_added` date; `notes` text; `price_jpy` number; `price_usd` number; `price_bracket` text; `status` text; protected `example` file max 2 / 16 MiB |
 | `collections` | `legacy_id`; `name`; `slug`; `display_order` number; `visible` bool; `collapsible` bool |
 | `characters` | `legacy_id`; `name`; `slug`; `subtitle`; `accent_color`; `card_thumbnail` file max 1; `display_order`; `visible`; `collection` relation max 1; `social_label`; `social_url` |
 | `versions` | `legacy_id`; `name`; `slug`; `reference_sheet` file many; `display_order`; `visible`; `character` relation max 1 |

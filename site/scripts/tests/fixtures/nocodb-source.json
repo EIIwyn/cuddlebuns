@@ -15,9 +15,9 @@
     { "id": 10, "fields": { "Internal Title": "must remain private", "Image": [{ "id": "commission-10", "title": "ten.webp", "mimetype": "image/webp", "size": 1024, "signedPath": "/files/ten.webp", "sha256": "4444444444444444444444444444444444444444444444444444444444444444" }], "Source URL": "https://example.invalid/ten", "Type": "Portrait", "Date": "2026-01-01", "Published": true, "Display Order": 1, "Versions": [{ "id": 2 }], "Artists": [{ "id": 2 }, { "id": 1 }] } },
     { "id": 2, "fields": { "Internal Title": "also private", "Image": [{ "id": "commission-2a", "title": "two-a.png", "mimetype": "image/png", "size": 2048, "signedPath": "/files/two-a.png", "sha256": "5555555555555555555555555555555555555555555555555555555555555555" }, { "id": "commission-2b", "title": "two-b.png", "mimetype": "image/png", "size": 4096, "signedPath": "/files/two-b.png", "sha256": "6666666666666666666666666666666666666666666666666666666666666666" }], "Source URL": "https://example.invalid/two", "Type": "Portrait", "Date": "2026-01-01", "Published": true, "Display Order": 1, "Versions": [{ "id": 2 }], "Artists": [{ "id": 1 }] } }
   ],
-  "artists": [
-    { "id": 2, "fields": { "Artist Name": "Artist B", "URL": "https://example.invalid/b" } },
-    { "id": 1, "fields": { "Artist Name": "Artist A", "URL": "https://example.invalid/a" } }
+"artists": [
+    { "id": 2, "fields": { "Artist Name": "Artist B", "URL": "https://example.invalid/b", "Commission Subject": ["Portrait"], "Date Added": "2026-01-02", "Notes": "private note", "Price (JPY)": 12000, "Price (USD)": 80, "Price Bracket": "Affordable", "Status": "Candidate", "Example": [{ "id": "artist-example", "title": "artist-example.png", "mimetype": "image/png", "size": 128, "signedPath": "/files/artist-example.png" }] } },
+    { "id": 1, "fields": { "Artist Name": "Artist A", "URL": "https://example.invalid/a", "Commission Subject": null, "Date Added": null, "Notes": null, "Price (JPY)": null, "Price (USD)": null, "Price Bracket": "", "Status": "Candidate", "Example": [] } }
   ],
   "uma_scenarios": [
     { "id": 2, "fields": { "name": "Scenario", "short_name": "second", "slug": "second", "era_start": "2026-01-01", "era_end": "2026-02-01", "display_color": null } },

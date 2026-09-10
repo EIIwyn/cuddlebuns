@@ -9,7 +9,9 @@ const imageMimeTypes = ['image/avif', 'image/gif', 'image/jpeg', 'image/png', 'i
 
 const expectedFields = {
   artists: {
-    legacy_id: 'number', name: 'text', url: 'url',
+    legacy_id: 'number', name: 'text', url: 'url', commission_subject: 'json', date_added: 'date',
+    notes: 'text', price_jpy: 'number', price_usd: 'number', price_bracket: 'text', status: 'text',
+    example: 'file',
   },
   collections: {
     legacy_id: 'number', name: 'text', slug: 'text', display_order: 'number', visible: 'bool',
@@ -55,6 +57,7 @@ const expectedRelations = {
 }
 
 const expectedFiles = {
+  'artists.example': [2, 16 * 1024 * 1024],
   'characters.card_thumbnail': [1, 2 * 1024 * 1024],
   'versions.reference_sheet': [6, 24 * 1024 * 1024],
   'commissions.image': [5, 18 * 1024 * 1024],

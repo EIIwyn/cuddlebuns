@@ -36,7 +36,7 @@ export function getNocoDbMigrationConfig(env = process.env) {
   return config
 }
 
-async function fetchTable(config, tableId, fetchImpl) {
+export async function fetchNocoDbTable(config, tableId, fetchImpl = globalThis.fetch) {
   const records = []
   let next = `${config.url}/api/v3/data/${encodeURIComponent(config.baseId)}/` +
     `${encodeURIComponent(tableId)}/records?pageSize=100&linksAsLtar=true`
@@ -60,7 +60,7 @@ export async function fetchNocoDbSources(config, options = {}) {
   const result = { gallery: {}, uma: {} }
   for (const scope of Object.keys(TABLES)) {
     for (const key of Object.keys(TABLES[scope])) {
-      result[scope][key] = await fetchTable(config[scope], config[scope].tables[key], fetchImpl)
+      result[scope][key] = await fetchNocoDbTable(config[scope], config[scope].tables[key], fetchImpl)
     }
   }
   return result

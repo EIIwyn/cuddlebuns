@@ -327,6 +327,55 @@ ambiguous, or a second schema authority is introduced.
 **Rollback implications:** Before production data exists, revert the migration commit and recreate
 the disposable database. Never edit an already-applied production migration; add a new one.
 
+### Task 6A: Close the Artist editorial-field parity gap
+
+**Classification:** `[code + ops]`
+
+**Purpose:** Preserve the complete Artist editorial record during migration. The first schema
+currently carries only `legacy_id`, `name`, and `url`; the live NocoDB Artist table also contains
+additional editorial fields and an Example attachment that are not yet represented in PocketBase.
+
+**Files affected:** The Artist field inventory fixture, `nocodb-transform.mjs`,
+`pocketbase-gallery.mjs`, a new additive PocketBase migration, schema/transform/adapter tests,
+the migration design table, and the external rehearsal report. The live inventory is now recorded:
+
+- `commission_subject` JSON array, `date_added` date, `notes` text, `price_jpy` number,
+  `price_usd` number, `price_bracket` text, and `status` text;
+- `example` protected image file, up to 2 files and 16 MiB per file (the observed maximum was
+  7,568,204 bytes); and
+- `CreatedAt`, `UpdatedAt`, inverse `Commissions1`, and the null `Commissions` field remain
+  derived/system data and are not duplicated as editorial fields.
+
+**Interfaces or behavior produced:** Every approved Artist field is mapped by an explicit
+source-neutral name, stored in a typed PocketBase field, and reconstructed by the PocketBase
+adapter. Artist Example bytes are content-addressed, protected, hash-verified, and ordered like
+the other migrated originals. Public gallery JSON remains unchanged unless a field is separately
+approved as public.
+
+**Tests written first:** Add a sanitized Artist fixture containing every approved field and the
+Example attachment; assert NocoDB transform, PocketBase reconstruction, schema types/options,
+file limits, idempotent update behavior, and absence of internal-only fields. Add a live inventory
+check that fails if a non-approved Artist column or attachment field is silently dropped.
+
+**Validation:** Record the live column/option inventory and maximum Example attachment size;
+apply the additive migration to a fresh and initialized disposable PocketBase instance;
+run `npm test`, `npm run lint`, the migration twice, both PocketBase syncs, both validators,
+`npm run compare:cms`, and `npm run build`. Confirm Artist counts, field values, attachment hashes,
+and commission-to-Artist relationships before resuming Task 16B.
+
+**Expected success result:** Every approved Artist field and Example attachment is present in
+PocketBase, the second migration run is entirely unchanged, and the comparator reports no
+unexplained Artist-related difference.
+
+**Failure/stop conditions:** Stop if the live inventory is incomplete, a field type or option is
+ambiguous, an attachment exceeds the measured limit, an internal value would become public, or
+the migration would require rewriting an applied schema migration.
+
+**Commit boundary:** `feat: preserve complete artist editorial records`.
+
+**Rollback implications:** The schema change is additive. Revert the rehearsal only by restoring
+the isolated PocketBase backup; never delete Artist data from authoritative NocoDB.
+
 ### Task 7: Add the pinned, non-root disposable container
 
 **Classification:** `[code]`

@@ -88,7 +88,14 @@ export async function transformNocoDbSources(sources, options) {
     records.push(migrationRecord('artists', record, {
       name: text(value(fields, 'Artist Name')),
       url: text(value(fields, 'URL')),
-    }))
+      commission_subject: multiText(value(fields, 'Commission Subject')),
+      date_added: date(value(fields, 'Date Added')),
+      notes: text(value(fields, 'Notes')),
+      price_jpy: number(value(fields, 'Price (JPY)')),
+      price_usd: number(value(fields, 'Price (USD)')),
+      price_bracket: text(value(fields, 'Price Bracket')),
+      status: text(value(fields, 'Status')),
+    }, {}, await filesFor(record, 'artists', 'example', ['Example'], resolveAttachment)))
   }
 
   for (const record of sorted(gallery.collections ?? [])) {

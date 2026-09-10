@@ -44,6 +44,14 @@ test('NocoDB transform maps every collection, relations, private fields, and JSO
     'uma_scenarios:2', 'uma_pvp_events:2', 'uma_pvp_events:10', 'uma_support_cards:2',
     'uma_support_cards:10',
   ])
+  const artist = records.find(({ collection, legacyId }) => collection === 'artists' && legacyId === 2)
+  assert.deepEqual(artist.fields.commission_subject, ['Portrait'])
+  assert.equal(artist.fields.date_added, '2026-01-02 00:00:00.000Z')
+  assert.equal(artist.fields.price_jpy, 12000)
+  assert.equal(artist.fields.price_usd, 80)
+  assert.equal(artist.fields.status, 'Candidate')
+  assert.equal(artist.files[0].field, 'example')
+
   const character = records.find(({ collection, legacyId }) => collection === 'characters' && legacyId === 1)
   assert.equal(character.fields.accent_color, '#abcdef')
   assert.deepEqual(character.relations.collection.legacyIds, [1])

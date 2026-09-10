@@ -25,7 +25,7 @@ class FixtureClient {
 function pocketBaseFixture() {
   return {
     artists: [
-      { id: 'artist-two', legacy_id: 2, name: 'Artist B', url: 'https://example.invalid/b', updated: '2026-01-01' },
+      { id: 'artist-two', legacy_id: 2, name: 'Artist B', url: 'https://example.invalid/b', commission_subject: ['Portrait'], date_added: '2026-01-02 00:00:00.000Z', notes: 'private note', price_jpy: 12000, price_usd: 80, price_bracket: 'Affordable', status: 'Candidate', example: 'artist-example.png', updated: '2026-01-01' },
       { id: 'artist-one', legacy_id: 1, name: 'Artist A', url: 'https://example.invalid/a', updated: '2026-01-01' },
     ],
     collections: [
@@ -63,6 +63,14 @@ function pocketBaseFixture() {
 test('PocketBase gallery adapter restores legacy relations, file order, drafts, and public model behavior', async () => {
   const client = new FixtureClient(pocketBaseFixture())
   const tables = await loadPocketBaseGallerySource(client)
+  assert.equal(tables.artists[1].fields['Artist Name'], 'Artist B')
+  assert.deepEqual(tables.artists[1].fields['Commission Subject'], ['Portrait'])
+  assert.equal(tables.artists[1].fields['Date Added'], '2026-01-02 00:00:00.000Z')
+  assert.equal(tables.artists[1].fields.Notes, 'private note')
+  assert.equal(tables.artists[1].fields['Price (JPY)'], 12000)
+  assert.equal(tables.artists[1].fields.Status, 'Candidate')
+  assert.equal(tables.artists[1].fields.Example[0].title, 'artist-example.png')
+  assert.equal(typeof tables.artists[1].fields.Example[0].read, 'function')
   const model = createGalleryModel(tables, { url: 'https://unused.invalid' })
   assert.deepEqual(model.collections.map(({ id }) => id), ['1', '2'])
   assert.deepEqual(model.collections[0].characters.map(({ id }) => id), ['1'])

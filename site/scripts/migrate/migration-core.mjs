@@ -12,6 +12,7 @@ export const COLLECTION_ORDER = [
 ]
 
 export const FILE_LIMITS = {
+  'artists.example': { maxSelect: 2, maxSize: 16 * 1024 * 1024 },
   'characters.card_thumbnail': { maxSelect: 1, maxSize: 2 * 1024 * 1024 },
   'versions.reference_sheet': { maxSelect: 6, maxSize: 24 * 1024 * 1024 },
   'commissions.image': { maxSelect: 5, maxSize: 18 * 1024 * 1024 },

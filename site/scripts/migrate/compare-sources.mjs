@@ -15,8 +15,8 @@ export const NORMALIZED_FIELDS = [
   'generatedAt',
   'backendId after complete legacyId mapping',
   'generated URL and commission card attachment ID after source SHA-256 mapping',
-]
   'blank display order null/0 equivalence',
+]
 
 function stable(value) {
   if (Array.isArray(value)) return value.map(stable)
