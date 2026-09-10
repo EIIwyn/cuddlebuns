@@ -109,6 +109,64 @@ writes `public/data/uma/timeline.json`; `npm run validate:uma`
 checks public data shape, relationships, dates, and secret leakage. Like gallery
 output, these generated files are ignored by Git and rebuilt on the VPS.
 
+## Seeding the Uma tables from GameTora
+
+`npm run import:uma` pulls scenarios, Champions Meetings, and support cards from GameTora's
+public JSON and prints an upsert plan for the three Uma tables. `npm run import:uma:apply`
+performs the writes. The design, field ownership rules, and verified mappings are in
+`../docs/2026-09-07-uma-gametora-import-design.md`.
+
+### What the importer owns
+
+- Fact columns are rewritten on every run: scenario slug, era dates, colour; event number,
+  type, dates, all race conditions, status, and the scenario link; card character, type,
+  rarity, title, release date. Tick `lock_facts` on a row to freeze it.
+- `name`, `slug`, and `short_name` are seeded once, then yours. A scenario name that still
+  equals GameTora's provisional name is upgraded when the official English name appears.
+- `rating`, `styles`, `breakpoints`, card-to-event links, and images are never touched.
+- Rows without a `gametora_id` are never touched. League of Heroes rows stay manual.
+
+### Admin checklist before the first run
+
+Add these to the target tables (staging copies first):
+
+| Table | Add |
+| --- | --- |
+| all three | `gametora_id` (Number), `lock_facts` (Checkbox) |
+| `pvp_events` | `status` (SingleSelect: `confirmed`, `projected`); racecourse options Hakodate, Fukushima, Kokura, Santa Anita |
+| `support_cards` | `rarity` (SingleSelect: `R`, `SR`, `SSR`), `title` (SingleLineText); card_type options `Friend`, `Group` |
+
+Then put the target table ids in `.env.local` as `UMA_IMPORT_NOCODB_*_TABLE_ID`. The importer
+checks every column and select option on startup and refuses to write if any is missing.
+
+### Staging walkthrough
+
+1. Duplicate the three tables with data inside the Uma base, apply the checklist to the copies.
+   Then untangle the links: NocoDB's duplicate keeps each copy's link columns pointing at the
+   ORIGINAL tables and adds `... copy` columns for the duplicates, on both sides. On the events
+   copy delete `scenario` and `support_cards` and rename `scenario copy_1` to `scenario` and
+   `support_cards copy` to `support_cards`; on the scenarios copy and the cards copy delete
+   `pvp_events` and rename `pvp_events copy` to `pvp_events`. Deleting a link column removes
+   its inverse, so this also removes the `... copy` columns the duplication added to the live
+   tables. The importer resolves the scenario link by the table it points at and refuses to
+   start if the events copy has no link to the staging scenarios copy, so a skipped untangle
+   shows up as a clear error rather than a write to the wrong table.
+2. `npm run import:uma`. Expect Champions Meetings to show as `link`, most cards as `link`
+   (matched by the number at the start of the attachment filename), scenarios and League of
+   Heroes rows as `unmatched`. Set `gametora_id` on the scenario rows by hand using the printed
+   suggestions. Read the `update` lines: dates and names that differ from GameTora will change.
+3. `npm run import:uma:apply`, then `npm run import:uma` again. The second run must be all skip.
+4. Point `UMA_NOCODB_*_TABLE_ID` at the staging ids, run `npm run sync:uma` and
+   `npm run validate:uma`, open `/uma/timeline` with `npm run dev`. Only rated cards appear.
+5. Repoint `UMA_NOCODB_*_TABLE_ID` back at live.
+
+### Cutover
+
+Apply the checklist to the live tables, set `UMA_IMPORT_NOCODB_*` to the live ids in
+`/etc/cuddlebuns/gallery.env`, run one manual `npm run import:uma:apply` on the VPS, then
+enable `cuddlebuns-uma-import.timer` (nightly at 23:30 UTC). The five-minute sync timer
+publishes the changes on its next tick.
+
 ## Local commands
 
 ```powershell

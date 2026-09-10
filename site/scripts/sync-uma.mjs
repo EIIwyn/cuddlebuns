@@ -4,35 +4,21 @@ import path from 'node:path';
 import sharp from 'sharp';
 import { loadUmaSource } from './adapters/nocodb-uma.mjs';
 import { loadPocketBaseUmaSource } from './adapters/pocketbase-uma.mjs';
-import { getPocketBaseConfig } from './lib/env.mjs';
+import { SITE_DIR, loadEnvironment, getPocketBaseConfig } from './lib/env.mjs';
+import { createNocodbClient } from './lib/nocodb.mjs';
 import { createUmaModel } from './lib/uma-model.mjs';
 import { writeJsonAtomic } from './lib/output-writers.mjs';
 import { createPocketBaseClient } from './lib/pocketbase-client.mjs';
 import { assertSourceAvailable, manifestPath, scopedFingerprint, selectSource } from './lib/source-selection.mjs';
 
-const SITE_DIR = path.resolve(import.meta.dirname, '..');
 const OUTPUT_FILE = path.join(SITE_DIR, 'public', 'data', 'uma', 'timeline.json');
 const LEGACY_MANIFEST_FILE = path.join(SITE_DIR, '.cache', 'uma', 'manifest.json');
 const IMAGE_DIR = path.join(SITE_DIR, 'public', 'generated', 'nocodb', 'uma-support');
 const PUBLIC_IMAGE_ROOT = '/generated/nocodb/uma-support';
+const GAMETORA_THUMB_DIR = path.join(SITE_DIR, '.cache', 'uma', 'gametora-thumbs');
+const GAMETORA_THUMB_URL = (id) => `https://gametora.com/images/umamusume/supports/support_card_s_${id}.png`;
 const CHECK_ONLY = process.argv.includes('--check');
-const API_PAGE_SIZE = 100;
 const API_TIMEOUT_MS = 120_000;
-
-function loadEnvironment() {
-  const envFile = path.join(SITE_DIR, '.env.local');
-  if (!fs.existsSync(envFile)) return;
-  for (const line of fs.readFileSync(envFile, 'utf8').split(/\r?\n/)) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
-    const separator = trimmed.indexOf('=');
-    if (separator < 1) continue;
-    const key = trimmed.slice(0, separator).trim();
-    let value = trimmed.slice(separator + 1).trim();
-    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) value = value.slice(1, -1);
-    if (!process.env[key]) process.env[key] = value;
-  }
-}
 
 function getConfig() {
   const names = {
@@ -89,15 +75,29 @@ async function downloadImage(source) {
   if (!response.ok) throw new Error(`Support-card image request failed: ${response.status} ${response.statusText}`);
   return Buffer.from(await response.arrayBuffer());
 }
-async function processImage(task, previous, baseUrl) {
-  const signature = fingerprint(attachmentSnapshot(task.attachment));
-  if (previous?.signature === signature && imageFileExists(previous.image?.fallback?.url)) return previous;
+async function loadImageBuffer(task, baseUrl) {
+  if (task.kind === 'gametora') {
+    const file = path.join(GAMETORA_THUMB_DIR, `${task.gametoraId}.png`);
+    if (fs.existsSync(file)) return fs.readFileSync(file);
+    const buffer = await downloadImage(GAMETORA_THUMB_URL(task.gametoraId));
+    await sharp(buffer).metadata(); // throws on a non-image (for example an HTML error page)
+    fs.mkdirSync(GAMETORA_THUMB_DIR, { recursive: true });
+    fs.writeFileSync(file, buffer);
+    return buffer;
+  }
   let buffer = await downloadImage(task.read ?? new URL(task.attachment.signedPath, `${baseUrl}/`).href);
   try { await sharp(buffer).metadata(); } catch {
     const fallback = task.attachment?.thumbnails?.small?.signedPath || task.attachment?.thumbnails?.card_cover?.signedPath;
     if (!fallback) throw new Error(`${task.key}: attachment cannot be decoded and has no thumbnail fallback.`);
     buffer = await downloadImage(new URL(fallback, `${baseUrl}/`).href);
   }
+  return buffer;
+}
+
+async function processImage(task, previous, baseUrl) {
+  const signature = task.kind === 'gametora' ? `gametora:${task.gametoraId}` : fingerprint(attachmentSnapshot(task.attachment));
+  if (previous?.signature === signature && imageFileExists(previous.image?.fallback?.url)) return previous;
+  const buffer = await loadImageBuffer(task, baseUrl);
   const contentHash = hash(buffer);
   const stem = `${slugify(task.key, 'support-card')}-${contentHash.slice(0, 12)}`;
   fs.mkdirSync(IMAGE_DIR, { recursive: true });
@@ -115,22 +115,6 @@ function status(value) {
   if (normalized === 'confirmed') return 'confirmed';
   if (normalized === 'projected') return 'projected';
   return 'unspecified';
-}
-
-async function fetchTable(config, tableId, label) {
-  const records = [];
-  let next = `${config.url}/api/v3/data/${encodeURIComponent(config.baseId)}/${encodeURIComponent(tableId)}/records?pageSize=${API_PAGE_SIZE}&linksAsLtar=true`;
-  while (next) {
-    const returned = new URL(next, `${config.url}/`);
-    const url = new URL(`${returned.pathname}${returned.search}`, `${config.url}/`);
-    const response = await fetch(url, { headers: { 'xc-token': config.token }, signal: AbortSignal.timeout(API_TIMEOUT_MS) });
-    if (!response.ok) throw new Error(`${label} request failed: ${response.status} ${response.statusText}`);
-    const page = await response.json();
-    records.push(...(page.records ?? []));
-    next = page.next ?? null;
-  }
-  console.log(`Fetched ${records.length} ${label} record(s).`);
-  return records;
 }
 
 function createModel(scenarioRecords, eventRecords, supportCardRecords) {
@@ -184,27 +168,40 @@ function createModel(scenarioRecords, eventRecords, supportCardRecords) {
   }).filter(Boolean);
   const eventIds = new Set(events.map((event) => event.id));
   const imageTasks = new Map();
+  let unrated = 0;
   const supportCards = supportCardRecords.map((record) => {
     const fields = record.fields ?? {};
+    const rating = text(field(fields, 'rating', 'Rating'));
+    if (!rating) { unrated += 1; return null; }
     const name = text(field(fields, 'name', 'Name'));
     const characterName = text(field(fields, 'character_name', 'Character Name'));
+    const gametoraId = Number(field(fields, 'gametora_id'));
     const attachment = Array.isArray(field(fields, 'image', 'Image')) ? field(fields, 'image', 'Image')[0] : null;
-    const taskKey = attachment?.signedPath || attachment?.read ? `support-card:${record.id}:${attachment.id ?? 0}` : null;
-    if (taskKey) imageTasks.set(taskKey, { key: taskKey, attachment, read: attachment.read });
-    else if (attachment) errors.push(`Support card ${record.id}: image has no downloadable path; omitted.`);
+    let taskKey = null;
+    if (attachment?.signedPath || attachment?.read) {
+      taskKey = `support-card:${record.id}:${attachment.id ?? 0}`;
+      imageTasks.set(taskKey, { key: taskKey, kind: 'attachment', attachment, read: attachment.read });
+    } else if (attachment) {
+      errors.push(`Support card ${record.id}: image has no downloadable path; omitted.`);
+    } else if (Number.isFinite(gametoraId) && gametoraId > 0) {
+      taskKey = `gametora:${gametoraId}`;
+      imageTasks.set(taskKey, { key: taskKey, kind: 'gametora', gametoraId });
+    }
     return {
       id: String(record.id), slug: slugify(field(fields, 'slug', 'Slug') || name || characterName, `support-card-${record.id}`),
       name: name || characterName || 'Untitled support card', characterName,
       cardType: text(field(fields, 'card_type', 'Card Type')),
-      rating: text(field(fields, 'rating', 'Rating')),
+      rarity: text(field(fields, 'rarity', 'Rarity')),
+      title: text(field(fields, 'title', 'Title')),
+      rating,
       releaseDate: date(field(fields, 'release_date', 'Release Date')),
       styles: multiText(field(fields, 'styles', 'Styles')),
       breakpoints: multiText(field(fields, 'breakpoints', 'Breakpoints')),
       eventIds: relationIds(field(fields, 'pvp_events', 'PvP Events')).filter((id) => eventIds.has(id)),
       imageTaskKey: taskKey,
     };
-  });
-  return createUmaModel({ scenarios, events, supportCards, imageTasks, errors });
+  }).filter(Boolean);
+  return createUmaModel({ scenarios, events, supportCards, imageTasks, errors, unrated });
 }
 
 async function main() {
@@ -215,7 +212,9 @@ async function main() {
   let tables;
   if (source === 'nocodb') {
     config = getConfig();
-    tables = await loadUmaSource(config, fetchTable);
+    const client = createNocodbClient({ url: config.url, token: config.token, baseId: config.baseId, timeoutMs: API_TIMEOUT_MS });
+    tables = await loadUmaSource(config, (cfg, tableId, label) => client.fetchAllRecords(tableId, label));
+    console.log(`Fetched ${tables.scenarios.length} scenario, ${tables.events.length} PvP event, and ${tables.supportCards.length} support card record(s).`);
   } else {
     config = getPocketBaseConfig(process.env, 'sync');
     tables = await loadPocketBaseUmaSource(createPocketBaseClient(config));
@@ -236,12 +235,20 @@ async function main() {
     return;
   }
   if (model.errors.length) for (const error of model.errors) console.warn(`- ${error}`);
+  if (model.unrated) console.log(`Held back ${model.unrated} unrated support card(s).`);
   console.log(`Processing ${model.imageTasks.size} support-card image(s).`);
   const attachments = {};
-  for (const task of model.imageTasks.values()) attachments[task.key] = await processImage(task, previous.attachments?.[task.key], config.url);
+  for (const task of model.imageTasks.values()) {
+    try {
+      attachments[task.key] = await processImage(task, previous.attachments?.[task.key], config.url);
+    } catch (error) {
+      if (task.kind !== 'gametora') throw error;
+      console.warn(`- ${task.key}: GameTora thumbnail unavailable (${error.message}); publishing without an image.`);
+    }
+  }
   console.log('Publishing public Uma timeline data.');
   for (const card of model.supportCards) {
-    card.image = card.imageTaskKey ? attachments[card.imageTaskKey].image : null;
+    card.image = card.imageTaskKey ? attachments[card.imageTaskKey]?.image ?? null : null;
     delete card.imageTaskKey;
   }
   writeJsonAtomic(OUTPUT_FILE, { schemaVersion: 1, generatedAt: new Date().toISOString(), scenarios: model.scenarios, pvpEvents: model.events, supportCards: model.supportCards });

@@ -26,13 +26,18 @@ npm run sync:uma:check # same exit-code contract as sync:check
 npm run validate:cms   # check generated gallery JSON, image files, relationships, secret leakage
 npm run validate:uma   # same for the Uma timeline JSON
 npm run build:fresh    # sync + sync:uma + both validators + build
+
+npm test               # node:test suites for the sync helpers and the GameTora importer
+npm run import:uma     # dry run: plan GameTora -> NocoDB upserts for the Uma tables (needs UMA_IMPORT_*)
+npm run import:uma:apply  # perform the plan; only ever against tables named by UMA_IMPORT_*
 ```
 
-There is no test suite. Validation of generated output is done by the `validate:*` scripts.
+Validation of generated output is done by the `validate:*` scripts.
 
-Sync scripts need `site/.env.local` (copy from `.env.example`; the `UMA_NOCODB_*` variables are
-documented in `WORKFLOW.md`, not in `.env.example`). Table IDs are explicit env vars on purpose:
-the NocoDB tokens cannot list tables. Optional knobs for the gallery sync: `CMS_IMAGE_CONCURRENCY`
+Sync scripts need `site/.env.local` (copy from `.env.example`; both `.env.example` and
+`WORKFLOW.md` document the `UMA_NOCODB_*` variables; the `UMA_IMPORT_*` variables are empty
+unless you have staging tables). Table IDs are explicit env vars on purpose: the NocoDB
+tokens cannot list tables. Optional knobs for the gallery sync: `CMS_IMAGE_CONCURRENCY`
 (1-2) and `CMS_WEBP_ONLY=1` to skip AVIF generation on slow machines.
 
 A fresh clone has no `public/data/` or `public/generated/` at all; the dev server shows an error
@@ -51,12 +56,17 @@ The browser never talks to NocoDB. Everything public is prebuilt:
 2. `scripts/sync-uma.mjs` does the same for a separate NocoDB base (Scenarios, PvP Events,
    Support Cards tables) into `public/data/uma/timeline.json` (`{ schemaVersion: 1, scenarios,
    pvpEvents, supportCards }`) and thumbnails under `public/generated/nocodb/uma-support/`.
-3. Both sync scripts support `--check`, which compares a fingerprint of the public-facing source
+3. `scripts/import-uma-gametora.mjs` seeds the three Uma NocoDB tables from GameTora's public
+   JSON (`scripts/gametora/`: cached client, pure transform, pure planner, apply helpers). It is
+   dry-run by default, writes only with `--apply` to tables named by `UMA_IMPORT_NOCODB_*`, owns
+   fact columns keyed by `gametora_id`, and never touches rating, styles, breakpoints, links, or
+   images. A nightly timer runs it on the VPS. Design: `docs/2026-09-07-uma-gametora-import-design.md`.
+4. Both sync scripts support `--check`, which compares a fingerprint of the public-facing source
    data against the cached manifest and exits 10 when a rebuild is needed. The VPS timer relies on
    this exit code.
-4. Both entry points select their backend with precedence `--source > CMS_SOURCE > nocodb`, reject
+5. Both entry points select their backend with precedence `--source > CMS_SOURCE > nocodb`, reject
    invalid or unavailable sources, and keep manifests under `.cache/{gallery,uma}/<source>/`.
-5. `npm run build` bundles the React app; the generated JSON/images are plain `public/` assets.
+6. `npm run build` bundles the React app; the generated JSON/images are plain `public/` assets.
 
 All generated output (`public/data/cms/`, `public/data/uma/*.json`, `public/generated/nocodb/`,
 `.cache/`) is gitignored and regenerated on the VPS.
@@ -107,3 +117,5 @@ hashed images, and no-cache for HTML and CMS JSON.
   globals override does not match the `.mjs` sync scripts, so they are linted with browser
   globals only. Note `npm run lint` needs the local `node_modules` (`npm ci`); a global ESLint 8
   on PATH cannot load this flat config.
+- Never point `UMA_IMPORT_NOCODB_*` at the live Uma tables from a developer machine. Staging
+  copies only; the VPS env owns the live ids after cutover.

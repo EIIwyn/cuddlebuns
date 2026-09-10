@@ -33,7 +33,6 @@
 .uma-event-marker.is-linked { z-index:2; box-shadow:0 0 0 3px var(--page),0 0 0 5px currentColor; }
 .uma-event-marker.is-selected::after { position:absolute; top:13px; left:50%; width:1px; height:22px; background:currentColor; content:''; transform:translateX(-50%); }
 .uma-event-marker--loh.is-selected::after { transform:translateX(-50%) rotate(-45deg); transform-origin:top; }
-.uma-event-marker.is-projected { border-style:dashed; background:var(--page); }
 .uma-release-lane { display:grid; grid-template-columns:110px minmax(1392px,1fr); gap:18px; min-height:72px; border-top:1px solid var(--line-soft); }
 .uma-release-heading { padding:14px 0 8px; color:var(--muted); font-size:.7rem; letter-spacing:.08em; text-transform:uppercase; }
 .uma-card-release { position:absolute; top:calc(13px + (var(--stack) * 6px)); z-index:2; width:34px; height:42px; padding:0; overflow:visible; border:1px solid var(--line); background:var(--page-soft); cursor:pointer; transform:translateX(-50%); }

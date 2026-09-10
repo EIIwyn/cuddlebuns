@@ -1,0 +1,16 @@
+[Unit]
+Description=Seed Uma NocoDB tables from GameTora
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=masterpyon
+Group=www-cuddlebuns
+WorkingDirectory=/var/www/cuddlebuns/source/site
+EnvironmentFile=/etc/cuddlebuns/gallery.env
+Environment=NODE_ENV=production
+ExecStart=/var/www/cuddlebuns/source/vps-scripts/import-uma-gametora.sh
+
+[Install]
+WantedBy=multi-user.target

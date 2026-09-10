@@ -17,6 +17,8 @@
     "validate:uma": "node scripts/validate-uma-output.mjs",
     "test": "node --test \"scripts/tests/*.test.mjs\"",
     "test:integration": "node scripts/tests/run-pocketbase-integration.mjs",
+    "import:uma": "node scripts/import-uma-gametora.mjs",
+    "import:uma:apply": "node scripts/import-uma-gametora.mjs --apply",
     "lint": "eslint .",
     "preview": "vite preview"
   },
