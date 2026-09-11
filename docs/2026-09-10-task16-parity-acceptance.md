@@ -205,3 +205,30 @@ verified adjacent SHA-256 checksum file. The replacement environment was
 validated to use only loopback PocketBase access and the `cms_sync` read-only
 identity; it contains neither NocoDB credentials nor PocketBase migration
 superuser credentials. No release was deployed as part of this task.
+
+## Task 22 manual PocketBase deployment
+
+After installing the locked dependencies in the production source checkout, a
+single manual deployment completed successfully at `2026-09-10T23:50:32Z`.
+It atomically activated
+`/var/www/cuddlebuns/releases/20260910-235032`. The gallery and Uma syncs,
+both output validators, and the Vite production build passed; the live home,
+gallery, and Uma routes each returned HTTP 200.
+
+The PocketBase Uma source contains the complete migrated card set, but the
+public timeline intentionally publishes only rated/meta cards. The deployment
+therefore held back 487 unrated cards and wrote 11 scenarios, 44 PvP events,
+and 70 public support cards. This is expected projection behavior, not a
+migration or public-data loss. The automated timer remains inactive pending
+the remaining post-cutover gates.
+
+## Task 22B temporary migration-superuser removal
+
+The temporary `migration-task16-20260908@cuddlebuns.invalid` PocketBase
+superuser was deleted only after additional human superuser accounts were
+created and tested for recovery access. Neither `/etc/cuddlebuns/gallery.env`
+nor `/etc/cuddlebuns/pocketbase.env` contains a
+`POCKETBASE_MIGRATION_` variable. The least-privilege `cms_sync` account
+continued to pass both gallery and Uma PocketBase `--check` commands with no
+pending public changes. The VPS `masterpyon` SSH/Linux account is independent
+of PocketBase superuser records and was not changed.
