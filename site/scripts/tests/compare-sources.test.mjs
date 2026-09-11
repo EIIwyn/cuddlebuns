@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-import { buildUrlMap, compareSnapshots } from '../migrate/compare-sources.mjs'
+import { buildUrlMap, compareSnapshots, diagnoseSnapshots } from '../migrate/compare-sources.mjs'
 
 function snapshot(side) {
   const prefix = side === 'left' ? '/noco' : '/pocketbase'
@@ -141,4 +141,26 @@ test('manifest tasks map to migration file slots in collection, ID, field order'
     },
     '/generated/thumbnail.png': { sourceSha256: 'source-hash', kind: 'original', format: 'png' },
   })
+})
+
+test('diagnostic identifies safe record, relation, attachment, and public-path differences', () => {
+  const left = snapshot('left')
+  const right = snapshot('right')
+  right.records = right.records.filter((record) => record.collection !== 'artists')
+  right.records.find((record) => record.collection === 'commissions').fields.type = 'X'.repeat(500)
+  right.records.find((record) => record.collection === 'commissions').relations.artists.legacyIds = [404]
+  right.records.find((record) => record.collection === 'commissions').files[0].sha256 = '9'.repeat(64)
+  right.publicFiles['data/cms/site.json'].collections[0].order = 9
+
+  const diagnostic = diagnoseSnapshots(left, right)
+  assert.equal(diagnostic.counts.missingRecords, 1)
+  assert.equal(diagnostic.counts.fieldValueDifferences, 1)
+  assert.equal(diagnostic.counts.relationshipDifferences, 1)
+  assert.equal(diagnostic.counts.attachmentDifferences, 1)
+  assert.ok(diagnostic.counts.publicDifferences >= 1)
+  const field = diagnostic.examples.find((item) => item.kind === 'field-value')
+  assert.equal(field.left.type, 'string')
+  assert.equal(field.left.length, 8)
+  assert.equal(field.right.length, 500)
+  assert.equal(JSON.stringify(diagnostic).includes('X'.repeat(20)), false)
 })

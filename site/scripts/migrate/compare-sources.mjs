@@ -11,6 +11,8 @@ import { detectImageFormat } from './migration-core.mjs'
 import { fetchNocoDbSources, getNocoDbMigrationConfig } from './nocodb-source.mjs'
 import { transformNocoDbSources } from './nocodb-transform.mjs'
 
+const MAX_DIAGNOSTICS = 40
+
 export const NORMALIZED_FIELDS = [
   'generatedAt',
   'backendId after complete legacyId mapping',
@@ -28,6 +30,143 @@ function stable(value) {
 
 function equal(left, right) {
   return JSON.stringify(stable(left)) === JSON.stringify(stable(right))
+}
+
+function digest(value) {
+  return createHash('sha256').update(String(value)).digest('hex').slice(0, 12)
+}
+
+function safeValue(value) {
+  if (value === null) return { type: 'null' }
+  if (value === undefined) return { type: 'undefined' }
+  if (typeof value === 'string') return { type: 'string', length: value.length, sha256_12: digest(value) }
+  if (typeof value === 'number' || typeof value === 'boolean') return { type: typeof value, value }
+  if (Array.isArray(value)) return { type: 'array', length: value.length }
+  if (typeof value === 'object') return { type: 'object', keys: Object.keys(value).sort() }
+  return { type: typeof value }
+}
+
+function pushDiagnostic(diagnostics, item) {
+  diagnostics.push(item)
+}
+
+function recordMap(records) {
+  return new Map(records.map((record) => [`${record.collection}:${record.legacyId}`, record]))
+}
+
+function compareRecordDetails(left, right, diagnostics) {
+  const leftFields = new Set(Object.keys(left.fields ?? {}))
+  const rightFields = new Set(Object.keys(right.fields ?? {}))
+  for (const field of [...new Set([...leftFields, ...rightFields])].sort()) {
+    if (!leftFields.has(field) || !rightFields.has(field)) {
+      pushDiagnostic(diagnostics, {
+        kind: 'field-name', record: `${left.collection}:${left.legacyId}`, field,
+        left: leftFields.has(field), right: rightFields.has(field),
+      })
+    } else if (!equal(left.fields[field], right.fields[field])) {
+      pushDiagnostic(diagnostics, {
+        kind: 'field-value', record: `${left.collection}:${left.legacyId}`, field,
+        left: safeValue(left.fields[field]), right: safeValue(right.fields[field]),
+      })
+    }
+  }
+
+  const leftRelations = left.relations ?? {}
+  const rightRelations = right.relations ?? {}
+  for (const field of [...new Set([...Object.keys(leftRelations), ...Object.keys(rightRelations)])].sort()) {
+    const a = leftRelations[field]
+    const b = rightRelations[field]
+    if (!a || !b || a.collection !== b.collection || !equal(a.legacyIds ?? [], b.legacyIds ?? [])) {
+      pushDiagnostic(diagnostics, {
+        kind: 'relationship', record: `${left.collection}:${left.legacyId}`, field,
+        left: a ? { collection: a.collection, legacyIds: a.legacyIds ?? [] } : null,
+        right: b ? { collection: b.collection, legacyIds: b.legacyIds ?? [] } : null,
+      })
+    }
+  }
+
+  const leftFiles = left.files ?? []
+  const rightFiles = right.files ?? []
+  const fileKeys = new Set([
+    ...leftFiles.map((file) => `${file.field}:${file.ordinal}`),
+    ...rightFiles.map((file) => `${file.field}:${file.ordinal}`),
+  ])
+  for (const key of [...fileKeys].sort()) {
+    const a = leftFiles.find((file) => `${file.field}:${file.ordinal}` === key)
+    const b = rightFiles.find((file) => `${file.field}:${file.ordinal}` === key)
+    if (!a || !b || a.sha256 !== b.sha256 || a.detectedFormat !== b.detectedFormat) {
+      pushDiagnostic(diagnostics, {
+        kind: 'attachment', record: `${left.collection}:${left.legacyId}`, slot: key,
+        left: a ? { sha256_12: a.sha256?.slice(0, 12), format: a.detectedFormat } : null,
+        right: b ? { sha256_12: b.sha256?.slice(0, 12), format: b.detectedFormat } : null,
+      })
+    }
+  }
+}
+
+function comparePublicPaths(left, right, location, diagnostics) {
+  if (Array.isArray(left) || Array.isArray(right)) {
+    if (!Array.isArray(left) || !Array.isArray(right) || left.length !== right.length) {
+      pushDiagnostic(diagnostics, { kind: 'public-path', path: location, left: safeValue(left), right: safeValue(right) })
+      return
+    }
+    for (let index = 0; index < left.length; index += 1) comparePublicPaths(left[index], right[index], `${location}[${index}]`, diagnostics)
+    return
+  }
+  if ((left && typeof left === 'object') || (right && typeof right === 'object')) {
+    if (!left || !right || typeof left !== 'object' || typeof right !== 'object') {
+      pushDiagnostic(diagnostics, { kind: 'public-path', path: location, left: safeValue(left), right: safeValue(right) })
+      return
+    }
+    for (const key of [...new Set([...Object.keys(left), ...Object.keys(right)])].sort()) {
+      if (key === 'generatedAt') continue
+      if (!(key in left) || !(key in right)) {
+        pushDiagnostic(diagnostics, { kind: 'public-path', path: `${location}.${key}`, left: key in left, right: key in right })
+      } else comparePublicPaths(left[key], right[key], `${location}.${key}`, diagnostics)
+    }
+    return
+  }
+  if (left !== right) pushDiagnostic(diagnostics, { kind: 'public-path', path: location, left: safeValue(left), right: safeValue(right) })
+}
+
+export function diagnoseSnapshots(left, right) {
+  const diagnostics = []
+  const leftRecords = recordMap(left.records)
+  const rightRecords = recordMap(right.records)
+  for (const key of [...leftRecords.keys()].filter((item) => !rightRecords.has(item)).sort()) {
+    pushDiagnostic(diagnostics, { kind: 'missing-record', record: key, side: 'right' })
+  }
+  for (const key of [...rightRecords.keys()].filter((item) => !leftRecords.has(item)).sort()) {
+    pushDiagnostic(diagnostics, { kind: 'extra-record', record: key, side: 'right' })
+  }
+  for (const key of [...leftRecords.keys()].filter((item) => rightRecords.has(item)).sort()) {
+    compareRecordDetails(leftRecords.get(key), rightRecords.get(key), diagnostics)
+  }
+  const leftUnmapped = []
+  const rightUnmapped = []
+  const leftPublicFiles = canonicalPublic(left.publicFiles ?? {}, left.urlMap ?? {}, 'left.publicFiles', leftUnmapped)
+  const rightPublicFiles = canonicalPublic(right.publicFiles ?? {}, right.urlMap ?? {}, 'right.publicFiles', rightUnmapped)
+  for (const path of leftUnmapped) pushDiagnostic(diagnostics, { kind: 'unmapped-public-url', side: 'left', path })
+  for (const path of rightUnmapped) pushDiagnostic(diagnostics, { kind: 'unmapped-public-url', side: 'right', path })
+  const publicPaths = new Set([...Object.keys(leftPublicFiles), ...Object.keys(rightPublicFiles)])
+  for (const file of [...publicPaths].sort()) {
+    if (!(file in leftPublicFiles) || !(file in rightPublicFiles)) {
+      pushDiagnostic(diagnostics, { kind: 'public-file', path: file, left: file in leftPublicFiles, right: file in rightPublicFiles })
+    } else comparePublicPaths(leftPublicFiles[file], rightPublicFiles[file], file, diagnostics)
+  }
+  return {
+    truncated: diagnostics.length >= MAX_DIAGNOSTICS,
+    examples: diagnostics.slice(0, MAX_DIAGNOSTICS),
+    counts: {
+      missingRecords: diagnostics.filter(({ kind }) => kind === 'missing-record').length,
+      extraRecords: diagnostics.filter(({ kind }) => kind === 'extra-record').length,
+      fieldNameDifferences: diagnostics.filter(({ kind }) => kind === 'field-name').length,
+      fieldValueDifferences: diagnostics.filter(({ kind }) => kind === 'field-value').length,
+      relationshipDifferences: diagnostics.filter(({ kind }) => kind === 'relationship').length,
+      attachmentDifferences: diagnostics.filter(({ kind }) => kind === 'attachment').length,
+      publicDifferences: diagnostics.filter(({ kind }) => kind === 'public-path' || kind === 'public-file' || kind === 'unmapped-public-url').length,
+    },
+  }
 }
 
 function validateIdentity(records, side) {
@@ -99,6 +238,7 @@ export function compareSnapshots(left, right) {
   validateIdentity(left.records, 'left snapshot')
   validateIdentity(right.records, 'right snapshot')
   const differences = []
+  const diagnostic = diagnoseSnapshots(left, right)
   const leftRecords = canonicalRecords(left.records)
   const rightRecords = canonicalRecords(right.records)
   if (!equal(leftRecords, rightRecords)) differences.push('source records, relationships, arrays, or original files differ')
@@ -111,7 +251,7 @@ export function compareSnapshots(left, right) {
   differences.push(...rightUnmapped.map((item) => `unmapped right generated URL at ${item}`))
   if (!equal(leftPublic, rightPublic)) differences.push('public JSON shapes, values, order, or image descriptors differ')
 
-  return { equal: differences.length === 0, differences, normalized: [...NORMALIZED_FIELDS] }
+  return { equal: differences.length === 0, differences, diagnostic, normalized: [...NORMALIZED_FIELDS] }
 }
 
 function fileSlot(taskKey) {
@@ -251,6 +391,9 @@ export async function main(args = process.argv.slice(2)) {
   console.log(`Normalized fields: ${result.normalized.join('; ')}`)
   if (!result.equal) {
     for (const difference of result.differences) console.error(`- ${difference}`)
+    console.error(`Diagnostic counts: ${JSON.stringify(result.diagnostic.counts)}`)
+    for (const example of result.diagnostic.examples) console.error(`  ${JSON.stringify(example)}`)
+    if (result.diagnostic.truncated) console.error(`  Diagnostic examples truncated at ${MAX_DIAGNOSTICS}`)
     process.exitCode = 1
   } else console.log('NocoDB and PocketBase CMS sources are semantically equivalent.')
   return result

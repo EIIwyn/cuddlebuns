@@ -105,8 +105,14 @@ function createFixtureApp() {
       if (!collection) throw new Error(`Collection not found: ${nameOrId}`)
       return collection
     },
-    save(collection) {
+save(collection) {
       collection.id ||= `fixture_${collection.name}`
+      if (Array.isArray(collection.fields) && !collection.fields.addMarshaledJSON) {
+        Object.defineProperty(collection.fields, 'addMarshaledJSON', {
+          enumerable: false,
+          value(raw) { this.push(...JSON.parse(raw)) },
+        })
+      }
       collections.set(collection.name, collection)
     },
   }

@@ -802,9 +802,9 @@ and build.
 and stopped timer while the last successful static release continues serving.
 
 **Tests written first:** `systemctl list-timers` and `systemctl status
-cuddlebuns-gallery-sync.timer`; confirm no service invocation is running.
+cuddlebuns-auto-deploy.timer`; confirm no service invocation is running.
 
-**Validation:** `sudo systemctl stop cuddlebuns-gallery-sync.timer`; wait for or inspect the oneshot
+**Validation:** `sudo systemctl stop cuddlebuns-auto-deploy.timer`; wait for or inspect the oneshot
 service; verify `systemctl is-active ...timer` is inactive and the live site still returns `200`.
 
 **Expected success result:** Editors are frozen, timer is inactive, and Caddy serves the prior release.
@@ -942,7 +942,7 @@ set `CMS_SOURCE=nocodb`.
 **Tests written first:** Record current symlink target and known-good release; verify lock availability,
 PocketBase health, source environment, and free disk.
 
-**Validation:** Start `cuddlebuns-gallery-sync.service` once; inspect its complete journal for both
+**Validation:** Start `cuddlebuns-auto-deploy.service` once; inspect its complete journal for both
 syncs, validators, build, and activated release. Run HTTP checks for `site.json`, representative
 gallery JSON, timeline JSON, routes, responsive images, reference/GIF originals, then browser smoke
 tests for hub, version selection, lightbox, and Uma relationships.
@@ -1002,7 +1002,7 @@ superuser; never promote `cms_sync`.
 **Tests written first:** Record current release, timer status, source environment, PocketBase health,
 and backup age.
 
-**Validation:** `sudo systemctl enable --now cuddlebuns-gallery-sync.timer`; observe one no-change
+**Validation:** `sudo systemctl enable --now cuddlebuns-auto-deploy.timer`; observe one no-change
 timer invocation and confirm it does not activate a release.
 
 **Expected success result:** Timer is active and one quiet run succeeds against PocketBase.

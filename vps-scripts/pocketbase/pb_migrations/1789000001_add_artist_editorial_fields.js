@@ -1,6 +1,6 @@
 migrate((app) => {
   const artists = app.findCollectionByNameOrId('artists')
-  artists.fields.push(
+  artists.fields.addMarshaledJSON(JSON.stringify([
     { name: 'commission_subject', type: 'json' },
     { name: 'date_added', type: 'date' },
     { name: 'notes', type: 'text' },
@@ -16,7 +16,7 @@ migrate((app) => {
       mimeTypes: ['image/avif', 'image/gif', 'image/jpeg', 'image/png', 'image/webp'],
       protected: true,
     },
-  )
+  ]))
   app.save(artists)
 }, (app) => {
   const artists = app.findCollectionByNameOrId('artists')
