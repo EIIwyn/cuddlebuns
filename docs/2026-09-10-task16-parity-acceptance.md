@@ -232,3 +232,34 @@ nor `/etc/cuddlebuns/pocketbase.env` contains a
 continued to pass both gallery and Uma PocketBase `--check` commands with no
 pending public changes. The VPS `masterpyon` SSH/Linux account is independent
 of PocketBase superuser records and was not changed.
+
+## Task 23A timer observation
+
+The `cuddlebuns-auto-deploy.timer` was enabled and is active with
+`CMS_SOURCE=pocketbase`. Its first post-enable release at
+`/var/www/cuddlebuns/releases/20260911-030105` was caused by a Git update
+(`Git changed: 1`), while both CMS source checks were clean (`NocoDB changed:
+0`, `Uma changed: 0`); it was not caused by a PocketBase content change.
+The following scheduled invocation at `2026-09-11T03:10:49Z` selected
+PocketBase for both gallery and Uma checks, reported no public changes, and
+completed without deploying. This establishes the expected quiet scheduled
+check after cutover.
+
+## Task 23B controlled PocketBase edit
+
+The Teina character subtitle was temporarily changed from `Literary Archivist`
+to `Literary Archivist  [Task 23B test]` without altering relationships,
+publication state, or attachments. The active release advanced to
+`/var/www/cuddlebuns/releases/20260911-040124`, and the live
+`data/cms/site.json` contained the temporary value. This proves that an
+ordinary public PocketBase text edit is detected and atomically deployed by
+the active timer. The Teina reference-sheet update is an independent intended
+content change and is not part of this reversible test.
+
+## Task 23C controlled-edit reversion
+
+The Teina subtitle was restored to `Literary Archivist`. Live
+`data/cms/site.json` no longer contains the `Task 23B test` marker, proving
+the timer detected and deployed the separate reversion. The intentional Teina
+reference-sheet update remains outside the test baseline; no unrelated
+PocketBase content was reverted.

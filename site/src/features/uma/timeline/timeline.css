@@ -100,7 +100,6 @@
 .uma-details__meta { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px 14px; margin:0; }
 .uma-details__meta dt { color:var(--faint); font-size:.64rem; letter-spacing:.09em; text-transform:uppercase; }
 .uma-details__meta dd { margin:4px 0 0; color:var(--ink); font-size:.82rem; line-height:1.4; }
-.uma-details__projected { margin:28px 0 0; color:#f5c57a; font-size:.78rem; line-height:1.5; }
 .uma-details__cards { margin-top:28px; padding-top:18px; border-top:1px solid var(--line-soft); }
 .uma-details__cards > .eyebrow { margin-bottom:10px; }
 .uma-details__cards > div { display:grid; gap:8px; }
