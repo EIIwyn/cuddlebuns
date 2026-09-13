@@ -12,6 +12,7 @@
     "sync:uma": "node scripts/sync-uma.mjs",
     "sync:uma:check": "node scripts/sync-uma.mjs --check",
     "migrate:cms": "node scripts/migrate/migrate-cms.mjs",
+    "mirror:uma": "node scripts/migrate/migrate-cms.mjs --uma",
     "inventory:artists": "node scripts/migrate/inventory-artists.mjs",
     "compare:cms": "node scripts/migrate/compare-sources.mjs",
     "validate:cms": "node scripts/validate-cms-output.mjs",

@@ -183,19 +183,37 @@ function manifest(counts, statuses, dryRun) {
   }
 }
 
+function isLocked(record) {
+  return record?.lock_facts === true
+}
+
+function withoutPreserved(fields, preserved) {
+  if (!preserved.length) return fields
+  return Object.fromEntries(Object.entries(fields).filter(([field]) => !preserved.includes(field)))
+}
+
+// options.collections limits the run to a subset of COLLECTION_ORDER (records outside it are rejected).
+// options.preserveFields ({ collection: [field, ...] }) keeps those fields as they are on existing
+// destination rows; new rows still receive the source value. A destination row with lock_facts true
+// is reported as locked and never written.
 export async function runMigration(records, options) {
   validateMigrationRecords(records)
-  const { client, dryRun = false, writeManifest = async () => {} } = options
-  const ordered = COLLECTION_ORDER.flatMap((collection) => records
+  const { client, dryRun = false, writeManifest = async () => {}, preserveFields = {} } = options
+  const selected = COLLECTION_ORDER.filter((collection) => (options.collections ?? COLLECTION_ORDER).includes(collection))
+  const outside = records.filter((record) => !selected.includes(record.collection))
+  if (outside.length) {
+    throw new Error(`${outside.length} record(s) fall outside the selected collections: ${[...new Set(outside.map(({ collection }) => collection))].join(', ')}`)
+  }
+  const ordered = selected.flatMap((collection) => records
     .filter((record) => record.collection === collection)
     .sort((left, right) => left.legacyId - right.legacyId))
-  const counts = { source: ordered.length, created: 0, updated: 0, unchanged: 0, failed: 0 }
+  const counts = { source: ordered.length, created: 0, updated: 0, unchanged: 0, locked: 0, failed: 0 }
   const statuses = new Map()
   const destination = new Map()
   const mapping = new Map()
   const preparedFiles = new Map()
 
-  for (const collection of COLLECTION_ORDER) {
+  for (const collection of selected) {
     const seen = new Set()
     for (const record of await client.listAll(collection)) {
       const legacyId = Number(record.legacy_id)
@@ -211,7 +229,14 @@ export async function runMigration(records, options) {
     for (const source of ordered) {
       const key = recordKey(source.collection, source.legacyId)
       const existing = destination.get(key)
-      const expectedFields = { legacy_id: source.legacyId, ...source.fields }
+      if (isLocked(existing)) {
+        statuses.set(key, 'locked')
+        counts.locked += 1
+        await writeManifest(manifest(counts, statuses, dryRun))
+        continue
+      }
+      const preserved = existing ? preserveFields[source.collection] ?? [] : []
+      const expectedFields = withoutPreserved({ legacy_id: source.legacyId, ...source.fields }, preserved)
       const scalarChanged = existing && Object.entries(expectedFields)
         .some(([field, value]) => !equal(existing[field], value))
       const expectedByField = Map.groupBy(source.files ?? [], ({ field }) => field)
@@ -260,6 +285,7 @@ export async function runMigration(records, options) {
       const relationEntries = Object.entries(source.relations ?? {})
       if (!relationEntries.length) continue
       const key = recordKey(source.collection, source.legacyId)
+      if (statuses.get(key) === 'locked') continue
       const existing = destination.get(key)
       const payload = Object.fromEntries(relationEntries.map(([field, relation]) => [
         field,

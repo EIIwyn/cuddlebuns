@@ -59,6 +59,7 @@ export async function loadPocketBaseUmaSource(client) {
       fields: {
         name: record.name, short_name: record.short_name, slug: record.slug,
         era_start: record.era_start, era_end: record.era_end, display_color: record.display_color,
+        gametora_id: record.gametora_id,
       },
     })),
     events: tables.uma_pvp_events.map((record) => ({
@@ -80,6 +81,7 @@ export async function loadPocketBaseUmaSource(client) {
         weather: record.weather,
         surface: record.surface,
         status: record.status,
+        gametora_id: record.gametora_id,
       },
     })),
     supportCards: tables.uma_support_cards.map((record) => ({
@@ -95,6 +97,9 @@ export async function loadPocketBaseUmaSource(client) {
         styles: record.styles,
         breakpoints: record.breakpoints,
         pvp_events: relations(record.pvp_events, eventMap, `uma_support_cards:${record.legacy_id}.pvp_events`),
+        gametora_id: record.gametora_id,
+        rarity: record.rarity,
+        title: record.title,
       },
     })),
   }

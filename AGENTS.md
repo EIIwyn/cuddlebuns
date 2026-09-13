@@ -30,6 +30,7 @@ npm run build:fresh    # sync + sync:uma + both validators + build
 npm test               # node:test suites for the sync helpers and the GameTora importer
 npm run import:uma     # dry run: plan GameTora -> NocoDB upserts for the Uma tables (needs UMA_IMPORT_*)
 npm run import:uma:apply  # perform the plan; only ever against tables named by UMA_IMPORT_*
+npm run mirror:uma        # copy the seeded NocoDB Uma tables into PocketBase (needs POCKETBASE_MIGRATION_*); --dry-run first
 ```
 
 Validation of generated output is done by the `validate:*` scripts.
@@ -61,6 +62,9 @@ The browser never talks to NocoDB. Everything public is prebuilt:
    dry-run by default, writes only with `--apply` to tables named by `UMA_IMPORT_NOCODB_*`, owns
    fact columns keyed by `gametora_id`, and never touches rating, styles, breakpoints, links, or
    images. A nightly timer runs it on the VPS. Design: `docs/2026-09-07-uma-gametora-import-design.md`.
+   Production reads from PocketBase, so `scripts/migrate/migrate-cms.mjs --uma` (`npm run mirror:uma`)
+   copies the three seeded Uma tables into `uma_scenarios`, `uma_pvp_events`, `uma_support_cards`
+   by `legacy_id`, whole rows, skipping PocketBase rows with `lock_facts` set. Manual, never timed.
 4. Both sync scripts support `--check`, which compares a fingerprint of the public-facing source
    data against the cached manifest and exits 10 when a rebuild is needed. The VPS timer relies on
    this exit code.
@@ -119,3 +123,6 @@ hashed images, and no-cache for HTML and CMS JSON.
   on PATH cannot load this flat config.
 - Never point `UMA_IMPORT_NOCODB_*` at the live Uma tables from a developer machine. Staging
   copies only; the VPS env owns the live ids after cutover.
+- PocketBase schema changes are `pb_migrations` files under `vps-scripts/pocketbase/`, asserted by
+  `scripts/tests/pocketbase-schema.test.mjs`. The Uma collections carry `lock_facts`; the mirror
+  must never write a locked row, and NocoDB's own `lock_facts` is never copied into PocketBase.

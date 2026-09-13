@@ -47,15 +47,15 @@ function pocketBaseFixture() {
       { id: 'commission-draft', legacy_id: 3, name: 'draft private', type: 'Portrait', image: ['draft.png'], published: false, versions: ['version-two'], artists: ['artist-one'], updated: '2026-01-01' },
     ],
     uma_scenarios: [
-      { id: 'scenario-one', legacy_id: 1, name: 'Scenario', short_name: 'first', slug: 'first', era_start: '2026-01-01 00:00:00.000Z', era_end: '2026-02-01 00:00:00.000Z', display_color: '#123456', updated: '2026-01-01' },
+      { id: 'scenario-one', legacy_id: 1, name: 'Scenario', short_name: 'first', slug: 'first', era_start: '2026-01-01 00:00:00.000Z', era_end: '2026-02-01 00:00:00.000Z', display_color: '#123456', gametora_id: 5, lock_facts: true, updated: '2026-01-01' },
     ],
     uma_pvp_events: [
-      { id: 'event-two', legacy_id: 2, name: 'Event', event_number: 1, slug: 'two', event_type: 'CM', start_date: '2026-01-02 00:00:00.000Z', end_date: '2026-01-03 00:00:00.000Z', scenario: 'scenario-one', distance_class: 'Mile', distance_m: 1600, surface: 'Turf', status: 'confirmed', updated: '2026-01-01' },
+      { id: 'event-two', legacy_id: 2, name: 'Event', event_number: 1, slug: 'two', event_type: 'CM', start_date: '2026-01-02 00:00:00.000Z', end_date: '2026-01-03 00:00:00.000Z', scenario: 'scenario-one', distance_class: 'Mile', distance_m: 1600, surface: 'Turf', status: 'confirmed', gametora_id: 19, lock_facts: false, updated: '2026-01-01' },
       { id: 'event-ten', legacy_id: 10, name: 'Event', event_number: 1, slug: 'ten', event_type: 'CM', start_date: '2026-01-02 00:00:00.000Z', end_date: '2026-01-03 00:00:00.000Z', scenario: 'scenario-one', distance_class: 'Mile', distance_m: 1600, surface: 'Turf', status: 'projected', updated: '2026-01-01' },
     ],
     uma_support_cards: [
-      { id: 'support-ten', legacy_id: 10, name: 'Support', character_name: 'Character', slug: 'ten', image: '', card_type: 'Speed', rating: 'Core', release_date: '2026-01-04 00:00:00.000Z', styles: ['Front'], breakpoints: ['LB0', 'LB4'], pvp_events: ['event-ten', 'event-two'], updated: '2026-01-01' },
-      { id: 'support-two', legacy_id: 2, name: 'Support', character_name: 'Character', slug: 'two', image: 'support.png', card_type: 'Speed', rating: 'Core', release_date: '2026-01-04 00:00:00.000Z', styles: ['Front', 'Late'], breakpoints: ['LB0', 'LB4'], pvp_events: ['event-two', 'event-ten'], updated: '2026-01-01' },
+      { id: 'support-ten', legacy_id: 10, name: 'Support', character_name: 'Character', slug: 'ten', image: '', card_type: 'Speed', rating: 'Core', release_date: '2026-01-04 00:00:00.000Z', styles: ['Front'], breakpoints: ['LB0', 'LB4'], pvp_events: ['event-ten', 'event-two'], gametora_id: 30118, rarity: 'SSR', title: '[Run Forth!]', lock_facts: false, updated: '2026-01-01' },
+      { id: 'support-two', legacy_id: 2, name: 'Support', character_name: 'Character', slug: 'two', image: 'support.png', card_type: 'Speed', rating: 'Core', release_date: '2026-01-04 00:00:00.000Z', styles: ['Front', 'Late'], breakpoints: ['LB0', 'LB4'], pvp_events: ['event-two', 'event-ten'], gametora_id: 0, rarity: '', title: '', lock_facts: true, updated: '2026-01-01' },
     ],
   }
 }
@@ -103,4 +103,18 @@ test('PocketBase Uma adapter preserves arrays, relation order, dates, status, an
   const task = model.imageTasks.get('support-card:2:support.png')
   assert.deepEqual(await task.read(), Buffer.from('89504e470d0a1a0a', 'hex'))
   assert.deepEqual(client.downloads, ['uma_support_cards:2:support.png'])
+})
+
+test('PocketBase Uma adapter exposes importer fields so the sync publishes rarity, title, and GameTora thumbnails', async () => {
+  const tables = await loadPocketBaseUmaSource(new FixtureClient(pocketBaseFixture()))
+  assert.equal(tables.scenarios[0].fields.gametora_id, 5)
+  assert.equal(tables.events[0].fields.gametora_id, 19)
+  const model = createUmaModel(tables.scenarios, tables.events, tables.supportCards)
+  const [withAttachment, withoutAttachment] = model.supportCards
+  assert.equal(withoutAttachment.rarity, 'SSR')
+  assert.equal(withoutAttachment.title, '[Run Forth!]')
+  assert.equal(withoutAttachment.imageTaskKey, 'gametora:30118')
+  assert.equal(model.imageTasks.get('gametora:30118').kind, 'gametora')
+  assert.equal(withAttachment.rarity, null, 'an empty PocketBase text publishes as null')
+  assert.equal(withAttachment.imageTaskKey, 'support-card:2:support.png', 'an attachment always wins over a GameTora id')
 })

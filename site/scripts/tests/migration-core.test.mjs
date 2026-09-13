@@ -83,10 +83,12 @@ class FakeClient {
   constructor() {
     this.collections = new Map()
     this.writes = []
+    this.listed = []
     this.failAfter = Infinity
   }
 
   async listAll(collection) {
+    this.listed.push(collection)
     return [...(this.collections.get(collection) ?? [])]
   }
 
@@ -175,7 +177,7 @@ test('migration creates in dependency order, maps relations on pass two, and is 
   const client = new FakeClient()
   const manifests = []
   const first = await runMigration(baseRecords(), { client, writeManifest: async (value) => manifests.push(value) })
-  assert.deepEqual(first.counts, { source: 9, created: 9, updated: 0, unchanged: 0, failed: 0 })
+  assert.deepEqual(first.counts, { source: 9, created: 9, updated: 0, unchanged: 0, locked: 0, failed: 0 })
   assert.deepEqual(client.writes.filter(({ kind }) => kind === 'create').map(({ collection }) => collection),
     ['artists', 'artists', 'collections', 'characters', 'versions', 'commissions',
       'uma_scenarios', 'uma_pvp_events', 'uma_support_cards'])
@@ -186,7 +188,7 @@ test('migration creates in dependency order, maps relations on pass two, and is 
 
   client.writes.length = 0
   const second = await runMigration(baseRecords(), { client, writeManifest: async (value) => manifests.push(value) })
-  assert.deepEqual(second.counts, { source: 9, created: 0, updated: 0, unchanged: 9, failed: 0 })
+  assert.deepEqual(second.counts, { source: 9, created: 0, updated: 0, unchanged: 9, locked: 0, failed: 0 })
   assert.equal(client.writes.length, 0)
   assert.equal(manifests.at(-1).counts.unchanged, 9)
 })
@@ -195,7 +197,7 @@ test('dry-run performs no writes and interrupted runs resume from destination st
   const dryClient = new FakeClient()
   const dry = await runMigration(baseRecords(), { client: dryClient, dryRun: true })
   assert.equal(dryClient.writes.length, 0)
-  assert.deepEqual(dry.counts, { source: 9, created: 9, updated: 0, unchanged: 0, failed: 0 })
+  assert.deepEqual(dry.counts, { source: 9, created: 9, updated: 0, unchanged: 0, locked: 0, failed: 0 })
 
   const client = new FakeClient()
   client.failAfter = 2
@@ -264,4 +266,71 @@ test('migration rejects oversized, undecodable, and hash-mismatched files', asyn
     records.find(({ collection }) => collection === 'characters').files = [file]
     await assert.rejects(() => runMigration(records, { client: new FakeClient() }), pattern)
   }
+})
+
+const UMA_COLLECTIONS = ['uma_scenarios', 'uma_pvp_events', 'uma_support_cards']
+
+function umaRecords() {
+  return baseRecords().filter(({ collection }) => UMA_COLLECTIONS.includes(collection))
+}
+
+test('a collection subset reads and writes only those collections and rejects records outside it', async () => {
+  const client = new FakeClient()
+  const result = await runMigration(umaRecords(), { client, collections: UMA_COLLECTIONS })
+  assert.equal(result.counts.source, 3)
+  assert.equal(result.counts.created, 3)
+  assert.deepEqual([...new Set(client.listed)], UMA_COLLECTIONS)
+  await assert.rejects(
+    () => runMigration(baseRecords(), { client: new FakeClient(), collections: UMA_COLLECTIONS }),
+    /outside the selected collections/i,
+  )
+})
+
+test('a destination row with lock_facts is reported as locked and receives no scalar or relation writes', async () => {
+  const client = new FakeClient()
+  await runMigration(umaRecords(), { client, collections: UMA_COLLECTIONS })
+  client.writes.length = 0
+  client.collections.get('uma_support_cards')[0].lock_facts = true
+
+  const records = umaRecords()
+  records.push({ collection: 'uma_pvp_events', legacyId: 2, fields: { name: 'Second', slug: 'second' }, relations: {}, files: [] })
+  const support = records.find(({ collection }) => collection === 'uma_support_cards')
+  support.fields.name = 'Renamed'
+  support.relations.pvp_events.legacyIds = [1, 2]
+
+  const result = await runMigration(records, { client, collections: UMA_COLLECTIONS })
+  assert.equal(result.counts.locked, 1)
+  assert.equal(result.records['uma_support_cards:1'], 'locked')
+  assert.deepEqual(client.writes.map(({ collection, kind }) => `${collection}:${kind}`), ['uma_pvp_events:create'])
+  const destination = client.collections.get('uma_support_cards')[0]
+  assert.equal(destination.name, 'Support')
+  assert.deepEqual(destination.pvp_events, ['uma_pvp_events-1'])
+})
+
+test('preserved fields are kept on existing rows but written on new rows', async () => {
+  const client = new FakeClient()
+  const records = umaRecords()
+  records.find(({ collection }) => collection === 'uma_support_cards').fields.release_date = '2026-01-01 00:00:00.000Z'
+  const preserveFields = { uma_support_cards: ['release_date'] }
+  await runMigration(records, { client, collections: UMA_COLLECTIONS, preserveFields })
+  client.collections.get('uma_support_cards')[0].release_date = '2026-03-03 00:00:00.000Z'
+  client.writes.length = 0
+
+  const support = records.find(({ collection }) => collection === 'uma_support_cards')
+  support.fields.release_date = '2026-02-02 00:00:00.000Z'
+  const untouched = await runMigration(records, { client, collections: UMA_COLLECTIONS, preserveFields })
+  assert.equal(untouched.counts.unchanged, 3, 'a differing preserved field alone is not a change')
+  assert.equal(client.writes.length, 0)
+
+  support.fields.name = 'Renamed'
+  records.push({
+    collection: 'uma_support_cards', legacyId: 2,
+    fields: { name: 'New', slug: 'new', release_date: '2026-04-04 00:00:00.000Z', styles: [], breakpoints: [] },
+    relations: { pvp_events: { collection: 'uma_pvp_events', legacyIds: [] } }, files: [],
+  })
+  await runMigration(records, { client, collections: UMA_COLLECTIONS, preserveFields })
+  const [existing, created] = client.collections.get('uma_support_cards')
+  assert.equal(existing.name, 'Renamed')
+  assert.equal(existing.release_date, '2026-03-03 00:00:00.000Z', 'manual PocketBase value survives the update')
+  assert.equal(created.release_date, '2026-04-04 00:00:00.000Z')
 })

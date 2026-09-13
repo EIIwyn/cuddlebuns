@@ -167,6 +167,47 @@ Apply the checklist to the live tables, set `UMA_IMPORT_NOCODB_*` to the live id
 enable `cuddlebuns-uma-import.timer` (nightly at 23:30 UTC). The five-minute sync timer
 publishes the changes on its next tick.
 
+## Mirroring the Uma tables into PocketBase
+
+Production builds read the Uma timeline from PocketBase, while the GameTora importer writes to
+NocoDB. `npm run mirror:uma` copies the three seeded NocoDB tables (`scenarios`, `pvp_events`,
+`support_cards`) into `uma_scenarios`, `uma_pvp_events`, and `uma_support_cards`, matched by
+`legacy_id` (the NocoDB row Id). It touches no other collection. Whole rows are copied: NocoDB is
+authoritative for every field of an unlocked row, including rating, styles, breakpoints, and the
+card-to-event links, so make those edits in NocoDB or lock the row.
+
+- `lock_facts` in PocketBase freezes a row. The mirror reports it as `locked` and writes nothing
+  to it, scalars, relations, or image. The NocoDB `lock_facts` (the importer's lock) is never
+  copied across; the two locks are independent.
+- New NocoDB rows are created, changed rows updated, unchanged rows skipped. Rows are never
+  deleted from PocketBase.
+- `--dry-run` prints the counts without writing. `--preserve=<collection.field>` keeps that field
+  as it is on existing PocketBase rows for one run (new rows still get the NocoDB value).
+- The mirror refuses to run if a `UMA_NOCODB_*_TABLE_ID` names a table without `gametora_id`,
+  which catches the unseeded `_OLD` copies.
+
+It needs `UMA_NOCODB_*` pointing at the seeded tables plus `POCKETBASE_URL`,
+`POCKETBASE_MIGRATION_EMAIL`, and `POCKETBASE_MIGRATION_PASSWORD` (a superuser: the `cms_sync`
+identity is read-only by design). Create that superuser for the run and remove it afterwards, as
+the migration did. The mirror is manual; it is not on a timer.
+
+### First run
+
+The PocketBase columns `gametora_id`, `lock_facts`, `rarity`, and `title` are added by
+`vps-scripts/pocketbase/pb_migrations/1789100000_add_uma_importer_fields.js`; PocketBase applies
+it on the next container start. Then, because support-card release dates were adjusted by hand in
+PocketBase before the lock column existed:
+
+```powershell
+npm.cmd run mirror:uma -- --dry-run --preserve=uma_support_cards.release_date
+npm.cmd run mirror:uma -- --preserve=uma_support_cards.release_date
+```
+
+Review the dry-run counts first. After the run, tick `lock_facts` on the PocketBase rows that
+must keep manual values; later runs are plain `npm run mirror:uma`, and a second run straight
+after the first must report everything unchanged or locked. The five-minute deploy timer
+publishes the PocketBase changes on its next tick.
+
 ## Local commands
 
 ```powershell
@@ -193,6 +234,9 @@ npm.cmd run validate:cms
 
 # Validate the public Uma timeline JSON
 npm.cmd run validate:uma
+
+# Copy the seeded NocoDB Uma tables into PocketBase (see "Mirroring the Uma tables")
+npm.cmd run mirror:uma -- --dry-run
 
 # Sync first, then build
 npm.cmd run build:fresh

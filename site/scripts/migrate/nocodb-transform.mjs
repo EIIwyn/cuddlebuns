@@ -162,6 +162,7 @@ export async function transformNocoDbSources(sources, options) {
       era_start: date(value(fields, 'era_start', 'Era Start')),
       era_end: date(value(fields, 'era_end', 'Era End')),
       display_color: text(value(fields, 'display_color', 'Display Color')),
+      gametora_id: number(value(fields, 'gametora_id')),
     }))
   }
 
@@ -184,6 +185,7 @@ export async function transformNocoDbSources(sources, options) {
       weather: text(value(fields, 'weather', 'Weather')),
       surface: text(value(fields, 'surface', 'Surface')),
       status: status(value(fields, 'status', 'Status', 'confirmed_projected_status', 'Confirmed/Projected Status')),
+      gametora_id: number(value(fields, 'gametora_id')),
     }, {
       scenario: { collection: 'uma_scenarios', legacyIds: relationIds(value(fields, 'scenario', 'Scenario')) },
     }))
@@ -203,6 +205,9 @@ export async function transformNocoDbSources(sources, options) {
       release_date: date(value(fields, 'release_date', 'Release Date')),
       styles: multiText(value(fields, 'styles', 'Styles')),
       breakpoints: multiText(value(fields, 'breakpoints', 'Breakpoints')),
+      gametora_id: number(value(fields, 'gametora_id')),
+      rarity: text(value(fields, 'rarity', 'Rarity')),
+      title: text(value(fields, 'title', 'Title')),
     }, {
       pvp_events: {
         collection: 'uma_pvp_events',

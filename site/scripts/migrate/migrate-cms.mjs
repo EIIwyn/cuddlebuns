@@ -4,13 +4,17 @@ import path from 'node:path'
 import { getPocketBaseConfig } from '../lib/env.mjs'
 import { createPocketBaseClient } from '../lib/pocketbase-client.mjs'
 import { createAttachmentResolver } from './attachment-resolver.mjs'
-import { runMigration } from './migration-core.mjs'
-import { fetchNocoDbSources, getNocoDbMigrationConfig, sourceFingerprint } from './nocodb-source.mjs'
+import { COLLECTION_ORDER, runMigration } from './migration-core.mjs'
+import { SCOPES, assertUmaImporterColumns, fetchNocoDbSources, getNocoDbMigrationConfig, sourceFingerprint } from './nocodb-source.mjs'
 import { transformNocoDbSources } from './nocodb-transform.mjs'
 
 const SITE_DIR = path.resolve(import.meta.dirname, '../..')
 const CACHE_DIR = path.join(SITE_DIR, '.cache')
-const MANIFEST_FILE = path.join(CACHE_DIR, 'pocketbase-migration', 'manifest.json')
+const MANIFEST_FILES = {
+  all: path.join(CACHE_DIR, 'pocketbase-migration', 'manifest.json'),
+  uma: path.join(CACHE_DIR, 'pocketbase-migration', 'uma-mirror-manifest.json'),
+}
+const UMA_COLLECTIONS = COLLECTION_ORDER.filter((collection) => collection.startsWith('uma_'))
 const ORIGINALS_DIR = path.join(CACHE_DIR, 'originals')
 const INVENTORY_FILES = [
   path.join(CACHE_DIR, 'migration-baseline', 'gallery-originals-inventory.json'),
@@ -47,10 +51,19 @@ async function loadEnvironment(file = path.join(SITE_DIR, '.env.local')) {
   }
 }
 
-function parseArguments(args) {
-  const unknown = args.filter((argument) => argument !== '--dry-run')
-  if (unknown.length) throw new Error(`Unknown migration argument: ${unknown.join(', ')}`)
-  return { dryRun: args.includes('--dry-run') }
+// --uma mirrors only the three Uma collections (the NocoDB tables seeded by import:uma).
+// --preserve=<collection.field> keeps that field as it is on existing PocketBase rows for this run.
+export function parseMigrationArguments(args) {
+  const preserveFields = {}
+  for (const argument of args) {
+    if (argument === '--dry-run' || argument === '--uma') continue
+    if (!argument.startsWith('--preserve=')) throw new Error(`Unknown migration argument: ${argument}`)
+    const [collection, field, ...rest] = argument.slice('--preserve='.length).split('.')
+    if (!collection || !field || rest.length) throw new Error(`--preserve expects collection.field; received ${argument}`)
+    if (!COLLECTION_ORDER.includes(collection)) throw new Error(`--preserve names an unknown collection: ${collection}`)
+    preserveFields[collection] = [...new Set([...(preserveFields[collection] ?? []), field])]
+  }
+  return { dryRun: args.includes('--dry-run'), scopes: args.includes('--uma') ? ['uma'] : [...SCOPES], preserveFields }
 }
 
 async function writeJsonAtomic(file, value) {
@@ -61,39 +74,44 @@ async function writeJsonAtomic(file, value) {
 }
 
 export async function main(args = process.argv.slice(2), options = {}) {
-  const { dryRun } = parseArguments(args)
+  const { dryRun, scopes, preserveFields } = parseMigrationArguments(args)
+  const umaOnly = scopes.length === 1 && scopes[0] === 'uma'
   await loadEnvironment(options.envFile)
-  const nocoConfig = getNocoDbMigrationConfig(options.env ?? process.env)
+  const nocoConfig = getNocoDbMigrationConfig(options.env ?? process.env, { scopes })
   const pocketBaseConfig = getPocketBaseConfig(options.env ?? process.env, 'migration')
   const fetchImpl = options.fetch ?? globalThis.fetch
 
   console.log('Fetching the pre-migration NocoDB metadata snapshot...')
-  const before = await fetchNocoDbSources(nocoConfig, { fetch: fetchImpl })
+  const before = await fetchNocoDbSources(nocoConfig, { fetch: fetchImpl, scopes })
+  if (scopes.includes('uma')) assertUmaImporterColumns(before.uma)
   const beforeFingerprint = sourceFingerprint(before)
   const inventories = await Promise.all(INVENTORY_FILES.map((file) => readJson(file, { entries: [] })))
   const resolveAttachment = createAttachmentResolver({
     cacheDir: ORIGINALS_DIR,
     inventories,
     fetch: fetchImpl,
-    sourceUrls: { gallery: nocoConfig.gallery.url, uma: nocoConfig.uma.url },
+    sourceUrls: Object.fromEntries(scopes.map((scope) => [scope, nocoConfig[scope].url])),
   })
   const records = await transformNocoDbSources(before, { resolveAttachment })
 
   console.log('Fetching the post-attachment NocoDB metadata snapshot...')
-  const after = await fetchNocoDbSources(nocoConfig, { fetch: fetchImpl })
+  const after = await fetchNocoDbSources(nocoConfig, { fetch: fetchImpl, scopes })
   const afterFingerprint = sourceFingerprint(after)
   if (beforeFingerprint !== afterFingerprint) {
     throw new Error('NocoDB metadata changed during source preparation; rejecting the inconsistent run')
   }
 
   const client = createPocketBaseClient(pocketBaseConfig, { fetch: fetchImpl })
-  const previousManifest = await readJson(MANIFEST_FILE, null)
+  const manifestFile = MANIFEST_FILES[umaOnly ? 'uma' : 'all']
+  const previousManifest = await readJson(manifestFile, null)
   const generatedAt = new Date().toISOString()
   const result = await runMigration(records, {
     client,
     dryRun,
     previousManifest,
-    writeManifest: (progress) => writeJsonAtomic(MANIFEST_FILE, {
+    collections: umaOnly ? UMA_COLLECTIONS : undefined,
+    preserveFields,
+    writeManifest: (progress) => writeJsonAtomic(manifestFile, {
       ...progress,
       generatedAt,
       sourceFingerprint: beforeFingerprint,
@@ -102,7 +120,7 @@ export async function main(args = process.argv.slice(2), options = {}) {
   console.log(`${dryRun ? 'Dry run' : 'Migration'} complete: ` +
     `${result.counts.source} source, ${result.counts.created} created, ` +
     `${result.counts.updated} updated, ${result.counts.unchanged} unchanged, ` +
-    `${result.counts.failed} failed.`)
+    `${result.counts.locked} locked, ${result.counts.failed} failed.`)
   return result
 }
 

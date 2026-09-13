@@ -20,15 +20,15 @@
     { "id": 1, "fields": { "Artist Name": "Artist A", "URL": "https://example.invalid/a", "Commission Subject": null, "Date Added": null, "Notes": null, "Price (JPY)": null, "Price (USD)": null, "Price Bracket": "", "Status": "Candidate", "Example": [] } }
   ],
   "uma_scenarios": [
-    { "id": 2, "fields": { "name": "Scenario", "short_name": "second", "slug": "second", "era_start": "2026-01-01", "era_end": "2026-02-01", "display_color": null } },
-    { "id": 1, "fields": { "name": "Scenario", "short_name": "first", "slug": "first", "era_start": "2026-01-01", "era_end": "2026-02-01", "display_color": "#123456" } }
+    { "id": 2, "fields": { "name": "Scenario", "short_name": "second", "slug": "second", "era_start": "2026-01-01", "era_end": "2026-02-01", "display_color": null, "gametora_id": null, "lock_facts": false } },
+    { "id": 1, "fields": { "name": "Scenario", "short_name": "first", "slug": "first", "era_start": "2026-01-01", "era_end": "2026-02-01", "display_color": "#123456", "gametora_id": 5, "lock_facts": true } }
   ],
   "uma_pvp_events": [
-    { "id": 10, "fields": { "name": "Event", "event_number": 1, "slug": "ten", "event_type": "CM", "start_date": "2026-01-02", "end_date": "2026-01-03", "scenario": [{ "id": 1 }], "distance_class": "Mile", "distance_m": 1600, "surface": "Turf" } },
-    { "id": 2, "fields": { "name": "Event", "event_number": 1, "slug": "two", "event_type": "CM", "start_date": "2026-01-02", "end_date": "2026-01-03", "scenario": [{ "id": 1 }], "distance_class": "Mile", "distance_m": 1600, "surface": "Turf" } }
+    { "id": 10, "fields": { "name": "Event", "event_number": 1, "slug": "ten", "event_type": "CM", "start_date": "2026-01-02", "end_date": "2026-01-03", "scenario": [{ "id": 1 }], "distance_class": "Mile", "distance_m": 1600, "surface": "Turf", "status": null, "gametora_id": null, "lock_facts": true } },
+    { "id": 2, "fields": { "name": "Event", "event_number": 1, "slug": "two", "event_type": "CM", "start_date": "2026-01-02", "end_date": "2026-01-03", "scenario": [{ "id": 1 }], "distance_class": "Mile", "distance_m": 1600, "surface": "Turf", "status": "confirmed", "gametora_id": 19, "lock_facts": false } }
   ],
   "uma_support_cards": [
-    { "id": 10, "fields": { "name": "Support", "character_name": "Character", "slug": "ten", "image": [], "card_type": "Speed", "rating": "Core", "release_date": "2026-01-04", "styles": ["Front"], "breakpoints": ["LB0", "LB4"], "pvp_events": [{ "id": 10 }, { "id": 2 }] } },
-    { "id": 2, "fields": { "name": "Support", "character_name": "Character", "slug": "two", "image": [{ "id": "support-2", "title": "support.png", "mimetype": "image/png", "size": 8192, "signedPath": "/files/support.png", "sha256": "7777777777777777777777777777777777777777777777777777777777777777" }], "card_type": "Speed", "rating": "Core", "release_date": "2026-01-04", "styles": ["Front", "Late"], "breakpoints": ["LB0", "LB4"], "pvp_events": [{ "id": 2 }, { "id": 10 }] } }
+    { "id": 10, "fields": { "name": "Support", "character_name": "Character", "slug": "ten", "image": [], "card_type": "Speed", "rating": "Core", "release_date": "2026-01-04", "styles": ["Front"], "breakpoints": ["LB0", "LB4"], "pvp_events": [{ "id": 10 }, { "id": 2 }], "gametora_id": null, "lock_facts": false, "rarity": null, "title": null } },
+    { "id": 2, "fields": { "name": "Support", "character_name": "Character", "slug": "two", "image": [{ "id": "support-2", "title": "support.png", "mimetype": "image/png", "size": 8192, "signedPath": "/files/support.png", "sha256": "7777777777777777777777777777777777777777777777777777777777777777" }], "card_type": "Speed", "rating": "Core", "release_date": "2026-01-04", "styles": ["Front", "Late"], "breakpoints": ["LB0", "LB4"], "pvp_events": [{ "id": 2 }, { "id": 10 }], "gametora_id": 30118, "lock_facts": true, "rarity": "SSR", "title": "[Run Forth!]" } }
   ]
 }

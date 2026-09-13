@@ -32,18 +32,19 @@ const expectedFields = {
   },
   uma_scenarios: {
     legacy_id: 'number', name: 'text', short_name: 'text', slug: 'text', era_start: 'date',
-    era_end: 'date', display_color: 'text',
+    era_end: 'date', display_color: 'text', gametora_id: 'number', lock_facts: 'bool',
   },
   uma_pvp_events: {
     legacy_id: 'number', name: 'text', event_number: 'number', slug: 'text', event_type: 'text',
     start_date: 'date', end_date: 'date', scenario: 'relation', distance_class: 'text',
     distance_m: 'number', racecourse: 'text', direction: 'text', track_condition: 'text',
-    season: 'text', weather: 'text', surface: 'text', status: 'text',
+    season: 'text', weather: 'text', surface: 'text', status: 'text', gametora_id: 'number',
+    lock_facts: 'bool',
   },
   uma_support_cards: {
     legacy_id: 'number', name: 'text', character_name: 'text', slug: 'text', image: 'file',
     card_type: 'text', rating: 'text', release_date: 'date', styles: 'json', breakpoints: 'json',
-    pvp_events: 'relation',
+    pvp_events: 'relation', gametora_id: 'number', rarity: 'text', title: 'text', lock_facts: 'bool',
   },
 }
 

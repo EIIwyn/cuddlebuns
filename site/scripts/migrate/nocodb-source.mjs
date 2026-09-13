@@ -21,9 +21,11 @@ function required(env, name) {
   return result
 }
 
-export function getNocoDbMigrationConfig(env = process.env) {
+export const SCOPES = Object.keys(TABLES)
+
+export function getNocoDbMigrationConfig(env = process.env, options = {}) {
   const config = {}
-  for (const scope of Object.keys(TABLES)) {
+  for (const scope of options.scopes ?? SCOPES) {
     const prefix = scope === 'gallery' ? 'NOCODB' : 'UMA_NOCODB'
     config[scope] = {
       url: required(env, `${prefix}_URL`).replace(/\/+$/, ''),
@@ -57,8 +59,9 @@ export async function fetchNocoDbTable(config, tableId, fetchImpl = globalThis.f
 
 export async function fetchNocoDbSources(config, options = {}) {
   const fetchImpl = options.fetch ?? globalThis.fetch
-  const result = { gallery: {}, uma: {} }
-  for (const scope of Object.keys(TABLES)) {
+  const scopes = options.scopes ?? Object.keys(config)
+  const result = Object.fromEntries(scopes.map((scope) => [scope, {}]))
+  for (const scope of scopes) {
     for (const key of Object.keys(TABLES[scope])) {
       result[scope][key] = await fetchNocoDbTable(config[scope], config[scope].tables[key], fetchImpl)
     }
@@ -84,4 +87,16 @@ export function sourceFingerprint(sources) {
     ])),
   ]))
   return createHash('sha256').update(JSON.stringify(fingerprintValue(ordered))).digest('hex')
+}
+
+// The Uma mirror must read the tables the GameTora importer seeds. NocoDB's v3 API returns every
+// column, null or not, so a table without a gametora_id key is an unseeded copy (or the wrong id).
+export function assertUmaImporterColumns(uma) {
+  for (const [key, envName] of Object.entries(TABLES.uma)) {
+    const records = uma?.[key] ?? []
+    if (records.length && !records.some((record) => 'gametora_id' in (record.fields ?? {}))) {
+      throw new Error(`${envName} points at a table without the importer columns (no gametora_id field); ` +
+        'the Uma mirror needs the tables seeded by import:uma')
+    }
+  }
 }
