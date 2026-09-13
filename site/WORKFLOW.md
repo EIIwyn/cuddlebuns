@@ -13,7 +13,8 @@ NocoDB (server-side API only)
   -> Caddy serves /var/www/cuddlebuns/current
 ```
 
-The browser never connects to NocoDB. `NOCODB_TOKEN` and `UMA_NOCODB_TOKEN` must only exist in `.env.local`
+The browser never connects to NocoDB or PocketBase. `NOCODB_TOKEN`, `UMA_NOCODB_TOKEN`, and PocketBase
+sync credentials must only exist in `.env.local`
 for local work or `/etc/cuddlebuns/gallery.env` on the VPS. Never prefix it with
 `VITE_`, commit it, paste it into browser code, or place it in `public/`.
 
@@ -44,6 +45,11 @@ UMA_NOCODB_SUPPORT_CARDS_TABLE_ID=YOUR_SUPPORT_CARDS_TABLE_ID
 Explicit table IDs are intentional. Personal API tokens in this NocoDB installation do
 not expose the table-list metadata permission, but they can read records from a known
 table ID.
+
+PocketBase is now the production CMS source. Its records use PocketBase's native `id` values;
+the temporary migration-only `legacy_id` fields have been removed. The historical migration
+and source-comparison scripts retain their legacy-ID vocabulary because they operate on the
+archived NocoDB-to-PocketBase migration format.
 
 On Windows PowerShell, use `npm.cmd` if the PowerShell execution policy blocks
 `npm.ps1`:
@@ -171,8 +177,10 @@ publishes the changes on its next tick.
 
 Production builds read the Uma timeline from PocketBase, while the GameTora importer writes to
 NocoDB. `npm run mirror:uma` copies the three seeded NocoDB tables (`scenarios`, `pvp_events`,
-`support_cards`) into `uma_scenarios`, `uma_pvp_events`, and `uma_support_cards`, matched by
-`legacy_id` (the NocoDB row Id). It touches no other collection. Whole rows are copied: NocoDB is
+`support_cards`) into `uma_scenarios`, `uma_pvp_events`, and `uma_support_cards`. Rows are matched
+by `gametora_id` first and `slug` second (PocketBase no longer carries `legacy_id`), so the first
+run links every existing row by slug and stamps its `gametora_id`; later runs follow `gametora_id`
+even if a slug changes in NocoDB. It touches no other collection. Whole rows are copied: NocoDB is
 authoritative for every field of an unlocked row, including rating, styles, breakpoints, and the
 card-to-event links, so make those edits in NocoDB or lock the row.
 
@@ -184,7 +192,10 @@ card-to-event links, so make those edits in NocoDB or lock the row.
 - `--dry-run` prints the counts without writing. `--preserve=<collection.field>` keeps that field
   as it is on existing PocketBase rows for one run (new rows still get the NocoDB value).
 - The mirror refuses to run if a `UMA_NOCODB_*_TABLE_ID` names a table without `gametora_id`,
-  which catches the unseeded `_OLD` copies.
+  which catches the unseeded `_OLD` copies. It also stops before writing if two PocketBase rows
+  share a slug or `gametora_id`, or if one NocoDB row matches two PocketBase rows.
+- A PocketBase row that matches nothing in NocoDB is left alone; a dry run whose `created` count
+  is not zero usually means a slug was edited on one side.
 
 It needs `UMA_NOCODB_*` pointing at the seeded tables plus `POCKETBASE_URL`,
 `POCKETBASE_MIGRATION_EMAIL`, and `POCKETBASE_MIGRATION_PASSWORD` (a superuser: the `cms_sync`

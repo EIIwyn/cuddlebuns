@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 import { test } from 'node:test'
 
 import {
+  UMA_MIRROR_IDENTITY,
   buildRecordBody,
   detectImageFormat,
   runMigration,
@@ -96,7 +97,7 @@ class FakeClient {
     this.#maybeFail()
     const decoded = await decodeBody(body)
     const record = {
-      id: `${collection}-${decoded.fields.legacy_id}`,
+      id: `${collection}-${decoded.fields.legacy_id ?? this.#records(collection).length + 1}`,
       collectionName: collection,
       ...decoded.fields,
       _files: {},
@@ -333,4 +334,65 @@ test('preserved fields are kept on existing rows but written on new rows', async
   assert.equal(existing.name, 'Renamed')
   assert.equal(existing.release_date, '2026-03-03 00:00:00.000Z', 'manual PocketBase value survives the update')
   assert.equal(created.release_date, '2026-04-04 00:00:00.000Z')
+})
+
+function pocketBaseRow(collection, fields) {
+  return { collectionName: collection, _files: {}, ...fields }
+}
+
+test('the Uma mirror identity matches PocketBase rows by gametora_id, then slug, and never writes legacy_id', async () => {
+  const client = new FakeClient()
+  client.collections.set('uma_scenarios', [pocketBaseRow('uma_scenarios', { id: 'pb-scenario', name: 'Old', slug: 'scenario', gametora_id: 0 })])
+  client.collections.set('uma_pvp_events', [pocketBaseRow('uma_pvp_events', { id: 'pb-event', name: 'Old', slug: 'renamed-in-nocodb', gametora_id: 19, scenario: '' })])
+  client.collections.set('uma_support_cards', [pocketBaseRow('uma_support_cards', { id: 'pb-orphan', name: 'PocketBase only', slug: 'orphan', gametora_id: 0 })])
+  const records = umaRecords()
+  records.find(({ collection }) => collection === 'uma_scenarios').fields.gametora_id = 5
+  records.find(({ collection }) => collection === 'uma_pvp_events').fields.gametora_id = 19
+  const options = { client, collections: UMA_COLLECTIONS, identity: UMA_MIRROR_IDENTITY }
+
+  const result = await runMigration(records, options)
+  assert.deepEqual(result.counts, { source: 3, created: 1, updated: 2, unchanged: 0, locked: 0, failed: 0 })
+  const scenario = client.collections.get('uma_scenarios')[0]
+  assert.equal(scenario.id, 'pb-scenario', 'matched by slug because PocketBase had no gametora_id yet')
+  assert.equal(scenario.gametora_id, 5)
+  assert.equal('legacy_id' in scenario, false)
+  const event = client.collections.get('uma_pvp_events')[0]
+  assert.equal(event.slug, 'event', 'matched by gametora_id although the slug differed')
+  assert.equal(event.scenario, 'pb-scenario', 'relation resolved through the slug-matched scenario')
+  const cards = client.collections.get('uma_support_cards')
+  assert.equal(cards.length, 2)
+  assert.equal(cards[0].name, 'PocketBase only', 'an unmatched PocketBase row is left alone')
+  assert.equal('legacy_id' in cards[1], false)
+  assert.deepEqual(cards[1].pvp_events, ['pb-event'])
+
+  client.writes.length = 0
+  const again = await runMigration(records, options)
+  assert.equal(again.counts.unchanged, 3)
+  assert.equal(client.writes.length, 0)
+})
+
+test('the Uma mirror identity rejects duplicate or ambiguous PocketBase keys before writing', async () => {
+  const duplicate = new FakeClient()
+  duplicate.collections.set('uma_scenarios', [
+    pocketBaseRow('uma_scenarios', { id: 'a', slug: 'scenario', gametora_id: 0 }),
+    pocketBaseRow('uma_scenarios', { id: 'b', slug: 'scenario', gametora_id: 0 }),
+  ])
+  await assert.rejects(
+    () => runMigration(umaRecords(), { client: duplicate, collections: UMA_COLLECTIONS, identity: UMA_MIRROR_IDENTITY }),
+    /duplicate .*slug:scenario/i,
+  )
+  assert.equal(duplicate.writes.length, 0)
+
+  const ambiguous = new FakeClient()
+  ambiguous.collections.set('uma_scenarios', [
+    pocketBaseRow('uma_scenarios', { id: 'a', slug: 'other', gametora_id: 5 }),
+    pocketBaseRow('uma_scenarios', { id: 'b', slug: 'scenario', gametora_id: 0 }),
+  ])
+  const records = umaRecords()
+  records.find(({ collection }) => collection === 'uma_scenarios').fields.gametora_id = 5
+  await assert.rejects(
+    () => runMigration(records, { client: ambiguous, collections: UMA_COLLECTIONS, identity: UMA_MIRROR_IDENTITY }),
+    /ambiguous/i,
+  )
+  assert.equal(ambiguous.writes.length, 0)
 })

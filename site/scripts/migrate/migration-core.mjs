@@ -192,13 +192,52 @@ function withoutPreserved(fields, preserved) {
   return Object.fromEntries(Object.entries(fields).filter(([field]) => !preserved.includes(field)))
 }
 
+function positiveInteger(value) {
+  const number = Number(value)
+  return Number.isInteger(number) && number > 0 ? number : null
+}
+
+// An identity decides which destination row a source record is. keys() returns match keys in
+// priority order for either a PocketBase record or a source record's fields; fields() returns the
+// identity columns written alongside the source fields.
+export const LEGACY_ID_IDENTITY = {
+  keys(values) {
+    const legacyId = positiveInteger(values.legacy_id)
+    if (!legacyId) throw new Error(`invalid legacy_id ${values.legacy_id}`)
+    return [`legacy:${legacyId}`]
+  },
+  fields(source) {
+    return { legacy_id: source.legacyId }
+  },
+}
+
+// The Uma mirror runs after legacy_id was dropped from PocketBase. gametora_id is the durable key
+// once it has been written; slug links each row the first time and covers rows the importer never
+// keyed (League of Heroes events, hand-made scenarios).
+export const UMA_MIRROR_IDENTITY = {
+  keys(values) {
+    const keys = []
+    const gametoraId = positiveInteger(values.gametora_id)
+    if (gametoraId) keys.push(`gametora:${gametoraId}`)
+    const slug = typeof values.slug === 'string' ? values.slug.trim() : ''
+    if (slug) keys.push(`slug:${slug}`)
+    return keys
+  },
+  fields() {
+    return {}
+  },
+}
+
 // options.collections limits the run to a subset of COLLECTION_ORDER (records outside it are rejected).
+// options.identity selects how source rows are matched to destination rows (default: legacy_id).
 // options.preserveFields ({ collection: [field, ...] }) keeps those fields as they are on existing
 // destination rows; new rows still receive the source value. A destination row with lock_facts true
 // is reported as locked and never written.
 export async function runMigration(records, options) {
   validateMigrationRecords(records)
-  const { client, dryRun = false, writeManifest = async () => {}, preserveFields = {} } = options
+  const {
+    client, dryRun = false, writeManifest = async () => {}, preserveFields = {}, identity = LEGACY_ID_IDENTITY,
+  } = options
   const selected = COLLECTION_ORDER.filter((collection) => (options.collections ?? COLLECTION_ORDER).includes(collection))
   const outside = records.filter((record) => !selected.includes(record.collection))
   if (outside.length) {
@@ -209,26 +248,46 @@ export async function runMigration(records, options) {
     .sort((left, right) => left.legacyId - right.legacyId))
   const counts = { source: ordered.length, created: 0, updated: 0, unchanged: 0, locked: 0, failed: 0 }
   const statuses = new Map()
-  const destination = new Map()
-  const mapping = new Map()
+  const destination = new Map() // collection:matchKey -> destination record
+  const resolved = new Map() // collection:legacyId -> destination record after pass one
+  const mapping = new Map() // collection:legacyId -> destination id, for relations
   const preparedFiles = new Map()
 
   for (const collection of selected) {
-    const seen = new Set()
     for (const record of await client.listAll(collection)) {
-      const legacyId = Number(record.legacy_id)
-      if (!Number.isInteger(legacyId) || legacyId < 1) throw new Error(`Invalid destination legacy_id in ${collection}`)
-      if (seen.has(legacyId)) throw new Error(`Duplicate destination legacy_id ${legacyId} in ${collection}`)
-      seen.add(legacyId)
-      destination.set(recordKey(collection, legacyId), record)
-      mapping.set(recordKey(collection, legacyId), record.id)
+      let keys
+      try {
+        keys = identity.keys(record)
+      } catch (error) {
+        throw new Error(`Invalid destination identity in ${collection} record ${record.id}: ${error.message}`)
+      }
+      for (const key of keys) {
+        const full = recordKey(collection, key)
+        if (destination.has(full)) {
+          throw new Error(`Duplicate destination key ${key} in ${collection} (records ${destination.get(full).id} and ${record.id})`)
+        }
+        destination.set(full, record)
+      }
     }
+  }
+
+  function resolveDestination(source) {
+    const keys = identity.keys({ ...identity.fields(source), ...source.fields })
+    const matches = [...new Set(keys.map((key) => destination.get(recordKey(source.collection, key))).filter(Boolean))]
+    if (matches.length > 1) {
+      throw new Error(`${source.collection}:${source.legacyId} is ambiguous: keys ${keys.join(', ')} match destination records ${matches.map(({ id }) => id).join(', ')}`)
+    }
+    return matches[0] ?? null
   }
 
   try {
     for (const source of ordered) {
       const key = recordKey(source.collection, source.legacyId)
-      const existing = destination.get(key)
+      const existing = resolveDestination(source)
+      if (existing) {
+        resolved.set(key, existing)
+        mapping.set(key, existing.id)
+      }
       if (isLocked(existing)) {
         statuses.set(key, 'locked')
         counts.locked += 1
@@ -236,7 +295,7 @@ export async function runMigration(records, options) {
         continue
       }
       const preserved = existing ? preserveFields[source.collection] ?? [] : []
-      const expectedFields = withoutPreserved({ legacy_id: source.legacyId, ...source.fields }, preserved)
+      const expectedFields = withoutPreserved({ ...identity.fields(source), ...source.fields }, preserved)
       const scalarChanged = existing && Object.entries(expectedFields)
         .some(([field, value]) => !equal(existing[field], value))
       const expectedByField = Map.groupBy(source.files ?? [], ({ field }) => field)
@@ -262,7 +321,7 @@ export async function runMigration(records, options) {
         }
         const created = await client.createRecord(source.collection,
           await buildRecordBody(expectedFields, allPrepared))
-        destination.set(key, created)
+        resolved.set(key, created)
         mapping.set(key, created.id)
       } else if (scalarChanged || changedFileFields.length) {
         statuses.set(key, 'updated')
@@ -273,7 +332,7 @@ export async function runMigration(records, options) {
         const files = changedFileFields.flatMap((field) => preparedFiles.get(`${key}.${field}`))
         const updated = await client.updateRecord(source.collection, existing.id,
           await buildRecordBody(payload, files))
-        destination.set(key, updated)
+        resolved.set(key, updated)
       } else {
         statuses.set(key, 'unchanged')
         counts.unchanged += 1
@@ -286,7 +345,7 @@ export async function runMigration(records, options) {
       if (!relationEntries.length) continue
       const key = recordKey(source.collection, source.legacyId)
       if (statuses.get(key) === 'locked') continue
-      const existing = destination.get(key)
+      const existing = resolved.get(key)
       const payload = Object.fromEntries(relationEntries.map(([field, relation]) => [
         field,
         relationValue(source, field, relation, mapping),
@@ -300,7 +359,7 @@ export async function runMigration(records, options) {
       }
       if (!dryRun) {
         const updated = await client.updateRecord(source.collection, existing.id, payload)
-        destination.set(key, updated)
+        resolved.set(key, updated)
       }
       await writeManifest(manifest(counts, statuses, dryRun))
     }

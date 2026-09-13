@@ -64,7 +64,8 @@ The browser never talks to NocoDB. Everything public is prebuilt:
    images. A nightly timer runs it on the VPS. Design: `docs/2026-09-07-uma-gametora-import-design.md`.
    Production reads from PocketBase, so `scripts/migrate/migrate-cms.mjs --uma` (`npm run mirror:uma`)
    copies the three seeded Uma tables into `uma_scenarios`, `uma_pvp_events`, `uma_support_cards`
-   by `legacy_id`, whole rows, skipping PocketBase rows with `lock_facts` set. Manual, never timed.
+   matched by `gametora_id` then `slug`, whole rows, skipping PocketBase rows with `lock_facts`
+   set. Manual, never timed.
 4. Both sync scripts support `--check`, which compares a fingerprint of the public-facing source
    data against the cached manifest and exits 10 when a rebuild is needed. The VPS timer relies on
    this exit code.

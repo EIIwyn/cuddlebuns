@@ -4,7 +4,7 @@ import path from 'node:path'
 import { getPocketBaseConfig } from '../lib/env.mjs'
 import { createPocketBaseClient } from '../lib/pocketbase-client.mjs'
 import { createAttachmentResolver } from './attachment-resolver.mjs'
-import { COLLECTION_ORDER, runMigration } from './migration-core.mjs'
+import { COLLECTION_ORDER, UMA_MIRROR_IDENTITY, runMigration } from './migration-core.mjs'
 import { SCOPES, assertUmaImporterColumns, fetchNocoDbSources, getNocoDbMigrationConfig, sourceFingerprint } from './nocodb-source.mjs'
 import { transformNocoDbSources } from './nocodb-transform.mjs'
 
@@ -110,6 +110,7 @@ export async function main(args = process.argv.slice(2), options = {}) {
     dryRun,
     previousManifest,
     collections: umaOnly ? UMA_COLLECTIONS : undefined,
+    identity: umaOnly ? UMA_MIRROR_IDENTITY : undefined,
     preserveFields,
     writeManifest: (progress) => writeJsonAtomic(manifestFile, {
       ...progress,
