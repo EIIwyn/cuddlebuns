@@ -9,7 +9,7 @@ const imageMimeTypes = ['image/avif', 'image/gif', 'image/jpeg', 'image/png', 'i
 
 const expectedFields = {
   artists: {
-    name: 'text', url: 'url', commission_subject: 'json', date_added: 'date',
+    artist_name: 'text', url: 'url', commission_subject: 'json', date_added: 'date',
     notes: 'text', price_jpy: 'number', price_usd: 'number', price_bracket: 'text', status: 'text',
     example: 'file',
   },

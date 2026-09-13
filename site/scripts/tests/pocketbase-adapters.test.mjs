@@ -25,8 +25,8 @@ class FixtureClient {
 function pocketBaseFixture() {
   return {
     artists: [
-      { id: 'artist-two', legacy_id: 2, name: 'Artist B', url: 'https://example.invalid/b', commission_subject: ['Portrait'], date_added: '2026-01-02 00:00:00.000Z', notes: 'private note', price_jpy: 12000, price_usd: 80, price_bracket: 'Affordable', status: 'Candidate', example: 'artist-example.png', updated: '2026-01-01' },
-      { id: 'artist-one', legacy_id: 1, name: 'Artist A', url: 'https://example.invalid/a', updated: '2026-01-01' },
+      { id: 'artist-two', legacy_id: 2, artist_name: 'Artist B', url: 'https://example.invalid/b', commission_subject: ['Portrait'], date_added: '2026-01-02 00:00:00.000Z', notes: 'private note', price_jpy: 12000, price_usd: 80, price_bracket: 'Affordable', status: 'Candidate', example: 'artist-example.png', updated: '2026-01-01' },
+      { id: 'artist-one', legacy_id: 1, artist_name: 'Artist A', url: 'https://example.invalid/a', updated: '2026-01-01' },
     ],
     collections: [
       { id: 'collection-two', legacy_id: 2, name: 'Collection', slug: 'second', display_order: 1, visible: true, collapsible: true, updated: '2026-01-01' },

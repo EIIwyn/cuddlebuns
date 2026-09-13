@@ -51,7 +51,7 @@ export async function loadPocketBaseGallerySource(client) {
     artists: tables.artists.map((record) => ({
       id: record.id,
       fields: {
-        'Artist Name': record.name, URL: record.url,
+        'Artist Name': record.artist_name ?? record.name, URL: record.url,
         'Commission Subject': record.commission_subject,
         'Date Added': record.date_added, Notes: record.notes,
         'Price (JPY)': record.price_jpy, 'Price (USD)': record.price_usd,
