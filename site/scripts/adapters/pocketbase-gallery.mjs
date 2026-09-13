@@ -17,12 +17,22 @@ function legacyMap(records, collection) {
 }
 
 function relations(input, mapping, label) {
-  const ids = Array.isArray(input) ? input : input ? [input] : []
+  const ids = relationRecordIds(input)
   return ids.map((id) => {
-    const legacyId = mapping.get(id)
+    const legacyId = mapping.get(id) ?? [...mapping.entries()]
+      .find(([, value]) => String(value) === id)?.[1]
     if (!legacyId) throw new Error(`${label} references unknown PocketBase record ${id}`)
     return { id: legacyId }
   })
+}
+
+function relationRecordIds(input) {
+  const ids = Array.isArray(input) ? input : input ? [input] : []
+  return ids.map((value) => {
+    if (value == null) return null
+    if (typeof value === 'string' || typeof value === 'number') return String(value)
+    return value.id != null ? String(value.id) : null
+  }).filter(Boolean)
 }
 
 function mimeType(filename) {
@@ -101,7 +111,7 @@ export async function loadPocketBaseGallerySource(client) {
         'Display Order': record.display_order,
         Visible: record.visible,
         Character: relations(record.character, mappings.characters, `versions:${record.legacy_id}.character`),
-        Commissions: tables.commissions.filter(({ versions }) => versions.includes(record.id))
+        Commissions: tables.commissions.filter(({ versions }) => relationRecordIds(versions).includes(String(record.id)))
           .map(({ legacy_id: id }) => ({ id })),
       },
     })),

@@ -90,6 +90,17 @@ test('PocketBase gallery adapter restores legacy relations, file order, drafts, 
   assert.deepEqual(client.downloads, ['versions:2:reference-a.gif'])
 })
 
+test('PocketBase gallery adapter accepts normalized relation representations', async () => {
+  const fixture = pocketBaseFixture()
+  fixture.versions[1].id = 2
+  fixture.commissions[0].versions = [{ id: 2 }]
+  fixture.commissions[1].versions = [2]
+  fixture.commissions[2].versions = [2]
+  const tables = await loadPocketBaseGallerySource(new FixtureClient(fixture))
+
+  assert.deepEqual(tables.versions[0].fields.Commissions.map(({ id }) => id), [2, 3, 10])
+})
+
 test('PocketBase Uma adapter preserves arrays, relation order, dates, status, and image access', async () => {
   const client = new FixtureClient(pocketBaseFixture())
   const tables = await loadPocketBaseUmaSource(client)
