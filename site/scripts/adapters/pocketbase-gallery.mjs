@@ -3,26 +3,14 @@ import path from 'node:path'
 const COLLECTIONS = ['artists', 'collections', 'characters', 'versions', 'commissions']
 
 function ordered(records) {
-  return [...records].sort((left, right) => Number(left.legacy_id) - Number(right.legacy_id))
+  return [...records].sort((left, right) => String(left.id).localeCompare(String(right.id)))
 }
 
-function legacyMap(records, collection) {
-  return new Map(records.map((record) => {
-    const legacyId = Number(record.legacy_id)
-    if (!Number.isInteger(legacyId) || legacyId < 1) {
-      throw new Error(`${collection} record ${record.id} has invalid legacy_id`)
-    }
-    return [record.id, legacyId]
-  }))
-}
-
-function relations(input, mapping, label) {
+function relations(input, label) {
   const ids = relationRecordIds(input)
   return ids.map((id) => {
-    const legacyId = mapping.get(id) ?? [...mapping.entries()]
-      .find(([, value]) => String(value) === id)?.[1]
-    if (!legacyId) throw new Error(`${label} references unknown PocketBase record ${id}`)
-    return { id: legacyId }
+    if (!id) throw new Error(`${label} contains an invalid PocketBase relation`)
+    return { id }
   })
 }
 
@@ -59,14 +47,9 @@ export async function loadPocketBaseGallerySource(client) {
     collection,
     ordered(await client.listAll(collection)),
   ])))
-  const mappings = Object.fromEntries(COLLECTIONS.map((collection) => [
-    collection,
-    legacyMap(tables[collection], collection),
-  ]))
-
   return {
     artists: tables.artists.map((record) => ({
-      id: record.legacy_id,
+      id: record.id,
       fields: {
         'Artist Name': record.name, URL: record.url,
         'Commission Subject': record.commission_subject,
@@ -77,16 +60,16 @@ export async function loadPocketBaseGallerySource(client) {
       },
     })),
     collections: tables.collections.map((record) => ({
-      id: record.legacy_id,
+      id: record.id,
       fields: {
         Name: record.name, Slug: record.slug, 'Display Order': record.display_order,
         Visible: record.visible, Collapsible: record.collapsible,
-        Characters: tables.characters.filter(({ collection }) => collection === record.id)
-          .map(({ legacy_id: id }) => ({ id })),
+        Characters: tables.characters.filter(({ collection }) => relationRecordIds(collection).includes(String(record.id)))
+          .map(({ id }) => ({ id })),
       },
     })),
     characters: tables.characters.map((record) => ({
-      id: record.legacy_id,
+      id: record.id,
       fields: {
         Name: record.name,
         Slug: record.slug,
@@ -95,28 +78,28 @@ export async function loadPocketBaseGallerySource(client) {
         'Card Thumbnail': attachments(client, 'characters', record, 'card_thumbnail'),
         'Display Order': record.display_order,
         Visible: record.visible,
-        Collections: relations(record.collection, mappings.collections, `characters:${record.legacy_id}.collection`),
-        Versions: tables.versions.filter(({ character }) => character === record.id)
-          .map(({ legacy_id: id }) => ({ id })),
+        Collections: relations(record.collection, `characters:${record.id}.collection`),
+        Versions: tables.versions.filter(({ character }) => relationRecordIds(character).includes(String(record.id)))
+          .map(({ id }) => ({ id })),
         'Social 1 Label': record.social_label,
         'Social 1 URL': record.social_url,
       },
     })),
     versions: tables.versions.map((record) => ({
-      id: record.legacy_id,
+      id: record.id,
       fields: {
         Name: record.name,
         Slug: record.slug,
         'Reference Sheet': attachments(client, 'versions', record, 'reference_sheet'),
         'Display Order': record.display_order,
         Visible: record.visible,
-        Character: relations(record.character, mappings.characters, `versions:${record.legacy_id}.character`),
+        Character: relations(record.character, `versions:${record.id}.character`),
         Commissions: tables.commissions.filter(({ versions }) => relationRecordIds(versions).includes(String(record.id)))
-          .map(({ legacy_id: id }) => ({ id })),
+          .map(({ id }) => ({ id })),
       },
     })),
     commissions: tables.commissions.map((record) => ({
-      id: record.legacy_id,
+      id: record.id,
       fields: {
         'Internal Title': record.name,
         Type: record.type,
@@ -125,8 +108,8 @@ export async function loadPocketBaseGallerySource(client) {
         Date: typeof record.date === 'string' ? record.date.slice(0, 10) : record.date,
         Published: record.published,
         'Display Order': record.display_order,
-        Versions: relations(record.versions, mappings.versions, `commissions:${record.legacy_id}.versions`),
-        Artists: relations(record.artists, mappings.artists, `commissions:${record.legacy_id}.artists`),
+        Versions: relations(record.versions, `commissions:${record.id}.versions`),
+        Artists: relations(record.artists, `commissions:${record.id}.artists`),
       },
     })),
   }

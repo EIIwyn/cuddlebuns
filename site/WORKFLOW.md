@@ -13,7 +13,8 @@ NocoDB (server-side API only)
   -> Caddy serves /var/www/cuddlebuns/current
 ```
 
-The browser never connects to NocoDB. `NOCODB_TOKEN` and `UMA_NOCODB_TOKEN` must only exist in `.env.local`
+The browser never connects to NocoDB or PocketBase. `NOCODB_TOKEN`, `UMA_NOCODB_TOKEN`, and PocketBase
+sync credentials must only exist in `.env.local`
 for local work or `/etc/cuddlebuns/gallery.env` on the VPS. Never prefix it with
 `VITE_`, commit it, paste it into browser code, or place it in `public/`.
 
@@ -44,6 +45,11 @@ UMA_NOCODB_SUPPORT_CARDS_TABLE_ID=YOUR_SUPPORT_CARDS_TABLE_ID
 Explicit table IDs are intentional. Personal API tokens in this NocoDB installation do
 not expose the table-list metadata permission, but they can read records from a known
 table ID.
+
+PocketBase is now the production CMS source. Its records use PocketBase's native `id` values;
+the temporary migration-only `legacy_id` fields have been removed. The historical migration
+and source-comparison scripts retain their legacy-ID vocabulary because they operate on the
+archived NocoDB-to-PocketBase migration format.
 
 On Windows PowerShell, use `npm.cmd` if the PowerShell execution policy blocks
 `npm.ps1`:

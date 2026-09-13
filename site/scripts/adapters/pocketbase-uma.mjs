@@ -3,26 +3,14 @@ import path from 'node:path'
 const COLLECTIONS = ['uma_scenarios', 'uma_pvp_events', 'uma_support_cards']
 
 function ordered(records) {
-  return [...records].sort((left, right) => Number(left.legacy_id) - Number(right.legacy_id))
+  return [...records].sort((left, right) => String(left.id).localeCompare(String(right.id)))
 }
 
-function legacyMap(records, collection) {
-  return new Map(records.map((record) => {
-    const legacyId = Number(record.legacy_id)
-    if (!Number.isInteger(legacyId) || legacyId < 1) {
-      throw new Error(`${collection} record ${record.id} has invalid legacy_id`)
-    }
-    return [record.id, legacyId]
-  }))
-}
-
-function relations(input, mapping, label) {
+function relationIds(input) {
   const ids = Array.isArray(input) ? input : input ? [input] : []
-  return ids.map((id) => {
-    const legacyId = mapping.get(id)
-    if (!legacyId) throw new Error(`${label} references unknown PocketBase record ${id}`)
-    return { id: legacyId }
-  })
+  return ids.map((value) => typeof value === 'object' && value !== null ? value.id : value)
+    .filter((id) => id != null && id !== '')
+    .map((id) => ({ id: String(id) }))
 }
 
 function mimeType(filename) {
@@ -49,20 +37,16 @@ export async function loadPocketBaseUmaSource(client) {
     collection,
     ordered(await client.listAll(collection)),
   ])))
-  const scenarioMap = legacyMap(tables.uma_scenarios, 'uma_scenarios')
-  const eventMap = legacyMap(tables.uma_pvp_events, 'uma_pvp_events')
-  legacyMap(tables.uma_support_cards, 'uma_support_cards')
-
   return {
     scenarios: tables.uma_scenarios.map((record) => ({
-      id: record.legacy_id,
+      id: record.id,
       fields: {
         name: record.name, short_name: record.short_name, slug: record.slug,
         era_start: record.era_start, era_end: record.era_end, display_color: record.display_color,
       },
     })),
     events: tables.uma_pvp_events.map((record) => ({
-      id: record.legacy_id,
+      id: record.id,
       fields: {
         name: record.name,
         event_number: record.event_number,
@@ -70,7 +54,7 @@ export async function loadPocketBaseUmaSource(client) {
         event_type: record.event_type,
         start_date: record.start_date,
         end_date: record.end_date,
-        scenario: relations(record.scenario, scenarioMap, `uma_pvp_events:${record.legacy_id}.scenario`),
+        scenario: relationIds(record.scenario),
         distance_class: record.distance_class,
         distance_m: record.distance_m,
         racecourse: record.racecourse,
@@ -83,7 +67,7 @@ export async function loadPocketBaseUmaSource(client) {
       },
     })),
     supportCards: tables.uma_support_cards.map((record) => ({
-      id: record.legacy_id,
+      id: record.id,
       fields: {
         name: record.name,
         character_name: record.character_name,
@@ -94,7 +78,7 @@ export async function loadPocketBaseUmaSource(client) {
         release_date: record.release_date,
         styles: record.styles,
         breakpoints: record.breakpoints,
-        pvp_events: relations(record.pvp_events, eventMap, `uma_support_cards:${record.legacy_id}.pvp_events`),
+        pvp_events: relationIds(record.pvp_events),
       },
     })),
   }

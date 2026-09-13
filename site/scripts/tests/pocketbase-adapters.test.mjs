@@ -72,20 +72,20 @@ test('PocketBase gallery adapter restores legacy relations, file order, drafts, 
   assert.equal(tables.artists[1].fields.Example[0].title, 'artist-example.png')
   assert.equal(typeof tables.artists[1].fields.Example[0].read, 'function')
   const model = createGalleryModel(tables, { url: 'https://unused.invalid' })
-  assert.deepEqual(model.collections.map(({ id }) => id), ['1', '2'])
-  assert.deepEqual(model.collections[0].characters.map(({ id }) => id), ['1'])
-  assert.deepEqual(model.collections[1].characters.map(({ id }) => id), ['2'])
-  assert.deepEqual(model.collections[0].characters[0].versions.map(({ id }) => id), ['2', '10'])
-  assert.deepEqual(model.galleries.get('2').map(({ recordId }) => recordId), ['2', '2', '10'])
+  assert.deepEqual(model.collections.map(({ id }) => id), ['collection-one', 'collection-two'])
+  assert.deepEqual(model.collections[0].characters.map(({ id }) => id), ['character-one'])
+  assert.deepEqual(model.collections[1].characters.map(({ id }) => id), ['character-two'])
+  assert.deepEqual(model.collections[0].characters[0].versions.map(({ id }) => id), ['version-ten', 'version-two'])
+  assert.deepEqual(model.galleries.get('version-two').map(({ recordId }) => recordId), ['commission-ten', 'commission-two', 'commission-two'])
   assert.equal(JSON.stringify(model).includes('must remain private'), false)
-  assert.equal(model.galleries.get('2')[0].date, '2026-01-01')
+  assert.equal(model.galleries.get('version-two')[0].date, '2026-01-01')
   assert.equal(model.errors.length, 0)
   assert.deepEqual([...model.imageTasks].map(([key]) => key), [
-    'character-thumbnail:1:thumb.png', 'reference:2:reference-a.gif',
-    'reference:2:reference-b.png', 'commission:2:two-a.png',
-    'commission:2:two-b.png', 'commission:10:ten.webp',
+    'character-thumbnail:character-one:thumb.png', 'reference:version-two:reference-a.gif',
+    'reference:version-two:reference-b.png', 'commission:commission-ten:ten.webp',
+    'commission:commission-two:two-a.png', 'commission:commission-two:two-b.png',
   ])
-  const gifTask = model.imageTasks.get('reference:2:reference-a.gif')
+  const gifTask = model.imageTasks.get('reference:version-two:reference-a.gif')
   assert.deepEqual(await gifTask.read(), Buffer.from('474946383961', 'hex'))
   assert.deepEqual(client.downloads, ['versions:2:reference-a.gif'])
 })
@@ -98,20 +98,21 @@ test('PocketBase gallery adapter accepts normalized relation representations', a
   fixture.commissions[2].versions = [2]
   const tables = await loadPocketBaseGallerySource(new FixtureClient(fixture))
 
-  assert.deepEqual(tables.versions[0].fields.Commissions.map(({ id }) => id), [2, 3, 10])
+  assert.deepEqual(tables.versions[0].fields.Commissions.map(({ id }) => id), ['commission-draft', 'commission-ten', 'commission-two'])
 })
 
 test('PocketBase Uma adapter preserves arrays, relation order, dates, status, and image access', async () => {
   const client = new FixtureClient(pocketBaseFixture())
   const tables = await loadPocketBaseUmaSource(client)
   const model = createUmaModel(tables.scenarios, tables.events, tables.supportCards)
-  assert.deepEqual(model.events.map(({ id }) => id), ['2', '10'])
-  assert.deepEqual(model.events.map(({ status }) => status), ['confirmed', 'projected'])
-  assert.deepEqual(model.supportCards.map(({ id }) => id), ['2', '10'])
-  assert.deepEqual(model.supportCards[0].styles, ['Front', 'Late'])
-  assert.deepEqual(model.supportCards[0].breakpoints, ['LB0', 'LB4'])
-  assert.deepEqual(model.supportCards[0].eventIds, ['2', '10'])
-  const task = model.imageTasks.get('support-card:2:support.png')
+  assert.deepEqual(model.events.map(({ id }) => id), ['event-ten', 'event-two'])
+  assert.deepEqual(model.events.map(({ status }) => status), ['projected', 'confirmed'])
+  assert.deepEqual(model.supportCards.map(({ id }) => id), ['support-ten', 'support-two'])
+  const supportTwo = model.supportCards.find(({ id }) => id === 'support-two')
+  assert.deepEqual(supportTwo.styles, ['Front', 'Late'])
+  assert.deepEqual(supportTwo.breakpoints, ['LB0', 'LB4'])
+  assert.deepEqual(supportTwo.eventIds, ['event-two', 'event-ten'])
+  const task = model.imageTasks.get('support-card:support-two:support.png')
   assert.deepEqual(await task.read(), Buffer.from('89504e470d0a1a0a', 'hex'))
   assert.deepEqual(client.downloads, ['uma_support_cards:2:support.png'])
 })
