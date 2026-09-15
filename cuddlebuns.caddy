@@ -15,7 +15,7 @@ cms.cuddlebuns.moe {
 
     # PocketBase API and admin UI remain available on the CMS host. The
     # editor itself is served by the same React release as the public site.
-    @pocketbase path /api/* /_/*
+    @pocketbase path /api/* /_/ /_/*
     reverse_proxy @pocketbase 127.0.0.1:8090 {
         # Replace, rather than forward, client-provided values. PocketBase
         # trusts X-Real-IP only from this localhost Caddy hop.
