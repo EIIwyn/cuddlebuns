@@ -16,7 +16,8 @@ cms.cuddlebuns.moe {
     # The private editorial workspace is served from the current React
     # release. Its API requests and PocketBase admin UI fall through to the
     # proxy below.
-    handle /editor /editor/* {
+    @editor path /editor /editor/*
+    handle @editor {
         root * /var/www/cuddlebuns/current
         try_files {path} /index.html
         file_server
