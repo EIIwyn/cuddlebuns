@@ -5,6 +5,8 @@ import vm from 'node:vm'
 
 const migrationsDirectory = new URL('../../../vps-scripts/pocketbase/pb_migrations/', import.meta.url)
 const readRule = '@request.auth.collectionName = "cms_sync"'
+const editorRule = '@request.auth.collectionName = "cms_editor"'
+const editorCollections = new Set(['artists', 'collections', 'characters', 'versions', 'commissions'])
 const imageMimeTypes = ['image/avif', 'image/gif', 'image/jpeg', 'image/png', 'image/webp']
 
 const expectedFields = {
@@ -132,7 +134,7 @@ async function applySchema() {
 
 test('PocketBase migrations create the complete least-privilege CMS schema', async () => {
   const { app } = await applySchema()
-  assert.deepEqual([...app.collections.keys()], ['cms_sync', ...Object.keys(expectedFields)])
+  assert.deepEqual([...app.collections.keys()], ['cms_sync', ...Object.keys(expectedFields), 'cms_editor'])
 
   const sync = app.collections.get('cms_sync')
   assert.equal(sync.type, 'auth')
@@ -154,14 +156,31 @@ test('PocketBase migrations create the complete least-privilege CMS schema', asy
   assert.equal(sync.otp.enabled, false)
   assert.equal(sync.mfa.enabled, false)
 
+  const editor = app.collections.get('cms_editor')
+  assert.equal(editor.type, 'auth')
+  assert.deepEqual({
+    authRule: editor.authRule,
+    createRule: editor.createRule,
+    deleteRule: editor.deleteRule,
+    listRule: editor.listRule,
+    manageRule: editor.manageRule,
+    updateRule: editor.updateRule,
+    viewRule: editor.viewRule,
+  }, {
+    authRule: '', createRule: null, deleteRule: null, listRule: null, manageRule: null,
+    updateRule: null, viewRule: null,
+  })
+  assert.equal(editor.passwordAuth.enabled, true)
+
   for (const [name, fieldTypes] of Object.entries(expectedFields)) {
     const collection = app.collections.get(name)
     const fields = fieldsByName(collection)
     assert.equal(collection.type, 'base', `${name} must be a base collection`)
-    assert.equal(collection.listRule, readRule, `${name} list rule`)
-    assert.equal(collection.viewRule, readRule, `${name} view rule`)
+    const expectedListRule = editorCollections.has(name) ? `${readRule} || ${editorRule}` : readRule
+    assert.equal(collection.listRule, expectedListRule, `${name} list rule`)
+    assert.equal(collection.viewRule, expectedListRule, `${name} view rule`)
     assert.equal(collection.createRule, null, `${name} create rule`)
-    assert.equal(collection.updateRule, null, `${name} update rule`)
+    assert.equal(collection.updateRule, editorCollections.has(name) ? editorRule : null, `${name} update rule`)
     assert.equal(collection.deleteRule, null, `${name} delete rule`)
     assert.deepEqual(Object.fromEntries(Object.entries(fields).map(([fieldName, field]) => [fieldName, field.type])),
       fieldTypes, `${name} field types`)

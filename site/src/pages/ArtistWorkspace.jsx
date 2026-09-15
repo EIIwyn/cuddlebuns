@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-const AUTH_COLLECTION = import.meta.env.VITE_POCKETBASE_AUTH_COLLECTION || 'cms_sync';
+const AUTH_COLLECTION = import.meta.env.VITE_POCKETBASE_AUTH_COLLECTION || 'cms_editor';
 const TOKEN_KEY = 'cuddlebuns.cms.token';
 const STATUS_OPTIONS = ['Candidate', 'Reserve', 'Worked', 'Assigned'];
 const PRICE_OPTIONS = ['Affordable', 'Balanced', 'Premium', 'Upscale', '(Empty)'];
@@ -34,9 +34,17 @@ function priceLabel(record) {
   return `${currency} ${amount}`;
 }
 
-function CardImage({ record, token }) {
+function CardImage({ record, token, onUpload, uploading }) {
   const files = Array.isArray(record.example) ? record.example : record.example ? [record.example] : [];
-  if (!files.length) return <div className="artist-workspace-card__empty-image">Needs example</div>;
+  if (!files.length) return (
+    <div className="artist-workspace-card__empty-image">
+      <span>Needs example</span>
+      <label className="artist-workspace-card__upload">
+        {uploading ? 'Uploading…' : 'Upload example'}
+        <input type="file" accept="image/avif,image/gif,image/jpeg,image/png,image/webp" disabled={uploading} onChange={(event) => onUpload(event.target.files?.[0])} />
+      </label>
+    </div>
+  );
   return (
     <div className="artist-workspace-card__image-wrap">
       <img
@@ -49,12 +57,12 @@ function CardImage({ record, token }) {
   );
 }
 
-function ArtistCard({ record, token }) {
+function ArtistCard({ record, token, onUpload, uploading }) {
   const subjects = Array.isArray(record.commission_subject) ? record.commission_subject : [];
   const notes = String(record.notes || '').trim();
   return (
     <article className="artist-workspace-card">
-      <CardImage record={record} token={token} />
+      <CardImage record={record} token={token} onUpload={(file) => onUpload(record, file)} uploading={uploading} />
       <div className="artist-workspace-card__body">
         <div className="artist-workspace-card__heading">
           <h3>{record.artist_name || 'Unnamed artist'}</h3>
@@ -121,6 +129,7 @@ function Login({ onLogin, error }) {
 
 export function ArtistWorkspace() {
   const [token, setToken] = useState(() => localStorage.getItem(TOKEN_KEY) || '');
+  const [fileToken, setFileToken] = useState('');
   const [loginError, setLoginError] = useState('');
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(Boolean(token));
@@ -129,12 +138,17 @@ export function ArtistWorkspace() {
   const [price, setPrice] = useState('All prices');
   const [query, setQuery] = useState('');
   const [showNeedsExample, setShowNeedsExample] = useState(false);
+  const [uploadingId, setUploadingId] = useState('');
 
   useEffect(() => {
     if (!token) return undefined;
     const controller = new AbortController();
     request('/api/collections/artists/records?perPage=500&sort=artist_name', { signal: controller.signal }, token)
-      .then((result) => setRecords(result.items || []))
+      .then(async (result) => {
+        setRecords(result.items || []);
+        const fileAccess = await request('/api/files/token', { method: 'POST', signal: controller.signal }, token);
+        setFileToken(fileAccess.token || '');
+      })
       .catch((requestError) => {
         if (requestError.name === 'AbortError') return;
         setError(requestError.message);
@@ -165,8 +179,28 @@ export function ArtistWorkspace() {
   function logout() {
     localStorage.removeItem(TOKEN_KEY);
     setToken('');
+    setFileToken('');
     setRecords([]);
     setLoading(false);
+  }
+
+  async function uploadExample(record, file) {
+    if (!file) return;
+    setUploadingId(record.id);
+    setError('');
+    const body = new FormData();
+    body.append('example', file);
+    try {
+      const updated = await request(`/api/collections/artists/records/${encodeURIComponent(record.id)}`, {
+        method: 'PATCH',
+        body,
+      }, token);
+      setRecords((current) => current.map((item) => item.id === record.id ? updated : item));
+    } catch (uploadError) {
+      setError(uploadError.message);
+    } finally {
+      setUploadingId('');
+    }
   }
 
   if (!token) return <Login error={loginError} onLogin={(nextToken, nextError = '') => { setToken(nextToken); setLoginError(nextError); setLoading(Boolean(nextToken)); }} />;
@@ -196,7 +230,7 @@ export function ArtistWorkspace() {
           </div>
         </div>
         {error && <p className="artist-workspace__error" role="alert">{error}</p>}
-        {loading ? <p className="artist-workspace__state">Loading artists…</p> : visibleRecords.length > 0 ? <section className="artist-workspace__grid" aria-label="Artists">{visibleRecords.map((record) => <ArtistCard key={record.id} record={record} token={token} />)}</section> : <p className="artist-workspace__state">No artists match these filters.</p>}
+        {loading ? <p className="artist-workspace__state">Loading artists…</p> : visibleRecords.length > 0 ? <section className="artist-workspace__grid" aria-label="Artists">{visibleRecords.map((record) => <ArtistCard key={record.id} record={record} token={fileToken} onUpload={uploadExample} uploading={uploadingId === record.id} />)}</section> : <p className="artist-workspace__state">No artists match these filters.</p>}
       </main>
     </div>
   );

@@ -11,7 +11,8 @@ function GalleryRoute() {
   const [searchParams] = useSearchParams();
   const isCmsHost = typeof window !== 'undefined' && window.location.hostname === 'cms.cuddlebuns.moe';
 
-  if (isCmsHost || searchParams.get('workspace') === '1') return <ArtistWorkspace />;
+  if (isCmsHost) return <Navigate to="/editor" replace />;
+  if (searchParams.get('workspace') === '1') return <ArtistWorkspace />;
   return searchParams.has('character') ? <Gallery /> : <Hub />;
 }
 

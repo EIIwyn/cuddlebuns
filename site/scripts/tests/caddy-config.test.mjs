@@ -11,7 +11,7 @@ test('CMS Caddy block is private-upstream, upload-safe, and preserves the client
   assert.ok(block, 'missing cms.cuddlebuns.moe block')
   assert.match(block, /log\s*\{\s*output file \/var\/log\/caddy\/cms-access\.log\s*format json\s*\}/m)
   assert.match(block, /request_body\s*\{\s*max_size 160MB\s*\}/m)
-  assert.match(block, /reverse_proxy 127\.0\.0\.1:8090\s*\{/)
+  assert.match(block, /reverse_proxy (?:@pocketbase )?127\.0\.0\.1:8090\s*\{/)
   assert.doesNotMatch(block, /reverse_proxy\s+(?:0\.0\.0\.0|86\.38\.200\.117)/)
   assert.match(block, /header_up X-Real-IP \{remote_host\}/)
   assert.match(block, /transport http\s*\{\s*read_timeout 6m\s*\}/m)

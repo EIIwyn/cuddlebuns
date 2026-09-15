@@ -100,8 +100,8 @@ The same experience should work for Reserve and Worked, but Candidate should be 
   output can continue to publish on the next scheduled sync.
 - The initial permission model is one editor account with full permissions. A read-only viewer
   account may be added later, but viewer access to private notes must be deliberate.
-- The workspace lives in this React repository on the `cms.cuddlebuns.moe` host at `/gallery`.
-  `/editor` is retained as a local/development alias. The CMS host serves the React release while
+- The workspace lives in this React repository on the `cms.cuddlebuns.moe` host at `/editor`.
+  `/gallery` on the CMS host redirects there; `/editor` is also the local/development route. The CMS host serves the React release while
   forwarding PocketBase’s `/api/*` and `/_/*` paths to the PocketBase service.
 
 ## Proposed artist views
