@@ -209,7 +209,7 @@ export function ArtistWorkspace() {
     <div className="site-shell artist-workspace-shell">
       <header className="artist-workspace-header">
         <div className="page-width artist-workspace-header__inner">
-          <Link to="/gallery" className="artist-workspace-header__brand">Cuddlebuns <span>/ Artist gallery</span></Link>
+          <a href="https://cuddlebuns.moe/gallery" className="artist-workspace-header__brand">Cuddlebuns <span>/ Artist gallery</span></a>
           <button type="button" onClick={logout} className="artist-workspace-header__logout">Sign out</button>
         </div>
       </header>

@@ -13,6 +13,21 @@ cms.cuddlebuns.moe {
         max_size 160MB
     }
 
+    # The private editorial workspace is served from the current React
+    # release. Its API requests and PocketBase admin UI fall through to the
+    # proxy below.
+    handle /editor /editor/* {
+        root * /var/www/cuddlebuns/current
+        try_files {path} /index.html
+        file_server
+    }
+
+    # Vite's release assets are requested from the site root by the editor.
+    handle /static/* {
+        root * /var/www/cuddlebuns/current
+        file_server
+    }
+
     reverse_proxy 127.0.0.1:8090 {
         # Replace, rather than forward, client-provided values. PocketBase
         # trusts X-Real-IP only from this localhost Caddy hop.
