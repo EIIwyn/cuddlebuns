@@ -62,6 +62,81 @@ summary:focus-visible {
   min-height: 100vh;
 }
 
+/* Internal artist workspace */
+.artist-workspace-shell {
+  --workspace-accent: #a78bfa;
+  background: #101016;
+}
+
+.artist-workspace-header {
+  border-bottom: 1px solid var(--line);
+  background: rgba(9, 10, 18, 0.86);
+}
+
+.artist-workspace-header__inner {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.artist-workspace-header__brand {
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 1.2rem;
+  text-decoration: none;
+}
+
+.artist-workspace-header__brand span { color: var(--muted); font-family: var(--sans); font-size: 0.88rem; }
+.artist-workspace-header__logout { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 0.78rem; }
+.artist-workspace-header__logout:hover { color: var(--ink); }
+
+.artist-workspace { padding: 58px 0 100px; }
+.artist-workspace__intro { display: flex; align-items: end; justify-content: space-between; gap: 24px; }
+.artist-workspace__intro h1, .artist-workspace-login h1 { margin: 0; font-family: var(--serif); font-size: clamp(2.5rem, 5vw, 4.6rem); font-weight: 400; letter-spacing: -0.055em; }
+.artist-workspace__intro p:not(.eyebrow), .artist-workspace-login > p:not(.eyebrow) { max-width: 520px; margin: 14px 0 0; color: var(--muted); line-height: 1.55; }
+.artist-workspace__total { display: grid; min-width: 100px; padding: 14px 18px; border: 1px solid var(--line); text-align: right; }
+.artist-workspace__total strong { font-size: 1.8rem; font-weight: 500; }
+.artist-workspace__total span { color: var(--muted); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; }
+.artist-workspace__toolbar { margin: 48px 0 30px; border-block: 1px solid var(--line); }
+.artist-workspace__statuses { display: flex; gap: 4px; overflow-x: auto; padding: 10px 0; }
+.artist-workspace__statuses button, .artist-workspace__filters button { border: 1px solid transparent; border-radius: 5px; background: transparent; color: var(--muted); cursor: pointer; padding: 9px 12px; white-space: nowrap; }
+.artist-workspace__statuses button:hover, .artist-workspace__statuses button.is-active, .artist-workspace__filters button:hover, .artist-workspace__filters button.is-active { border-color: color-mix(in srgb, var(--workspace-accent) 60%, transparent); background: color-mix(in srgb, var(--workspace-accent) 13%, transparent); color: var(--ink); }
+.artist-workspace__statuses span { color: var(--faint); margin-left: 4px; }
+.artist-workspace__filters { display: flex; gap: 8px; padding: 10px 0 14px; }
+.artist-workspace__filters input, .artist-workspace__filters select, .artist-workspace-login input { min-height: 40px; border: 1px solid var(--line); border-radius: 5px; background: #17171e; color: var(--ink); padding: 0 12px; }
+.artist-workspace__search { flex: 1; }
+.artist-workspace__search input { width: 100%; }
+.artist-workspace__grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+.artist-workspace-card { overflow: hidden; border: 1px solid var(--line); border-radius: 10px; background: #17171b; }
+.artist-workspace-card__image-wrap { position: relative; aspect-ratio: 4 / 3; overflow: hidden; background: #23232b; }
+.artist-workspace-card__image { width: 100%; height: 100%; display: block; object-fit: cover; }
+.artist-workspace-card__empty-image { display: grid; height: 100%; min-height: 180px; place-items: center; color: var(--muted); font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.artist-workspace-card__image-count { position: absolute; right: 10px; bottom: 10px; border-radius: 20px; background: rgba(0,0,0,.72); padding: 4px 9px; font-size: .75rem; }
+.artist-workspace-card__body { padding: 16px; }
+.artist-workspace-card__heading { display: flex; align-items: start; justify-content: space-between; gap: 10px; }
+.artist-workspace-card h3 { margin: 0; font-size: 1.05rem; font-weight: 600; overflow-wrap: anywhere; }
+.artist-workspace-card__status { border-radius: 20px; background: color-mix(in srgb, var(--workspace-accent) 18%, transparent); color: #c7baff; padding: 4px 8px; font-size: .68rem; white-space: nowrap; }
+.artist-workspace-card__meta { display: flex; justify-content: space-between; gap: 8px; margin-top: 12px; color: var(--muted); font-size: .78rem; }
+.artist-workspace-card__meta strong { color: var(--ink); font-weight: 500; }
+.artist-workspace-card__tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 12px; }
+.artist-workspace-card__tags span { border: 1px solid var(--line); border-radius: 20px; color: var(--muted); padding: 3px 7px; font-size: .68rem; }
+.artist-workspace-card__notes { display: -webkit-box; min-height: 3.8em; margin: 15px 0; overflow: hidden; color: #c7c6cf; font-size: .82rem; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+.artist-workspace-card__notes.is-empty { color: var(--faint); font-style: italic; }
+.artist-workspace-card__actions { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--line-soft); padding-top: 12px; font-size: .76rem; }
+.artist-workspace-card__actions a { color: #b7aaff; text-decoration: none; }
+.artist-workspace-card__actions button { border: 0; background: transparent; color: var(--faint); cursor: not-allowed; }
+.artist-workspace__error { border: 1px solid #8d4d5c; background: rgba(141, 77, 92, .14); color: #ffb9c5; padding: 12px 14px; }
+.artist-workspace__state { padding: 70px 0; color: var(--muted); text-align: center; }
+.artist-workspace-login { padding: 16vh 0; }
+.artist-workspace-login__form { display: grid; width: min(100%, 420px); gap: 16px; margin-top: 34px; }
+.artist-workspace-login__form label { display: grid; gap: 7px; color: var(--muted); font-size: .78rem; }
+.artist-workspace-login__form button { width: fit-content; border: 0; border-radius: 5px; background: var(--workspace-accent); color: #15121f; cursor: pointer; padding: 11px 19px; font-weight: 600; }
+
+@media (max-width: 1050px) { .artist-workspace__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .artist-workspace { padding-top: 36px; } .artist-workspace__intro { align-items: start; } .artist-workspace__total { min-width: 80px; } .artist-workspace__filters { flex-wrap: wrap; } .artist-workspace__search { flex-basis: 100%; } .artist-workspace__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .artist-workspace-header__brand span { display: block; margin-top: 3px; font-size: .72rem; } .artist-workspace__intro h1 { font-size: 2.7rem; } .artist-workspace__grid { grid-template-columns: 1fr; } }
+
 .page-width {
   width: min(100% - 48px, 1480px);
   margin-inline: auto;

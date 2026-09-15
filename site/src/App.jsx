@@ -3,12 +3,15 @@ import { BrowserRouter, Navigate, Routes, Route, useSearchParams } from 'react-r
 import { Hub } from './pages/Hub';
 import { Gallery } from './pages/Gallery';
 import { Home } from './pages/Home';
+import { ArtistWorkspace } from './pages/ArtistWorkspace';
 
 const UmaTimeline = lazy(() => import('./pages/UmaTimeline'));
 
 function GalleryRoute() {
   const [searchParams] = useSearchParams();
+  const isCmsHost = typeof window !== 'undefined' && window.location.hostname === 'cms.cuddlebuns.moe';
 
+  if (isCmsHost || searchParams.get('workspace') === '1') return <ArtistWorkspace />;
   return searchParams.has('character') ? <Gallery /> : <Hub />;
 }
 
@@ -19,6 +22,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/characters" element={<Navigate to="/gallery" replace />} />
         <Route path="/gallery" element={<GalleryRoute />} />
+        <Route path="/editor" element={<ArtistWorkspace />} />
         <Route path="/gallery-noco" element={<Navigate to="/gallery" replace />} />
         <Route
           path="/uma/timeline"
