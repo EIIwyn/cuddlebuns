@@ -1,25 +1,9 @@
 migrate((app) => {
-  const editorRule = '@request.auth.collectionName = "cms_editor"'
-
-  app.save(new Collection({
-    type: 'auth',
-    name: 'cms_editor',
-    listRule: null,
-    viewRule: null,
-    createRule: null,
-    updateRule: null,
-    deleteRule: null,
-    manageRule: null,
-    authRule: '',
-    fields: [],
-    passwordAuth: {
-      enabled: true,
-      identityFields: ['email'],
-    },
-    oauth2: { enabled: false },
-    otp: { enabled: false },
-    mfa: { enabled: false },
-  }))
+  const editorRule = '@request.auth.collectionName = "users"'
+  // `users` is the existing human-auth collection provisioned in PocketBase.
+  // Keep the editor access migration focused on permissions; do not replace
+  // or delete the collection and its accounts.
+  app.findCollectionByNameOrId('users')
 
   for (const name of ['artists', 'collections', 'characters', 'versions', 'commissions']) {
     const collection = app.findCollectionByNameOrId(name)
@@ -36,5 +20,4 @@ migrate((app) => {
     collection.updateRule = null
     app.save(collection)
   }
-  app.delete(app.findCollectionByNameOrId('cms_editor'))
 })

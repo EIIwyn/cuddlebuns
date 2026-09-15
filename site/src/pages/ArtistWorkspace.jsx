@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-const AUTH_COLLECTION = import.meta.env.VITE_POCKETBASE_AUTH_COLLECTION || 'cms_editor';
+const AUTH_COLLECTION = import.meta.env.VITE_POCKETBASE_AUTH_COLLECTION || 'users';
 const TOKEN_KEY = 'cuddlebuns.cms.token';
 const STATUS_OPTIONS = ['Candidate', 'Reserve', 'Worked', 'Assigned'];
 const PRICE_OPTIONS = ['Affordable', 'Balanced', 'Premium', 'Upscale', '(Empty)'];
@@ -34,7 +34,7 @@ function priceLabel(record) {
   return `${currency} ${amount}`;
 }
 
-function CardImage({ record, token, onUpload, uploading }) {
+function CardImage({ record, token, onUpload, onOpenImage, uploading }) {
   const files = Array.isArray(record.example) ? record.example : record.example ? [record.example] : [];
   if (!files.length) return (
     <div className="artist-workspace-card__empty-image">
@@ -47,22 +47,24 @@ function CardImage({ record, token, onUpload, uploading }) {
   );
   return (
     <div className="artist-workspace-card__image-wrap">
-      <img
-        src={imageUrl(record, files[0], token)}
-        alt={`${record.artist_name || 'Artist'} example artwork`}
-        className="artist-workspace-card__image"
-      />
+      <button type="button" className="artist-workspace-card__image-button" onClick={() => onOpenImage(record, 0)}>
+        <img
+          src={imageUrl(record, files[0], token)}
+          alt={`${record.artist_name || 'Artist'} example artwork — expand image`}
+          className="artist-workspace-card__image"
+        />
+      </button>
       {files.length > 1 && <span className="artist-workspace-card__image-count">＋{files.length - 1}</span>}
     </div>
   );
 }
 
-function ArtistCard({ record, token, onUpload, uploading }) {
+function ArtistCard({ record, token, onUpload, onOpenImage, uploading }) {
   const subjects = Array.isArray(record.commission_subject) ? record.commission_subject : [];
   const notes = String(record.notes || '').trim();
   return (
     <article className="artist-workspace-card">
-      <CardImage record={record} token={token} onUpload={(file) => onUpload(record, file)} uploading={uploading} />
+      <CardImage record={record} token={token} onUpload={(file) => onUpload(record, file)} onOpenImage={onOpenImage} uploading={uploading} />
       <div className="artist-workspace-card__body">
         <div className="artist-workspace-card__heading">
           <h3>{record.artist_name || 'Unnamed artist'}</h3>
@@ -86,6 +88,38 @@ function ArtistCard({ record, token, onUpload, uploading }) {
         </div>
       </div>
     </article>
+  );
+}
+
+function ImageLightbox({ record, token, startIndex, onClose }) {
+  const files = Array.isArray(record.example) ? record.example : [record.example];
+  const [index, setIndex] = useState(startIndex);
+  const filename = files[index];
+
+  useEffect(() => {
+    function onKeyDown(event) {
+      if (event.key === 'Escape') onClose();
+      if (event.key === 'ArrowLeft') setIndex((current) => (current - 1 + files.length) % files.length);
+      if (event.key === 'ArrowRight') setIndex((current) => (current + 1) % files.length);
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [files.length, onClose]);
+
+  return (
+    <div className="artist-workspace-lightbox" role="dialog" aria-modal="true" aria-label={`${record.artist_name || 'Artist'} example artwork`} onClick={onClose}>
+      <button type="button" className="artist-workspace-lightbox__close" onClick={onClose} aria-label="Close image">×</button>
+      <div className="artist-workspace-lightbox__content" onClick={(event) => event.stopPropagation()}>
+        <img src={imageUrl(record, filename, token)} alt={`${record.artist_name || 'Artist'} example artwork ${index + 1}`} />
+        {files.length > 1 && (
+          <div className="artist-workspace-lightbox__controls">
+            <button type="button" onClick={() => setIndex((current) => (current - 1 + files.length) % files.length)} aria-label="Previous example">←</button>
+            <span>{index + 1} / {files.length}</span>
+            <button type="button" onClick={() => setIndex((current) => (current + 1) % files.length)} aria-label="Next example">→</button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -139,13 +173,27 @@ export function ArtistWorkspace() {
   const [query, setQuery] = useState('');
   const [showNeedsExample, setShowNeedsExample] = useState(false);
   const [uploadingId, setUploadingId] = useState('');
+  const [lightbox, setLightbox] = useState(null);
 
   useEffect(() => {
     if (!token) return undefined;
     const controller = new AbortController();
-    request('/api/collections/artists/records?perPage=500&sort=artist_name', { signal: controller.signal }, token)
-      .then(async (result) => {
-        setRecords(result.items || []);
+    async function loadArtists() {
+      const artists = [];
+      let page = 1;
+      let totalPages = 1;
+      do {
+        const result = await request(`/api/collections/artists/records?page=${page}&perPage=200&sort=artist_name`, { signal: controller.signal }, token);
+        artists.push(...(result.items || []));
+        totalPages = result.totalPages || 1;
+        page += 1;
+      } while (page <= totalPages);
+      return artists;
+    }
+
+    loadArtists()
+      .then(async (artists) => {
+        setRecords(artists);
         const fileAccess = await request('/api/files/token', { method: 'POST', signal: controller.signal }, token);
         setFileToken(fileAccess.token || '');
       })
@@ -230,8 +278,9 @@ export function ArtistWorkspace() {
           </div>
         </div>
         {error && <p className="artist-workspace__error" role="alert">{error}</p>}
-        {loading ? <p className="artist-workspace__state">Loading artists…</p> : visibleRecords.length > 0 ? <section className="artist-workspace__grid" aria-label="Artists">{visibleRecords.map((record) => <ArtistCard key={record.id} record={record} token={fileToken} onUpload={uploadExample} uploading={uploadingId === record.id} />)}</section> : <p className="artist-workspace__state">No artists match these filters.</p>}
+        {loading ? <p className="artist-workspace__state">Loading artists…</p> : visibleRecords.length > 0 ? <section className="artist-workspace__grid" aria-label="Artists">{visibleRecords.map((record) => <ArtistCard key={record.id} record={record} token={fileToken} onUpload={uploadExample} onOpenImage={(imageRecord, index) => setLightbox({ record: imageRecord, index })} uploading={uploadingId === record.id} />)}</section> : <p className="artist-workspace__state">No artists match these filters.</p>}
       </main>
+      {lightbox && <ImageLightbox record={lightbox.record} token={fileToken} startIndex={lightbox.index} onClose={() => setLightbox(null)} />}
     </div>
   );
 }

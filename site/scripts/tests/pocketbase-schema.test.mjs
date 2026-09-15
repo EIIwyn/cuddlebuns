@@ -5,7 +5,7 @@ import vm from 'node:vm'
 
 const migrationsDirectory = new URL('../../../vps-scripts/pocketbase/pb_migrations/', import.meta.url)
 const readRule = '@request.auth.collectionName = "cms_sync"'
-const editorRule = '@request.auth.collectionName = "cms_editor"'
+const editorRule = '@request.auth.collectionName = "users"'
 const editorCollections = new Set(['artists', 'collections', 'characters', 'versions', 'commissions'])
 const imageMimeTypes = ['image/avif', 'image/gif', 'image/jpeg', 'image/png', 'image/webp']
 
@@ -96,7 +96,12 @@ async function loadMigrations() {
 }
 
 function createFixtureApp() {
-  const collections = new Map()
+  const collections = new Map([['users', new Collection({
+    type: 'auth', name: 'users', listRule: null, viewRule: null, createRule: null,
+    updateRule: null, deleteRule: null, manageRule: null, authRule: '', fields: [],
+    passwordAuth: { enabled: true, identityFields: ['email'] },
+    oauth2: { enabled: false }, otp: { enabled: false }, mfa: { enabled: false },
+  })]])
   return {
     collections,
     delete(collection) {
@@ -134,7 +139,7 @@ async function applySchema() {
 
 test('PocketBase migrations create the complete least-privilege CMS schema', async () => {
   const { app } = await applySchema()
-  assert.deepEqual([...app.collections.keys()], ['cms_sync', ...Object.keys(expectedFields), 'cms_editor'])
+  assert.deepEqual([...app.collections.keys()], ['users', 'cms_sync', ...Object.keys(expectedFields)])
 
   const sync = app.collections.get('cms_sync')
   assert.equal(sync.type, 'auth')
@@ -156,7 +161,7 @@ test('PocketBase migrations create the complete least-privilege CMS schema', asy
   assert.equal(sync.otp.enabled, false)
   assert.equal(sync.mfa.enabled, false)
 
-  const editor = app.collections.get('cms_editor')
+  const editor = app.collections.get('users')
   assert.equal(editor.type, 'auth')
   assert.deepEqual({
     authRule: editor.authRule,
@@ -228,5 +233,6 @@ test('legacy_id removal migration removes fields and indexes from every content 
 test('PocketBase schema migration has a complete reverse operation', async () => {
   const { app, migrations } = await applySchema()
   for (const migration of [...migrations].reverse()) migration.down(app)
-  assert.equal(app.collections.size, 0)
+  assert.equal(app.collections.size, 1)
+  assert.ok(app.collections.has('users'))
 })
