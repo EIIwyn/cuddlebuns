@@ -38,6 +38,17 @@ function priceLabel(record) {
   return `${currency} ${amount}`;
 }
 
+function relationIds(value) {
+  const values = Array.isArray(value) ? value : value ? [value] : [];
+  return values.map((item) => typeof item === 'object' ? item?.id : item).filter(Boolean).map(String);
+}
+
+function displayDate(value) {
+  if (!value) return 'Date not recorded';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? String(value).slice(0, 10) : date.toLocaleDateString();
+}
+
 function CardImage({ record, token, onUpload, onOpenImage, uploading }) {
   const files = Array.isArray(record.example) ? record.example : record.example ? [record.example] : [];
   if (!files.length) return (
@@ -66,6 +77,7 @@ function CardImage({ record, token, onUpload, onOpenImage, uploading }) {
 function ArtistCard({ record, token, onUpload, onOpenImage, uploading }) {
   const subjects = Array.isArray(record.commission_subject) ? record.commission_subject : [];
   const notes = String(record.notes || '').trim();
+  const latest = record.latestCommission;
   return (
     <article className="artist-workspace-card">
       <CardImage record={record} token={token} onUpload={(file) => onUpload(record, file)} onOpenImage={onOpenImage} uploading={uploading} />
@@ -86,6 +98,14 @@ function ArtistCard({ record, token, onUpload, onOpenImage, uploading }) {
         <p className={`artist-workspace-card__notes${notes ? '' : ' is-empty'}`}>
           {notes || 'No notes yet.'}
         </p>
+        {latest && (
+          <div className="artist-workspace-card__commission">
+            <span className="artist-workspace-card__commission-label">Latest commission</span>
+            <strong>{latest.type || 'Commission'}</strong>
+            <span>{displayDate(latest.date)}</span>
+            {latest.source_url && <a href={latest.source_url} target="_blank" rel="noreferrer">View source ↗</a>}
+          </div>
+        )}
         <div className="artist-workspace-card__actions">
           <a href={record.url} target="_blank" rel="noreferrer">Open profile ↗</a>
           <button type="button" disabled title="Editing is coming in the next workspace slice">Edit</button>
@@ -182,22 +202,35 @@ export function ArtistWorkspace() {
   useEffect(() => {
     if (!token) return undefined;
     const controller = new AbortController();
-    async function loadArtists() {
-      const artists = [];
+    async function loadCollection(collection) {
+      const recordsForCollection = [];
       let page = 1;
       let totalPages = 1;
       do {
-        const result = await request(`/api/collections/artists/records?page=${page}&perPage=200&sort=artist_name`, { signal: controller.signal }, token);
-        artists.push(...(result.items || []));
+        const sort = collection === 'artists' ? 'artist_name' : '-date,date';
+        const result = await request(`/api/collections/${collection}/records?page=${page}&perPage=200&sort=${encodeURIComponent(sort)}`, { signal: controller.signal }, token);
+        recordsForCollection.push(...(result.items || []));
         totalPages = result.totalPages || 1;
         page += 1;
       } while (page <= totalPages);
-      return artists;
+      return recordsForCollection;
     }
 
-    loadArtists()
-      .then(async (artists) => {
-        setRecords(artists);
+    Promise.all([loadCollection('artists'), loadCollection('commissions')])
+      .then(async ([artists, commissions]) => {
+        const latestByArtist = new Map();
+        for (const commission of commissions) {
+          for (const artistId of relationIds(commission.artists)) {
+            const current = latestByArtist.get(artistId);
+            const currentTime = current?.date ? Date.parse(current.date) : -Infinity;
+            const commissionTime = commission.date ? Date.parse(commission.date) : -Infinity;
+            if (!current || commissionTime >= currentTime) latestByArtist.set(artistId, commission);
+          }
+        }
+        setRecords(artists.map((artist) => ({
+          ...artist,
+          latestCommission: latestByArtist.get(artist.id),
+        })));
         const fileAccess = await request('/api/files/token', { method: 'POST', signal: controller.signal }, token);
         setFileToken(fileAccess.token || '');
       })
