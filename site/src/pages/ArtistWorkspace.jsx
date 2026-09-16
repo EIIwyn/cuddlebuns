@@ -17,7 +17,11 @@ async function request(path, options = {}, token = '') {
   if (token) headers.set('Authorization', token);
   const response = await fetch(apiUrl(path), { ...options, headers });
   const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(body.message || `PocketBase returned HTTP ${response.status}`);
+  if (!response.ok) {
+    const error = new Error(body.message || `PocketBase returned HTTP ${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
   return body;
 }
 
@@ -200,7 +204,7 @@ export function ArtistWorkspace() {
       .catch((requestError) => {
         if (requestError.name === 'AbortError') return;
         setError(requestError.message);
-        if (/401|403|unauthorized/i.test(requestError.message)) {
+        if ([401, 403].includes(requestError.status) || /401|403|unauthorized/i.test(requestError.message)) {
           localStorage.removeItem(TOKEN_KEY);
           setToken('');
         }
