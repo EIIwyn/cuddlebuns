@@ -32,10 +32,17 @@ function imageUrl(collection, record, filename, token) {
 }
 
 function priceLabel(record) {
-  const amount = record.price_amount ?? record.price_jpy ?? record.price_usd;
-  if (amount == null || amount === '') return 'Price not listed';
-  const currency = record.price_currency || (record.price_jpy != null ? 'JPY' : 'USD');
-  return `${currency} ${amount}`;
+  const directAmount = Number(record.price_amount);
+  if (Number.isFinite(directAmount) && directAmount > 0) {
+    return `${record.price_currency || 'Price'} ${record.price_amount}`;
+  }
+  const prices = [
+    { currency: 'JPY', amount: Number(record.price_jpy) },
+    { currency: 'USD', amount: Number(record.price_usd) },
+  ].filter(({ amount }) => Number.isFinite(amount) && amount > 0);
+  if (!prices.length) return 'Price not listed';
+  const selected = prices.reduce((highest, current) => current.amount > highest.amount ? current : highest);
+  return `${selected.currency} ${selected.amount}`;
 }
 
 function relationIds(value) {
