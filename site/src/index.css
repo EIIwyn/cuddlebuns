@@ -127,10 +127,6 @@ summary:focus-visible {
 .artist-workspace-card__tags span { border: 1px solid var(--line); border-radius: 20px; color: var(--muted); padding: 3px 7px; font-size: .68rem; }
 .artist-workspace-card__notes { display: -webkit-box; min-height: 3.8em; margin: 15px 0; overflow: hidden; color: #c7c6cf; font-size: .82rem; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
 .artist-workspace-card__notes.is-empty { color: var(--faint); font-style: italic; }
-.artist-workspace-card__commission { display: grid; gap: 4px; margin: 14px 0; border-top: 1px solid var(--line-soft); padding-top: 12px; color: var(--muted); font-size: .75rem; }
-.artist-workspace-card__commission-label { color: var(--workspace-accent); font-size: .66rem; letter-spacing: .1em; text-transform: uppercase; }
-.artist-workspace-card__commission strong { color: var(--ink); font-size: .82rem; font-weight: 500; }
-.artist-workspace-card__commission a { width: fit-content; color: #b7aaff; text-decoration: none; }
 .artist-workspace-card__actions { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--line-soft); padding-top: 12px; font-size: .76rem; }
 .artist-workspace-card__actions a { color: #b7aaff; text-decoration: none; }
 .artist-workspace-card__actions button { border: 0; background: transparent; color: var(--faint); cursor: not-allowed; }

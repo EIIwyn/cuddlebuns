@@ -25,10 +25,10 @@ async function request(path, options = {}, token = '') {
   return body;
 }
 
-function imageUrl(record, filename, token) {
+function imageUrl(collection, record, filename, token) {
   if (!filename) return '';
   const query = token ? `?token=${encodeURIComponent(token)}` : '';
-  return apiUrl(`/api/files/artists/${encodeURIComponent(record.id)}/${encodeURIComponent(filename)}${query}`);
+  return apiUrl(`/api/files/${encodeURIComponent(collection)}/${encodeURIComponent(record.id)}/${encodeURIComponent(filename)}${query}`);
 }
 
 function priceLabel(record) {
@@ -43,14 +43,14 @@ function relationIds(value) {
   return values.map((item) => typeof item === 'object' ? item?.id : item).filter(Boolean).map(String);
 }
 
-function displayDate(value) {
-  if (!value) return 'Date not recorded';
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? String(value).slice(0, 10) : date.toLocaleDateString();
-}
-
 function CardImage({ record, token, onUpload, onOpenImage, uploading }) {
-  const files = Array.isArray(record.example) ? record.example : record.example ? [record.example] : [];
+  const exampleFiles = Array.isArray(record.example) ? record.example : record.example ? [record.example] : [];
+  const commissionFiles = record.status === 'Worked' && record.latestCommission
+    ? (Array.isArray(record.latestCommission.image) ? record.latestCommission.image : record.latestCommission.image ? [record.latestCommission.image] : [])
+    : [];
+  const files = commissionFiles.length ? commissionFiles : exampleFiles;
+  const collection = commissionFiles.length ? 'commissions' : 'artists';
+  const imageRecord = commissionFiles.length ? record.latestCommission : record;
   if (!files.length) return (
     <div className="artist-workspace-card__empty-image">
       <span>Needs example</span>
@@ -62,9 +62,9 @@ function CardImage({ record, token, onUpload, onOpenImage, uploading }) {
   );
   return (
     <div className="artist-workspace-card__image-wrap">
-      <button type="button" className="artist-workspace-card__image-button" onClick={() => onOpenImage(record, 0)}>
+      <button type="button" className="artist-workspace-card__image-button" onClick={() => onOpenImage({ record: imageRecord, collection, files }, 0)}>
         <img
-          src={imageUrl(record, files[0], token)}
+          src={imageUrl(collection, imageRecord, files[0], token)}
           alt={`${record.artist_name || 'Artist'} example artwork — expand image`}
           className="artist-workspace-card__image"
         />
@@ -77,7 +77,6 @@ function CardImage({ record, token, onUpload, onOpenImage, uploading }) {
 function ArtistCard({ record, token, onUpload, onOpenImage, uploading }) {
   const subjects = Array.isArray(record.commission_subject) ? record.commission_subject : [];
   const notes = String(record.notes || '').trim();
-  const latest = record.latestCommission;
   return (
     <article className="artist-workspace-card">
       <CardImage record={record} token={token} onUpload={(file) => onUpload(record, file)} onOpenImage={onOpenImage} uploading={uploading} />
@@ -98,14 +97,6 @@ function ArtistCard({ record, token, onUpload, onOpenImage, uploading }) {
         <p className={`artist-workspace-card__notes${notes ? '' : ' is-empty'}`}>
           {notes || 'No notes yet.'}
         </p>
-        {latest && (
-          <div className="artist-workspace-card__commission">
-            <span className="artist-workspace-card__commission-label">Latest commission</span>
-            <strong>{latest.type || 'Commission'}</strong>
-            <span>{displayDate(latest.date)}</span>
-            {latest.source_url && <a href={latest.source_url} target="_blank" rel="noreferrer">View source ↗</a>}
-          </div>
-        )}
         <div className="artist-workspace-card__actions">
           <a href={record.url} target="_blank" rel="noreferrer">Open profile ↗</a>
           <button type="button" disabled title="Editing is coming in the next workspace slice">Edit</button>
@@ -115,8 +106,7 @@ function ArtistCard({ record, token, onUpload, onOpenImage, uploading }) {
   );
 }
 
-function ImageLightbox({ record, token, startIndex, onClose }) {
-  const files = Array.isArray(record.example) ? record.example : [record.example];
+function ImageLightbox({ record, collection, files, token, startIndex, onClose }) {
   const [index, setIndex] = useState(startIndex);
   const filename = files[index];
 
@@ -134,7 +124,7 @@ function ImageLightbox({ record, token, startIndex, onClose }) {
     <div className="artist-workspace-lightbox" role="dialog" aria-modal="true" aria-label={`${record.artist_name || 'Artist'} example artwork`} onClick={onClose}>
       <button type="button" className="artist-workspace-lightbox__close" onClick={onClose} aria-label="Close image">×</button>
       <div className="artist-workspace-lightbox__content" onClick={(event) => event.stopPropagation()}>
-        <img src={imageUrl(record, filename, token)} alt={`${record.artist_name || 'Artist'} example artwork ${index + 1}`} />
+        <img src={imageUrl(collection, record, filename, token)} alt={`${record.artist_name || 'Artist'} example artwork ${index + 1}`} />
         {files.length > 1 && (
           <div className="artist-workspace-lightbox__controls">
             <button type="button" onClick={() => setIndex((current) => (current - 1 + files.length) % files.length)} aria-label="Previous example">←</button>
@@ -315,9 +305,9 @@ export function ArtistWorkspace() {
           </div>
         </div>
         {error && <p className="artist-workspace__error" role="alert">{error}</p>}
-        {loading ? <p className="artist-workspace__state">Loading artists…</p> : visibleRecords.length > 0 ? <section className="artist-workspace__grid" aria-label="Artists">{visibleRecords.map((record) => <ArtistCard key={record.id} record={record} token={fileToken} onUpload={uploadExample} onOpenImage={(imageRecord, index) => setLightbox({ record: imageRecord, index })} uploading={uploadingId === record.id} />)}</section> : <p className="artist-workspace__state">No artists match these filters.</p>}
+        {loading ? <p className="artist-workspace__state">Loading artists…</p> : visibleRecords.length > 0 ? <section className="artist-workspace__grid" aria-label="Artists">{visibleRecords.map((record) => <ArtistCard key={record.id} record={record} token={fileToken} onUpload={uploadExample} onOpenImage={(imageSource, index) => setLightbox({ ...imageSource, index })} uploading={uploadingId === record.id} />)}</section> : <p className="artist-workspace__state">No artists match these filters.</p>}
       </main>
-      {lightbox && <ImageLightbox record={lightbox.record} token={fileToken} startIndex={lightbox.index} onClose={() => setLightbox(null)} />}
+      {lightbox && <ImageLightbox record={lightbox.record} collection={lightbox.collection} files={lightbox.files} token={fileToken} startIndex={lightbox.index} onClose={() => setLightbox(null)} />}
     </div>
   );
 }
