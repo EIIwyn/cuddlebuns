@@ -1,7 +1,9 @@
 # PocketBase Artist Views and Gallery Workspace
 
 Date: 2026-09-14
-Status: Planning
+Status: In progress
+
+Current implementation handoff: `docs/2026-09-16-pocketbase-artist-views-progress.md`
 
 ## Intent
 
