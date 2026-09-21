@@ -43,6 +43,8 @@ https://cuddlebuns.moe/gallery
 - protected Example uploads through multipart `PATCH`;
 - editable Artist detail drawer with save/cancel/error states for status, URL, pricing, price
   bracket, subjects, and notes;
+- PocketBase single-select migrations for `artists.status` and `artists.price_bracket`, with the
+  editor drawer using matching dropdowns;
 - image lightbox with Escape, close, and multi-image navigation; and
 - Worked cards that use the most recent linked commission image as the thumbnail.
 
@@ -76,6 +78,15 @@ Create and Delete remain locked.
 
 The detail drawer uses `PATCH /api/collections/artists/records/:id` with JSON fields. It does not
 create or delete records. The existing Example upload continues to use multipart `PATCH`.
+
+Migration `1789300000_make_artist_workflow_fields_selects.js` converts the existing text values
+without changing their names. Allowed values are:
+
+- `status`: `Candidate`, `Reserve`, `Worked`, `Assigned`
+- `price_bracket`: `Affordable`, `Balanced`, `Premium`, `Upscale`
+
+The extra `select` and `select2` fields visible during the initial PocketBase setup are not used by
+the application and are intentionally left untouched until their contents are confirmed obsolete.
 
 ### Caddy
 
