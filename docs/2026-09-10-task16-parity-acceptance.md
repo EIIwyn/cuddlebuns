@@ -297,7 +297,7 @@ Their complete generated-artifact SHA-256 inventories are identical.
 The owner accepted the verified local archive for this drill; off-server-copy
 restore proof is intentionally waived for this Task 26 record.
 
-## Task 27A PocketBase-only public-runtime cleanup (staged)
+## Task 27A PocketBase-only public-runtime cleanup
 
 The local cleanup removes the NocoDB gallery and Uma adapters and source selector from the public
 sync commands. `sync-gallery.mjs` and `sync-uma.mjs` now authenticate only to PocketBase and use
@@ -309,7 +309,25 @@ unchanged so existing emitted asset URLs remain valid.
 CMS source. `docs/2026-09-07-uma-gametora-import.md` records the remaining exception: the GameTora
 importer still writes NocoDB and its manual Uma mirror still reads it. NocoDB must remain running
 until a least-privilege PocketBase writer replaces that work; this cleanup does not authorize Task
-27B deployment or Task 27C service shutdown.
+27C service shutdown.
 
 Local verification passed: `npm.cmd test` (116 passed, 1 intentional integration skip), `npm.cmd
 run lint`, and `npm.cmd run build`.
+
+## Task 27B PocketBase-only runtime deployment
+
+At `2026-09-21T20:55:42Z`, the credentialed `cuddlebuns-auto-deploy` service fast-forwarded the
+VPS source checkout from `1abbf1d66b9220361acdfb8c1fac7bf1865ff190` to Task 27A commit
+`2406ca8e610a7953770a6ffc679d97b07bbcc0a8`. Both PocketBase `--check` commands detected the
+expected manifest change, then the deployment regenerated 22 gallery files with 118 version-linked
+images and the Uma timeline (11 scenarios, 44 PvP events, 70 rated support cards; 487 unrated cards
+held back), passed both validators and the production build, and atomically activated
+`/var/www/cuddlebuns/releases/20260921-205542`.
+
+The scheduled deployment timer then completed clean PocketBase-only checks at `21:05:24Z` and
+`21:15:24Z`: both gallery and Uma checks found no public changes, and neither run activated a second
+release. The source checkout and `current` release remained on the Task 27A revision. Final smoke
+checks returned HTTP 200 for `/gallery`, `/uma/timeline`, and `https://cms.cuddlebuns.moe/api/health`.
+
+NocoDB remains running solely for the documented GameTora importer/mirror exception. Task 27C must
+not start until that importer has a least-privilege PocketBase writer.
