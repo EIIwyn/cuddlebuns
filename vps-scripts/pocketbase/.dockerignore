@@ -2,5 +2,3 @@
 !Dockerfile
 !pb_migrations/
 !pb_migrations/*.js
-!pb_hooks/
-!pb_hooks/*.pb.js
