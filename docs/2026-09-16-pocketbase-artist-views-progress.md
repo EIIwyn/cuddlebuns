@@ -41,6 +41,8 @@ https://cuddlebuns.moe/gallery
 - artist cards with status, price, subjects, notes, URL, and upload action;
 - protected-file token acquisition for PocketBase images;
 - protected Example uploads through multipart `PATCH`;
+- editable Artist detail drawer with save/cancel/error states for status, URL, pricing, price
+  bracket, subjects, and notes;
 - image lightbox with Escape, close, and multi-image navigation; and
 - Worked cards that use the most recent linked commission image as the thumbnail.
 
@@ -71,6 +73,9 @@ Update:
 ```
 
 Create and Delete remain locked.
+
+The detail drawer uses `PATCH /api/collections/artists/records/:id` with JSON fields. It does not
+create or delete records. The existing Example upload continues to use multipart `PATCH`.
 
 ### Caddy
 
@@ -133,10 +138,11 @@ test. The Caddy config test is included in `npm test`.
 - Confirm a `users` account can list Artists and Commissions.
 - Upload one test Example and verify the protected file loads after refresh.
 
-### Next 2: Add safe record editing
+### Next 2: Extend safe record editing
 
-- Create a detail drawer for all Artist fields.
-- Add status, price bracket, notes, URL, and subject editing.
+- Add protected Example management inside the detail drawer, including replacement/removal
+  confirmation.
+- Add field-level validation and dirty-state warnings.
 - Keep artist creation and deletion out of the first editor mutation pass.
 - Add explicit success/error feedback and reload the record after save.
 

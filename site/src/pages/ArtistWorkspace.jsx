@@ -81,7 +81,7 @@ function CardImage({ record, token, onUpload, onOpenImage, uploading }) {
   );
 }
 
-function ArtistCard({ record, token, onUpload, onOpenImage, uploading }) {
+function ArtistCard({ record, token, onUpload, onOpenImage, onOpenDetails, uploading }) {
   const subjects = Array.isArray(record.commission_subject) ? record.commission_subject : [];
   const notes = String(record.notes || '').trim();
   return (
@@ -106,10 +106,79 @@ function ArtistCard({ record, token, onUpload, onOpenImage, uploading }) {
         </p>
         <div className="artist-workspace-card__actions">
           <a href={record.url} target="_blank" rel="noreferrer">Open profile ↗</a>
-          <button type="button" disabled title="Editing is coming in the next workspace slice">Edit</button>
+          <button type="button" onClick={() => onOpenDetails(record)}>Edit</button>
         </div>
       </div>
     </article>
+  );
+}
+
+function ArtistDetailDrawer({ record, onClose, onSave, saving, saveError }) {
+  const [form, setForm] = useState(() => ({
+    artist_name: record.artist_name || '',
+    url: record.url || '',
+    status: record.status || 'Candidate',
+    price_bracket: record.price_bracket || '',
+    price_jpy: record.price_jpy ?? '',
+    price_usd: record.price_usd ?? '',
+    commission_subject: Array.isArray(record.commission_subject) ? record.commission_subject.join(', ') : '',
+    notes: record.notes || '',
+  }));
+
+  function update(field, value) {
+    setForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function submit(event) {
+    event.preventDefault();
+    onSave(record.id, {
+      artist_name: form.artist_name.trim(),
+      url: form.url.trim(),
+      status: form.status,
+      price_bracket: form.price_bracket,
+      price_jpy: form.price_jpy === '' ? null : Number(form.price_jpy),
+      price_usd: form.price_usd === '' ? null : Number(form.price_usd),
+      commission_subject: form.commission_subject.split(',').map((subject) => subject.trim()).filter(Boolean),
+      notes: form.notes,
+    });
+  }
+
+  useEffect(() => {
+    function onKeyDown(event) {
+      if (event.key === 'Escape' && !saving) onClose();
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [onClose, saving]);
+
+  return (
+    <div className="artist-detail-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && !saving && onClose()}>
+      <aside className="artist-detail-drawer" role="dialog" aria-modal="true" aria-labelledby="artist-detail-title">
+        <header className="artist-detail-drawer__header">
+          <div><p className="eyebrow">Artist record</p><h2 id="artist-detail-title">{record.artist_name || 'Unnamed artist'}</h2></div>
+          <button type="button" className="artist-detail-drawer__close" onClick={onClose} disabled={saving} aria-label="Close artist details">×</button>
+        </header>
+        <form className="artist-detail-drawer__form" onSubmit={submit}>
+          <label>Artist name<input value={form.artist_name} onChange={(event) => update('artist_name', event.target.value)} required /></label>
+          <label>Profile URL<input type="url" value={form.url} onChange={(event) => update('url', event.target.value)} /></label>
+          <div className="artist-detail-drawer__row">
+            <label>Status<select value={form.status} onChange={(event) => update('status', event.target.value)}>{STATUS_OPTIONS.map((item) => <option key={item}>{item}</option>)}</select></label>
+            <label>Price bracket<input value={form.price_bracket} onChange={(event) => update('price_bracket', event.target.value)} placeholder="Affordable" /></label>
+          </div>
+          <div className="artist-detail-drawer__row">
+            <label>Price (JPY)<input type="number" min="0" step="any" value={form.price_jpy} onChange={(event) => update('price_jpy', event.target.value)} /></label>
+            <label>Price (USD)<input type="number" min="0" step="any" value={form.price_usd} onChange={(event) => update('price_usd', event.target.value)} /></label>
+          </div>
+          <label>Commission subjects<input value={form.commission_subject} onChange={(event) => update('commission_subject', event.target.value)} placeholder="Portrait, reference sheet" /></label>
+          <label>Notes<textarea value={form.notes} onChange={(event) => update('notes', event.target.value)} rows="7" placeholder="Style notes, commission ideas, or descriptors" /></label>
+          {saveError && <p className="artist-workspace__error" role="alert">{saveError}</p>}
+          <footer className="artist-detail-drawer__footer">
+            <button type="button" onClick={onClose} disabled={saving}>Cancel</button>
+            <button type="submit" className="is-primary" disabled={saving}>{saving ? 'Saving…' : 'Save changes'}</button>
+          </footer>
+        </form>
+      </aside>
+    </div>
   );
 }
 
@@ -195,6 +264,9 @@ export function ArtistWorkspace() {
   const [showNeedsExample, setShowNeedsExample] = useState(false);
   const [uploadingId, setUploadingId] = useState('');
   const [lightbox, setLightbox] = useState(null);
+  const [detailRecord, setDetailRecord] = useState(null);
+  const [savingId, setSavingId] = useState('');
+  const [saveError, setSaveError] = useState('');
 
   useEffect(() => {
     if (!token) return undefined;
@@ -285,6 +357,28 @@ export function ArtistWorkspace() {
     }
   }
 
+  async function saveArtist(recordId, updates) {
+    setSavingId(recordId);
+    setSaveError('');
+    try {
+      const updated = await request(`/api/collections/artists/records/${encodeURIComponent(recordId)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      }, token);
+      setRecords((current) => current.map((item) => item.id === recordId
+        ? { ...updated, latestCommission: item.latestCommission }
+        : item));
+      setDetailRecord((current) => current?.id === recordId
+        ? { ...updated, latestCommission: current.latestCommission }
+        : current);
+    } catch (saveRequestError) {
+      setSaveError(saveRequestError.message);
+    } finally {
+      setSavingId('');
+    }
+  }
+
   if (!token) return <Login error={loginError} onLogin={(nextToken, nextError = '') => { setToken(nextToken); setLoginError(nextError); setLoading(Boolean(nextToken)); }} />;
 
   return (
@@ -312,9 +406,10 @@ export function ArtistWorkspace() {
           </div>
         </div>
         {error && <p className="artist-workspace__error" role="alert">{error}</p>}
-        {loading ? <p className="artist-workspace__state">Loading artists…</p> : visibleRecords.length > 0 ? <section className="artist-workspace__grid" aria-label="Artists">{visibleRecords.map((record) => <ArtistCard key={record.id} record={record} token={fileToken} onUpload={uploadExample} onOpenImage={(imageSource, index) => setLightbox({ ...imageSource, index })} uploading={uploadingId === record.id} />)}</section> : <p className="artist-workspace__state">No artists match these filters.</p>}
+        {loading ? <p className="artist-workspace__state">Loading artists…</p> : visibleRecords.length > 0 ? <section className="artist-workspace__grid" aria-label="Artists">{visibleRecords.map((record) => <ArtistCard key={record.id} record={record} token={fileToken} onUpload={uploadExample} onOpenImage={(imageSource, index) => setLightbox({ ...imageSource, index })} onOpenDetails={setDetailRecord} uploading={uploadingId === record.id} />)}</section> : <p className="artist-workspace__state">No artists match these filters.</p>}
       </main>
       {lightbox && <ImageLightbox record={lightbox.record} collection={lightbox.collection} files={lightbox.files} token={fileToken} startIndex={lightbox.index} onClose={() => setLightbox(null)} />}
+      {detailRecord && <ArtistDetailDrawer key={detailRecord.id} record={detailRecord} onClose={() => { setDetailRecord(null); setSaveError(''); }} onSave={saveArtist} saving={savingId === detailRecord.id} saveError={saveError} />}
     </div>
   );
 }

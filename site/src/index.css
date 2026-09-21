@@ -129,13 +129,27 @@ summary:focus-visible {
 .artist-workspace-card__notes.is-empty { color: var(--faint); font-style: italic; }
 .artist-workspace-card__actions { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--line-soft); padding-top: 12px; font-size: .76rem; }
 .artist-workspace-card__actions a { color: #b7aaff; text-decoration: none; }
-.artist-workspace-card__actions button { border: 0; background: transparent; color: var(--faint); cursor: not-allowed; }
+.artist-workspace-card__actions button { border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.artist-workspace-card__actions button:hover { color: var(--ink); }
 .artist-workspace-lightbox { position: fixed; z-index: 20; inset: 0; display: grid; place-items: center; background: rgba(5, 5, 9, .92); padding: 36px; }
 .artist-workspace-lightbox__content { display: grid; max-width: min(92vw, 1200px); max-height: 92vh; place-items: center; gap: 16px; }
 .artist-workspace-lightbox__content img { display: block; max-width: 100%; max-height: calc(92vh - 70px); object-fit: contain; }
 .artist-workspace-lightbox__close { position: absolute; top: 18px; right: 24px; border: 0; background: transparent; color: var(--ink); cursor: pointer; font-size: 2rem; line-height: 1; }
 .artist-workspace-lightbox__controls { display: flex; align-items: center; gap: 16px; color: var(--muted); }
 .artist-workspace-lightbox__controls button { border: 1px solid var(--line); border-radius: 5px; background: #17171e; color: var(--ink); cursor: pointer; padding: 6px 12px; }
+.artist-detail-backdrop { position: fixed; z-index: 19; inset: 0; display: flex; justify-content: flex-end; background: rgba(5, 5, 9, .58); }
+.artist-detail-drawer { width: min(100%, 520px); height: 100%; overflow-y: auto; border-left: 1px solid var(--line); background: #17171e; box-shadow: -18px 0 50px rgba(0, 0, 0, .3); }
+.artist-detail-drawer__header { display: flex; align-items: start; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--line); padding: 28px 28px 22px; }
+.artist-detail-drawer__header h2 { margin: 0; font-family: var(--serif); font-size: 2rem; font-weight: 400; overflow-wrap: anywhere; }
+.artist-detail-drawer__close { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 2rem; line-height: 1; }
+.artist-detail-drawer__form { display: grid; gap: 18px; padding: 28px; }
+.artist-detail-drawer__form label { display: grid; gap: 7px; color: var(--muted); font-size: .78rem; }
+.artist-detail-drawer__form input, .artist-detail-drawer__form select, .artist-detail-drawer__form textarea { width: 100%; border: 1px solid var(--line); border-radius: 5px; background: #101016; color: var(--ink); padding: 11px 12px; font: inherit; resize: vertical; }
+.artist-detail-drawer__form input:focus, .artist-detail-drawer__form select:focus, .artist-detail-drawer__form textarea:focus { border-color: var(--workspace-accent); outline: none; }
+.artist-detail-drawer__row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.artist-detail-drawer__footer { display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid var(--line); padding-top: 20px; }
+.artist-detail-drawer__footer button { border: 1px solid var(--line); border-radius: 5px; background: transparent; color: var(--muted); cursor: pointer; padding: 10px 14px; }
+.artist-detail-drawer__footer button.is-primary { border-color: var(--workspace-accent); background: var(--workspace-accent); color: #15121f; font-weight: 600; }
 .artist-workspace__error { border: 1px solid #8d4d5c; background: rgba(141, 77, 92, .14); color: #ffb9c5; padding: 12px 14px; }
 .artist-workspace__state { padding: 70px 0; color: var(--muted); text-align: center; }
 .artist-workspace-login { padding: 16vh 0; }
