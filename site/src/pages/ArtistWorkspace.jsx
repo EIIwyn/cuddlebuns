@@ -163,7 +163,7 @@ function ArtistDetailDrawer({ record, onClose, onSave, saving, saveError }) {
           <label>Profile URL<input type="url" value={form.url} onChange={(event) => update('url', event.target.value)} /></label>
           <div className="artist-detail-drawer__row">
             <label>Status<select value={form.status} onChange={(event) => update('status', event.target.value)}>{STATUS_OPTIONS.map((item) => <option key={item}>{item}</option>)}</select></label>
-            <label>Price bracket<input value={form.price_bracket} onChange={(event) => update('price_bracket', event.target.value)} placeholder="Affordable" /></label>
+            <label>Price bracket<select value={form.price_bracket} onChange={(event) => update('price_bracket', event.target.value)}><option value="">Not set</option>{PRICE_OPTIONS.filter((item) => item !== '(Empty)').map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
           </div>
           <div className="artist-detail-drawer__row">
             <label>Price (JPY)<input type="number" min="0" step="any" value={form.price_jpy} onChange={(event) => update('price_jpy', event.target.value)} /></label>
