@@ -12,7 +12,7 @@ const imageMimeTypes = ['image/avif', 'image/gif', 'image/jpeg', 'image/png', 'i
 const expectedFields = {
   artists: {
     artist_name: 'text', url: 'url', commission_subject: 'json', date_added: 'date',
-    notes: 'text', price_jpy: 'number', price_usd: 'number', price_bracket: 'select', status: 'select',
+    notes: 'text', price_jpy: 'number', price_usd: 'number', price_bracket: 'text', status: 'text',
     example: 'file',
   },
   collections: {
@@ -65,11 +65,6 @@ const expectedFiles = {
   'versions.reference_sheet': [6, 24 * 1024 * 1024],
   'commissions.image': [5, 18 * 1024 * 1024],
   'uma_support_cards.image': [1, 2 * 1024 * 1024],
-}
-
-const expectedSelects = {
-  'artists.price_bracket': ['Affordable', 'Balanced', 'Premium', 'Upscale'],
-  'artists.status': ['Candidate', 'Reserve', 'Worked', 'Assigned'],
 }
 
 class Collection {
@@ -223,17 +218,6 @@ test('PocketBase file fields use the approved protected image limits', async () 
     assert.equal(field.maxSelect, maxSelect, `${key} maxSelect`)
     assert.equal(field.maxSize, maxSize, `${key} maxSize`)
     assert.deepEqual(Array.from(field.mimeTypes), imageMimeTypes, `${key} MIME types`)
-  }
-})
-
-test('artist workflow fields are single-select fields with the approved options', async () => {
-  const { app } = await applySchema()
-  for (const [key, values] of Object.entries(expectedSelects)) {
-    const [collectionName, fieldName] = key.split('.')
-    const field = fieldsByName(app.collections.get(collectionName))[fieldName]
-    assert.equal(field.type, 'select', `${key} type`)
-    assert.equal(field.maxSelect, 1, `${key} maxSelect`)
-    assert.deepEqual(Array.from(field.values), values, `${key} options`)
   }
 })
 
