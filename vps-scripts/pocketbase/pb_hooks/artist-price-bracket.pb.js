@@ -1,8 +1,8 @@
 const USD_TO_JPY = 150
 
 function getNumber(record, fieldName) {
-  const value = Number(record.get(fieldName))
-  return Number.isFinite(value) && value > 0 ? value : 0
+  const value = parseFloat(record.get(fieldName))
+  return isFinite(value) && value > 0 ? value : 0
 }
 
 function calculatePriceBracket(record) {
