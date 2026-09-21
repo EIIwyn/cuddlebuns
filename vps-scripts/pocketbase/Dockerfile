@@ -33,6 +33,7 @@ RUN apk add --no-cache ca-certificates \
 
 COPY --from=download /tmp/pocketbase-download/pocketbase /usr/local/bin/pocketbase
 COPY --chown=10001:10001 --chmod=0444 pb_migrations /pb/pb_migrations
+COPY --chown=10001:10001 --chmod=0444 pb_hooks /pb/pb_hooks
 
 ENV HOME=/pb
 
