@@ -1,5 +1,13 @@
 # Uma GameTora Import Implementation Plan
 
+> **NocoDB retirement handoff (2026-09-21):** This importer and its manual
+> Uma mirror are the remaining planned NocoDB write path after the gallery and
+> public Uma runtime move to PocketBase. Before NocoDB is stopped, replace the
+> NocoDB client with a least-privilege PocketBase writer while preserving
+> `gametora_id`, `lock_facts`, seed-once fields, relation reconciliation, and
+> dry-run-by-default behavior. Until then, NocoDB is retained solely for this
+> importer; it is not the public site's CMS source.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. Tasks tagged [ops] need a human with NocoDB or VPS access; stop and hand over when you reach one.
 
 **Goal:** A nightly importer that seeds and refreshes the three Uma NocoDB tables (scenarios, pvp_events, support_cards) from GameTora's public JSON, plus the small sync changes that publish the result.

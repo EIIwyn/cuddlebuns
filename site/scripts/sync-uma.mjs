@@ -2,35 +2,19 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import sharp from 'sharp';
-import { loadUmaSource } from './adapters/nocodb-uma.mjs';
 import { loadPocketBaseUmaSource } from './adapters/pocketbase-uma.mjs';
 import { SITE_DIR, loadEnvironment, getPocketBaseConfig } from './lib/env.mjs';
-import { createNocodbClient } from './lib/nocodb.mjs';
 import { createUmaModel } from './lib/uma-model.mjs';
 import { writeJsonAtomic } from './lib/output-writers.mjs';
 import { createPocketBaseClient } from './lib/pocketbase-client.mjs';
-import { assertSourceAvailable, manifestPath, scopedFingerprint, selectSource } from './lib/source-selection.mjs';
 
 const OUTPUT_FILE = path.join(SITE_DIR, 'public', 'data', 'uma', 'timeline.json');
-const LEGACY_MANIFEST_FILE = path.join(SITE_DIR, '.cache', 'uma', 'manifest.json');
 const IMAGE_DIR = path.join(SITE_DIR, 'public', 'generated', 'nocodb', 'uma-support');
 const PUBLIC_IMAGE_ROOT = '/generated/nocodb/uma-support';
 const GAMETORA_THUMB_DIR = path.join(SITE_DIR, '.cache', 'uma', 'gametora-thumbs');
 const GAMETORA_THUMB_URL = (id) => `https://gametora.com/images/umamusume/supports/support_card_s_${id}.png`;
 const CHECK_ONLY = process.argv.includes('--check');
 const API_TIMEOUT_MS = 120_000;
-
-function getConfig() {
-  const names = {
-    url: 'UMA_NOCODB_URL', token: 'UMA_NOCODB_TOKEN', baseId: 'UMA_NOCODB_BASE_ID',
-    scenarios: 'UMA_NOCODB_SCENARIOS_TABLE_ID', events: 'UMA_NOCODB_PVP_EVENTS_TABLE_ID', supportCards: 'UMA_NOCODB_SUPPORT_CARDS_TABLE_ID',
-  };
-  const config = Object.fromEntries(Object.entries(names).map(([key, name]) => [key, process.env[name]?.trim()]));
-  const missing = Object.entries(config).filter(([, value]) => !value || value.startsWith('YOUR_')).map(([key]) => names[key]);
-  if (missing.length) throw new Error(`Missing Uma NocoDB configuration: ${missing.join(', ')}`);
-  config.url = config.url.replace(/\/+$/, '');
-  return config;
-}
 
 function hash(value) { return crypto.createHash('sha256').update(value).digest('hex'); }
 function stable(value) {
@@ -206,28 +190,16 @@ function createModel(scenarioRecords, eventRecords, supportCardRecords) {
 
 async function main() {
   loadEnvironment();
-  const source = assertSourceAvailable(selectSource(process.argv.slice(2), process.env), ['nocodb', 'pocketbase']);
-  const currentManifestFile = manifestPath('uma', source, SITE_DIR);
-  let config;
-  let tables;
-  if (source === 'nocodb') {
-    config = getConfig();
-    const client = createNocodbClient({ url: config.url, token: config.token, baseId: config.baseId, timeoutMs: API_TIMEOUT_MS });
-    tables = await loadUmaSource(config, (cfg, tableId, label) => client.fetchAllRecords(tableId, label));
-    console.log(`Fetched ${tables.scenarios.length} scenario, ${tables.events.length} PvP event, and ${tables.supportCards.length} support card record(s).`);
-  } else {
-    config = getPocketBaseConfig(process.env, 'sync');
-    tables = await loadPocketBaseUmaSource(createPocketBaseClient(config));
-  }
+  const source = 'pocketbase';
+  const currentManifestFile = path.join(SITE_DIR, '.cache', 'uma', 'pocketbase', 'manifest.json');
+  const config = getPocketBaseConfig(process.env, 'sync');
+  const tables = await loadPocketBaseUmaSource(createPocketBaseClient(config));
   const { scenarios, events, supportCards } = tables;
   const model = createModel(scenarios, events, supportCards);
   const sourceSnapshot = { scenarios, events, supportCards };
-  const sourceFingerprint = scopedFingerprint(source, sourceSnapshot);
-  const legacySourceFingerprint = fingerprint(sourceSnapshot);
-  const previous = readJson(currentManifestFile, source === 'nocodb' ? readJson(LEGACY_MANIFEST_FILE, {}) : {});
-  const fingerprintMatches = previous.sourceFingerprint === sourceFingerprint ||
-    (source === 'nocodb' && !fs.existsSync(currentManifestFile) &&
-      previous.sourceFingerprint === legacySourceFingerprint);
+  const sourceFingerprint = fingerprint({ source, records: sourceSnapshot });
+  const previous = readJson(currentManifestFile, {});
+  const fingerprintMatches = previous.sourceFingerprint === sourceFingerprint;
   const current = fingerprintMatches && fs.existsSync(OUTPUT_FILE);
   if (CHECK_ONLY) {
     console.log(current ? `No public Uma ${source} changes detected.` : `Public Uma ${source} changes detected.`);

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runs on the VPS. NocoDB credentials come from the systemd EnvironmentFile.
+# Runs on the VPS. PocketBase read-only credentials come from the systemd EnvironmentFile.
 set -euo pipefail
 
 SOURCE_DIR="${CUDDLEBUNS_SOURCE_DIR:-/var/www/cuddlebuns/source}"
@@ -39,16 +39,16 @@ node scripts/sync-uma.mjs --check
 UMA_SYNC_STATUS=$?
 set -e
 if [[ "$GALLERY_SYNC_STATUS" -ne 0 && "$GALLERY_SYNC_STATUS" -ne 10 ]]; then
-  echo "Gallery NocoDB change check failed with status $GALLERY_SYNC_STATUS." >&2
+  echo "Gallery CMS change check failed with status $GALLERY_SYNC_STATUS." >&2
   exit "$GALLERY_SYNC_STATUS"
 fi
 if [[ "$UMA_SYNC_STATUS" -ne 0 && "$UMA_SYNC_STATUS" -ne 10 ]]; then
-  echo "Uma NocoDB change check failed with status $UMA_SYNC_STATUS." >&2
+  echo "Uma CMS change check failed with status $UMA_SYNC_STATUS." >&2
   exit "$UMA_SYNC_STATUS"
 fi
 
 if [[ "$GALLERY_SYNC_STATUS" -eq 0 && "$UMA_SYNC_STATUS" -eq 0 && "$SOURCE_REVISION" == "$DEPLOYED_REVISION" && -f "$CURRENT_LINK/index.html" ]]; then
-  echo "NocoDB and source code are unchanged; no deployment needed."
+  echo "CMS and source code are unchanged; no deployment needed."
   exit 0
 fi
 

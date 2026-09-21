@@ -69,11 +69,11 @@ else
 fi
 
 # --------------------------------------------------
-# Check NocoDB
+# Check CMS source
 # --------------------------------------------------
 
 echo
-echo "Checking NocoDB..."
+echo "Checking CMS source..."
 
 cd "$SITE"
 
@@ -86,28 +86,28 @@ set -e
 
 case "$GALLERY_SYNC_CHECK_EXIT" in
     0)
-        echo "No public NocoDB changes detected."
+        echo "No public CMS changes detected."
         ;;
     10)
-        echo "Public NocoDB changes detected."
+        echo "Public CMS changes detected."
         CMS_CHANGED=1
         ;;
     *)
-        echo "ERROR: Gallery NocoDB change check failed with exit code $GALLERY_SYNC_CHECK_EXIT."
+        echo "ERROR: Gallery CMS change check failed with exit code $GALLERY_SYNC_CHECK_EXIT."
         exit "$GALLERY_SYNC_CHECK_EXIT"
         ;;
 esac
 
 case "$UMA_SYNC_CHECK_EXIT" in
     0)
-        echo "No public Uma NocoDB changes detected."
+        echo "No public Uma CMS changes detected."
         ;;
     10)
-        echo "Public Uma NocoDB changes detected."
+        echo "Public Uma CMS changes detected."
         UMA_CHANGED=1
         ;;
     *)
-        echo "ERROR: Uma NocoDB change check failed with exit code $UMA_SYNC_CHECK_EXIT."
+        echo "ERROR: Uma CMS change check failed with exit code $UMA_SYNC_CHECK_EXIT."
         exit "$UMA_SYNC_CHECK_EXIT"
         ;;
 esac
@@ -128,13 +128,13 @@ fi
 
 if [ "$CMS_CHANGED" -eq 1 ]; then
     echo
-    echo "Synchronizing changed NocoDB content..."
+    echo "Synchronizing changed gallery CMS content..."
     npm run sync
 fi
 
 if [ "$UMA_CHANGED" -eq 1 ]; then
     echo
-    echo "Synchronizing changed Uma NocoDB content..."
+    echo "Synchronizing changed Uma CMS content..."
     npm run sync:uma
 fi
 
@@ -202,7 +202,7 @@ echo
 echo "========================================"
 echo "Deployment successful"
 echo "Git changed:    $GIT_CHANGED"
-echo "NocoDB changed: $CMS_CHANGED"
+echo "CMS changed:    $CMS_CHANGED"
 echo "Uma changed:    $UMA_CHANGED"
 echo "Finished: $(date)"
 echo "========================================"

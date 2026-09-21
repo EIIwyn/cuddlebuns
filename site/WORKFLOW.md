@@ -2,10 +2,11 @@
 
 ## Architecture
 
-NocoDB is the editorial CMS and source of truth for the `/gallery` route and the separate `/uma/timeline` data set:
+PocketBase is the editorial CMS and sole public source for the `/gallery` route and the separate
+`/uma/timeline` data set:
 
 ```text
-NocoDB (server-side API only)
+PocketBase (server-side API only)
   -> npm run sync
   -> validated static JSON + hashed responsive images
   -> npm run build
@@ -13,40 +14,26 @@ NocoDB (server-side API only)
   -> Caddy serves /var/www/cuddlebuns/current
 ```
 
-The browser never connects to NocoDB or PocketBase. `NOCODB_TOKEN`, `UMA_NOCODB_TOKEN`, and PocketBase
-sync credentials must only exist in `.env.local`
+The browser never connects to the CMS. PocketBase sync credentials must only exist in `.env.local`
 for local work or `/etc/cuddlebuns/gallery.env` on the VPS. Never prefix it with
 `VITE_`, commit it, paste it into browser code, or place it in `public/`.
+
+The GameTora importer is a temporary exception: it still writes its seeded Uma data to NocoDB and
+requires `UMA_NOCODB_*` credentials, followed by a manual PocketBase mirror. Those credentials are
+not used by public sync/build commands. Replace that writer before stopping NocoDB.
 
 ## One-time local setup
 
 Copy `.env.example` to `.env.local` and fill in all values:
 
 ```dotenv
-CMS_SOURCE=nocodb
-NOCODB_URL=https://noco.cuddlebuns.moe
-NOCODB_TOKEN=YOUR_TOKEN_HERE
-NOCODB_BASE_ID=YOUR_BASE_ID
-NOCODB_ARTISTS_TABLE_ID=YOUR_ARTISTS_TABLE_ID
-NOCODB_CHARACTERS_TABLE_ID=YOUR_CHARACTERS_TABLE_ID
-NOCODB_COMMISSIONS_TABLE_ID=YOUR_COMMISSIONS_TABLE_ID
-NOCODB_COLLECTIONS_TABLE_ID=YOUR_COLLECTIONS_TABLE_ID
-NOCODB_VERSIONS_TABLE_ID=YOUR_VERSIONS_TABLE_ID
-
-# Separate Uma Musume Global base
-UMA_NOCODB_URL=https://noco.cuddlebuns.moe
-UMA_NOCODB_TOKEN=YOUR_UMA_TOKEN_HERE
-UMA_NOCODB_BASE_ID=YOUR_UMA_BASE_ID
-UMA_NOCODB_SCENARIOS_TABLE_ID=YOUR_SCENARIOS_TABLE_ID
-UMA_NOCODB_PVP_EVENTS_TABLE_ID=YOUR_PVP_EVENTS_TABLE_ID
-UMA_NOCODB_SUPPORT_CARDS_TABLE_ID=YOUR_SUPPORT_CARDS_TABLE_ID
+CMS_SOURCE=pocketbase
+POCKETBASE_URL=http://127.0.0.1:8090
+POCKETBASE_SYNC_EMAIL=YOUR_READ_ONLY_SYNC_EMAIL
+POCKETBASE_SYNC_PASSWORD=YOUR_READ_ONLY_SYNC_PASSWORD
 ```
 
-Explicit table IDs are intentional. Personal API tokens in this NocoDB installation do
-not expose the table-list metadata permission, but they can read records from a known
-table ID.
-
-PocketBase is now the production CMS source. Its records use PocketBase's native `id` values;
+PocketBase records use native `id` values;
 the temporary migration-only `legacy_id` fields have been removed. The historical migration
 and source-comparison scripts retain their legacy-ID vocabulary because they operate on the
 archived NocoDB-to-PocketBase migration format.
@@ -62,7 +49,7 @@ npm.cmd run dev
 
 Open `http://localhost:5173/gallery`.
 
-## Editing the gallery in NocoDB
+## Editing the gallery in PocketBase
 
 Relationships are:
 
@@ -88,7 +75,7 @@ A published Commission requires:
 - at least one linked visible Version
 - at least one linked Artist with an `Artist Name`
 
-The NocoDB `Title` field remains an internal identifier. Public cards are always shown
+The `title` field remains an internal identifier. Public cards are always shown
 as `[Type] by Artist`; the internal title is never written to public JSON.
 
 `Accent Color` accepts three- or six-digit hex values. The sync normalizes valid values
@@ -98,7 +85,7 @@ The sync reports invalid published records and omits them. This prevents partial
 configured records from leaking into the live gallery. At the first migration sync,
 Commission records 21 and 60 were omitted because they did not have a Source URL.
 
-## Editing the Uma timeline in NocoDB
+## Editing the Uma timeline in PocketBase
 
 The Uma tables live in a separate base. The public timeline requires `scenarios` with
 `name`, `slug`, `era_start`, and `era_end`, plus `pvp_events` with `name`, `slug`,
@@ -234,8 +221,8 @@ npm.cmd run sync:uma
 # Exit 0 when current; exit 10 when public Uma data changed
 npm.cmd run sync:uma:check
 
-# Override CMS_SOURCE for an explicit backend check (PocketBase is added later)
-npm.cmd run sync:check -- --source=nocodb
+# Check the PocketBase public source without writing generated output
+npm.cmd run sync:check
 
 # Pure Vite build; it does not edit source JSON
 npm.cmd run build
@@ -256,12 +243,11 @@ npm.cmd run build:fresh
 npm.cmd run lint
 ```
 
-Source selection follows `--source > CMS_SOURCE > nocodb`. Invalid or unavailable sources fail;
-the commands never fall back silently. Backend manifests are isolated under
-`.cache/{gallery,uma}/<source>/manifest.json` while original bytes are shared.
+Public sync commands always use PocketBase and never fall back to NocoDB. Their manifests are
+isolated under `.cache/{gallery,uma}/pocketbase/manifest.json` while original bytes are shared.
 
 The first sync downloads every attachment and creates 480px, 960px, and 1600px AVIF
-and WebP derivatives. Later runs use `.cache/gallery/nocodb/manifest.json` and content hashes,
+and WebP derivatives. Later runs use `.cache/gallery/pocketbase/manifest.json` and content hashes,
 so unchanged images are reused.
 
 Reference-sheet originals are also preserved in the generated image directory. The
@@ -272,7 +258,7 @@ source quality while allowing the browser to scale the display to the available 
 Generated and cached files are intentionally ignored by Git:
 
 ```text
-site/.cache/gallery/nocodb/
+site/.cache/gallery/pocketbase/
 site/.cache/originals/
 site/public/data/cms/site.json
 site/public/data/cms/gallery/<character>--<version>.json
@@ -298,7 +284,7 @@ npm ci
 chmod +x ../vps-scripts/sync-build-deploy.sh
 ```
 
-Create `/etc/cuddlebuns/gallery.env` with the same eight NocoDB values used locally,
+Create `/etc/cuddlebuns/gallery.env` with the PocketBase read-only sync credentials used locally,
 then protect it:
 
 ```bash
@@ -323,7 +309,7 @@ systemctl status cuddlebuns-gallery-sync.timer
 journalctl -u cuddlebuns-gallery-sync.service -n 100 --no-pager
 ```
 
-The timer checks every five minutes. If both NocoDB and the checked-out Git commit are
+The timer checks every five minutes. If both PocketBase public data and the checked-out Git commit are
 unchanged, it exits without building. A changed run validates the output, copies the
 complete `dist/` into `/var/www/cuddlebuns/releases/<timestamp>`, and atomically changes
 the `/var/www/cuddlebuns/current` symlink. Failed syncs or builds never replace the
@@ -343,7 +329,7 @@ caching and revalidates `/data/cms/*.json`.
 - A published record is skipped: read the validation message and fill its missing field.
 - Images do not update: confirm the attachment itself changed, run `npm.cmd run sync`,
   and verify that a new content hash appears in the generated filename.
-- Timer fails before building: verify `/etc/cuddlebuns/gallery.env`, NocoDB access, and
+- Timer fails before building: verify `/etc/cuddlebuns/gallery.env`, PocketBase access, and
   that `npm ci` was run in the VPS source checkout.
 - Site still shows an older release: inspect `readlink -f /var/www/cuddlebuns/current`
   and the service journal.

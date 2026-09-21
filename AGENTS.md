@@ -6,7 +6,7 @@ This file provides guidance to AI coding agents (Claude Code, Codex, Cursor, Cop
 
 cuddlebuns.moe: a static React/Vite site (`site/`) plus the VPS deployment pieces that serve it
 (`cuddlebuns.caddy`, `vps-scripts/`). There is no package.json at the repo root; all npm work
-happens in `site/`. `site/WORKFLOW.md` is the authoritative, detailed guide for NocoDB editing,
+happens in `site/`. `site/WORKFLOW.md` is the authoritative, detailed guide for PocketBase editing,
 local setup, and VPS deployment. Read it before touching the sync scripts or deploy flow.
 
 ## Commands (run from `site/`)
@@ -19,7 +19,7 @@ npm run build          # pure Vite build to dist/ (does not touch source JSON)
 npm run lint           # eslint . (flat config, react-hooks + react-refresh)
 npm run preview        # serve dist/
 
-npm run sync           # pull gallery tables from NocoDB -> public/data/cms/** + responsive images
+npm run sync           # pull PocketBase gallery data -> public/data/cms/** + responsive images
 npm run sync:check     # exit 0 = current, exit 10 = public CMS changes pending (NOT an error)
 npm run sync:uma       # pull Uma Musume base -> public/data/uma/timeline.json + card thumbnails
 npm run sync:uma:check # same exit-code contract as sync:check
@@ -36,25 +36,25 @@ npm run mirror:uma        # copy the seeded NocoDB Uma tables into PocketBase (n
 Validation of generated output is done by the `validate:*` scripts.
 
 Sync scripts need `site/.env.local` (copy from `.env.example`; both `.env.example` and
-`WORKFLOW.md` document the `UMA_NOCODB_*` variables; the `UMA_IMPORT_*` variables are empty
-unless you have staging tables). Table IDs are explicit env vars on purpose: the NocoDB
-tokens cannot list tables. Optional knobs for the gallery sync: `CMS_IMAGE_CONCURRENCY`
+`WORKFLOW.md` document the temporary `UMA_NOCODB_*` variables used only by the GameTora
+import/mirror path; the `UMA_IMPORT_*` variables are empty unless you have staging tables).
+Optional knobs for the gallery sync: `CMS_IMAGE_CONCURRENCY`
 (1-2) and `CMS_WEBP_ONLY=1` to skip AVIF generation on slow machines.
 
 A fresh clone has no `public/data/` or `public/generated/` at all; the dev server shows an error
 screen until you run `sync` and `sync:uma` (or point at a copy of the generated output).
 
-## Architecture: NocoDB -> static JSON -> Vite -> Caddy
+## Architecture: PocketBase -> static JSON -> Vite -> Caddy
 
-The browser never talks to NocoDB. Everything public is prebuilt:
+The browser never talks to PocketBase. Everything public is prebuilt:
 
-1. `scripts/sync-gallery.mjs` fetches Collections, Characters, Versions, Commissions, Artists and
+1. `scripts/sync-gallery.mjs` fetches PocketBase Collections, Characters, Versions, Commissions, Artists and
    writes `public/data/cms/site.json` (navigation + reference-sheet metadata) and one
    `public/data/cms/gallery/<character>--<version>.json` per visible Version. Images are downloaded
-   once, cached under `.cache/gallery/nocodb/`, and emitted as content-hashed AVIF/WebP derivatives
+   once, cached under `.cache/gallery/pocketbase/`, and emitted as content-hashed AVIF/WebP derivatives
    (480/960/1600px; 480/600/720px for card thumbnails) under `public/generated/nocodb/images/`.
    Invalid published records are reported and omitted rather than published half-configured.
-2. `scripts/sync-uma.mjs` does the same for a separate NocoDB base (Scenarios, PvP Events,
+2. `scripts/sync-uma.mjs` does the same for PocketBase Uma collections (Scenarios, PvP Events,
    Support Cards tables) into `public/data/uma/timeline.json` (`{ schemaVersion: 1, scenarios,
    pvpEvents, supportCards }`) and thumbnails under `public/generated/nocodb/uma-support/`.
 3. `scripts/import-uma-gametora.mjs` seeds the three Uma NocoDB tables from GameTora's public
@@ -69,8 +69,8 @@ The browser never talks to NocoDB. Everything public is prebuilt:
 4. Both sync scripts support `--check`, which compares a fingerprint of the public-facing source
    data against the cached manifest and exits 10 when a rebuild is needed. The VPS timer relies on
    this exit code.
-5. Both entry points select their backend with precedence `--source > CMS_SOURCE > nocodb`, reject
-   invalid or unavailable sources, and keep manifests under `.cache/{gallery,uma}/<source>/`.
+5. Both public sync entry points use PocketBase and keep manifests under
+   `.cache/{gallery,uma}/pocketbase/`.
 6. `npm run build` bundles the React app; the generated JSON/images are plain `public/` assets.
 
 All generated output (`public/data/cms/`, `public/data/uma/*.json`, `public/generated/nocodb/`,
@@ -110,9 +110,9 @@ hashed images, and no-cache for HTML and CMS JSON.
 
 ## Conventions and constraints
 
-- NocoDB tokens (`NOCODB_TOKEN`, `UMA_NOCODB_TOKEN`) must never be prefixed `VITE_`, committed,
-  or referenced from browser code. `validate:cms` and `validate:uma` scan output for leaks.
-- Public commission cards are titled `[Type] by Artist`; the NocoDB `Title` field is internal and
+- PocketBase credentials and temporary GameTora NocoDB tokens must never be prefixed `VITE_`,
+  committed, or referenced from browser code. `validate:cms` and `validate:uma` scan output for leaks.
+- Public commission cards are titled `[Type] by Artist`; the PocketBase `title` field is internal and
   must not be written to public JSON.
 - If you change what the sync scripts emit, update the matching validator and any consumer in
   `src/` in the same change, and bump `MANIFEST_VERSION` in `sync-gallery.mjs` if the cache

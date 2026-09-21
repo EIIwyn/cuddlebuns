@@ -263,3 +263,53 @@ The Teina subtitle was restored to `Literary Archivist`. Live
 the timer detected and deployed the separate reversion. The intentional Teina
 reference-sheet update remains outside the test baseline; no unrelated
 PocketBase content was reverted.
+
+## Task 26 current-backup restore
+
+On 2026-09-21, the current local PocketBase archive
+`@auto_pb_backup_acme_20260921033000.zip` (302,135,105 bytes) was copied from
+the live container's protected backup directory. Its SHA-256 was identical
+before and after the copy:
+
+```text
+501210ae14644974cf9afd61d215e635f673bd7c11802ed46de81e36d020386e
+```
+
+It was extracted only into
+`/var/www/cuddlebuns/rehearsals/task26-20260921T201850Z/pb_data` and started
+as `cuddlebuns-pocketbase-task26-20260921T201850Z` on loopback port 8093. The
+restored instance passed `/api/health`, was restarted once, and passed health
+again. Production remained on port 8090, healthy, with its current release
+symlink unchanged at `/var/www/cuddlebuns/releases/20260921-200937`.
+
+An isolated full source checkout under the same rehearsal directory passed
+`npm test` (120 passed; the disposable integration test remained intentionally
+skipped) and `npm run lint`. With `CMS_SOURCE=pocketbase` and
+`POCKETBASE_URL=http://127.0.0.1:8093`, authenticated gallery and Uma syncs,
+both output validators, and the production build passed. The restored output
+published 22 gallery files with 118 version-linked images, 11 scenarios, 44
+PvP events, and 70 rated support cards; 487 unrated cards were intentionally
+held back.
+
+The restored and production public CMS/Uma JSON differ only in `generatedAt`.
+Their complete generated-artifact SHA-256 inventories are identical.
+
+The owner accepted the verified local archive for this drill; off-server-copy
+restore proof is intentionally waived for this Task 26 record.
+
+## Task 27A PocketBase-only public-runtime cleanup (staged)
+
+The local cleanup removes the NocoDB gallery and Uma adapters and source selector from the public
+sync commands. `sync-gallery.mjs` and `sync-uma.mjs` now authenticate only to PocketBase and use
+the PocketBase manifest directories; the deployment scripts and systemd descriptions refer to the
+CMS source rather than NocoDB. The legacy `/generated/nocodb/` public asset prefix is intentionally
+unchanged so existing emitted asset URLs remain valid.
+
+`site/.env.example`, `site/WORKFLOW.md`, and `AGENTS.md` now describe PocketBase as the sole public
+CMS source. `docs/2026-09-07-uma-gametora-import.md` records the remaining exception: the GameTora
+importer still writes NocoDB and its manual Uma mirror still reads it. NocoDB must remain running
+until a least-privilege PocketBase writer replaces that work; this cleanup does not authorize Task
+27B deployment or Task 27C service shutdown.
+
+Local verification passed: `npm.cmd test` (116 passed, 1 intentional integration skip), `npm.cmd
+run lint`, and `npm.cmd run build`.

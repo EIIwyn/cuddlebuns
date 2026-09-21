@@ -1,5 +1,5 @@
 [Unit]
-Description=Check NocoDB for gallery changes every five minutes
+Description=Check PocketBase for gallery changes every five minutes
 
 [Timer]
 OnBootSec=2min

@@ -2,21 +2,18 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
-import { loadGallerySource } from './adapters/nocodb-gallery.mjs';
 import { loadPocketBaseGallerySource } from './adapters/pocketbase-gallery.mjs';
 import { getPocketBaseConfig } from './lib/env.mjs';
 import { createGalleryModel } from './lib/gallery-model.mjs';
 import { mapWithConcurrency } from './lib/image-pipeline.mjs';
 import { writeJsonAtomic } from './lib/output-writers.mjs';
 import { createPocketBaseClient } from './lib/pocketbase-client.mjs';
-import { assertSourceAvailable, manifestPath, scopedFingerprint, selectSource } from './lib/source-selection.mjs';
 
 // Keep libvips conservative on a small VPS. This can be raised later if the server has headroom.
 sharp.concurrency(1);
 
 const SITE_DIR = path.resolve(import.meta.dirname, "..");
 const ORIGINALS_DIR = path.join(SITE_DIR, ".cache", "originals");
-const LEGACY_MANIFEST_FILE = path.join(SITE_DIR, ".cache", "nocodb", "manifest.json");
 const DATA_DIR = path.join(SITE_DIR, "public", "data", "cms");
 const GALLERY_DIR = path.join(DATA_DIR, "gallery");
 const IMAGE_DIR = path.join(SITE_DIR, "public", "generated", "nocodb", "images");
@@ -25,13 +22,9 @@ const CHECK_ONLY = process.argv.includes("--check");
 const MANIFEST_VERSION = 3;
 const DERIVATIVE_WIDTHS = [480, 960, 1600];
 const THUMBNAIL_WIDTHS = [480, 600, 720];
-const API_PAGE_SIZE = 10;
-const API_TIMEOUT_MS = 120_000;
 const IMAGE_TIMEOUT_MS = 600_000;
 const IMAGE_MAX_ATTEMPTS = 4;
 const IMAGE_RETRY_BASE_MS = 5_000;
-const API_MAX_ATTEMPTS = 4;
-const API_RETRY_BASE_MS = 4_000;
 const IMAGE_CONCURRENCY = Math.max(1, Math.min(2, Number(process.env.CMS_IMAGE_CONCURRENCY) || 1));
 const WEBP_ONLY = /^(1|true|yes)$/i.test(process.env.CMS_WEBP_ONLY || "");
 const IMAGE_FORMATS = WEBP_ONLY ? ["webp"] : ["avif", "webp"];
@@ -54,30 +47,6 @@ function loadEnvironment() {
     }
     if (!process.env[key]) process.env[key] = value;
   }
-}
-
-function getConfig() {
-  const names = {
-    url: "NOCODB_URL",
-    token: "NOCODB_TOKEN",
-    baseId: "NOCODB_BASE_ID",
-    artists: "NOCODB_ARTISTS_TABLE_ID",
-    characters: "NOCODB_CHARACTERS_TABLE_ID",
-    commissions: "NOCODB_COMMISSIONS_TABLE_ID",
-    collections: "NOCODB_COLLECTIONS_TABLE_ID",
-    versions: "NOCODB_VERSIONS_TABLE_ID",
-  };
-  const config = Object.fromEntries(
-    Object.entries(names).map(([key, name]) => [key, process.env[name]?.trim()]),
-  );
-  const missing = Object.entries(config)
-    .filter(([, value]) => !value || value.startsWith("YOUR_"))
-    .map(([key]) => names[key]);
-  if (missing.length) {
-    throw new Error(`Missing NocoDB configuration: ${missing.join(", ")}`);
-  }
-  config.url = config.url.replace(/\/+$/, "");
-  return config;
 }
 
 function slugify(value, fallback) {
@@ -153,83 +122,6 @@ function readJson(file, fallback = null) {
   } catch {
     return fallback;
   }
-}
-
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function isRetryableApiFailure(status, detail) {
-  if (status === 408 || status === 425 || status === 429 || status >= 500) return true;
-  if (status !== 422) return false;
-  return /57P03|recovery mode|ERR_DATABASE_OP_FAILED|database system is in recovery/i.test(detail);
-}
-
-async function fetchApiPage(url, config, label, pageNumber) {
-  let lastError = null;
-
-  for (let attempt = 1; attempt <= API_MAX_ATTEMPTS; attempt += 1) {
-    let response;
-    try {
-      response = await fetch(url, {
-        headers: { "xc-token": config.token },
-        signal: AbortSignal.timeout(API_TIMEOUT_MS),
-      });
-    } catch (error) {
-      lastError = error;
-      if (attempt === API_MAX_ATTEMPTS) throw error;
-      const delay = API_RETRY_BASE_MS * attempt;
-      console.warn(
-        `${label} page ${pageNumber} request error; ` +
-        `retrying in ${Math.round(delay / 1000)}s (${attempt}/${API_MAX_ATTEMPTS})...`,
-      );
-      await sleep(delay);
-      continue;
-    }
-
-    if (response.ok) return response;
-
-    const detail = (await response.text()).slice(0, 500);
-    if (!isRetryableApiFailure(response.status, detail) || attempt === API_MAX_ATTEMPTS) {
-      throw new Error(
-        `${label} request failed on page ${pageNumber}: ` +
-        `${response.status} ${response.statusText}\n${detail}`,
-      );
-    }
-
-    const delay = API_RETRY_BASE_MS * attempt;
-    console.warn(
-      `${label} page ${pageNumber} returned ${response.status}; ` +
-      `retrying in ${Math.round(delay / 1000)}s (${attempt}/${API_MAX_ATTEMPTS})...`,
-    );
-    await sleep(delay);
-  }
-
-  throw lastError ?? new Error(`${label} request failed.`);
-}
-
-async function fetchTable(config, tableId, label) {
-  const records = [];
-  let pageNumber = 1;
-  let next = `${config.url}/api/v3/data/${encodeURIComponent(config.baseId)}/` +
-    `${encodeURIComponent(tableId)}/records?pageSize=${API_PAGE_SIZE}&linksAsLtar=true`;
-
-  while (next) {
-    const returnedUrl = new URL(next, `${config.url}/`);
-
-    // NocoDB may return absolute pagination URLs using NC_SITE_URL. Preserve the
-    // server-provided path/query but always use the configured origin, allowing
-    // the VPS to use http://127.0.0.1:8080 without following the public hostname.
-    const url = new URL(`${returnedUrl.pathname}${returnedUrl.search}`, `${config.url}/`);
-    const response = await fetchApiPage(url, config, label, pageNumber);
-    const page = await response.json();
-    records.push(...(page.records ?? []));
-    next = page.next ?? null;
-    pageNumber += 1;
-  }
-
-  console.log(`Fetched ${records.length} ${label} record(s).`);
-  return records;
 }
 
 function publicSourceSnapshot(tables) {
@@ -531,12 +423,12 @@ async function processImage(task, previous) {
     if (!task.fallbackUrl) {
       throw new Error(
         `${task.key} (${task.attachment?.title || "untitled"}, ${task.attachment?.mimetype || "unknown MIME"}) ` +
-        `cannot be decoded by Sharp and has no NocoDB thumbnail fallback: ${error.message}`,
+        `cannot be decoded by Sharp and has no CMS thumbnail fallback: ${error.message}`,
       );
     }
     console.warn(
       `Sharp cannot decode ${task.key} (${task.attachment?.title || "untitled"}, ${task.attachment?.mimetype || "unknown MIME"}); ` +
-      "using NocoDB JPEG thumbnail fallback.",
+      "using CMS JPEG thumbnail fallback.",
     );
     processingBuffer = await downloadTask({
       ...task,
@@ -619,26 +511,15 @@ function pruneGeneratedFiles(allowedUrls, allowedGalleryFiles) {
 
 async function main() {
   loadEnvironment();
-  const source = assertSourceAvailable(selectSource(process.argv.slice(2), process.env), ['nocodb', 'pocketbase']);
-  const currentManifestFile = manifestPath('gallery', source, SITE_DIR);
-  let config;
-  let tables;
-  if (source === 'nocodb') {
-    config = getConfig();
-    console.log("Fetching Collections, Characters, Versions, Commissions, and Artists sequentially...");
-    tables = await loadGallerySource(config, fetchTable);
-  } else {
-    config = getPocketBaseConfig(process.env, 'sync');
-    console.log('Fetching gallery collections from PocketBase...');
-    tables = await loadPocketBaseGallerySource(createPocketBaseClient(config));
-  }
+  const source = 'pocketbase';
+  const currentManifestFile = path.join(SITE_DIR, '.cache', 'gallery', 'pocketbase', 'manifest.json');
+  const config = getPocketBaseConfig(process.env, 'sync');
+  console.log('Fetching gallery collections from PocketBase...');
+  const tables = await loadPocketBaseGallerySource(createPocketBaseClient(config));
   const { commissions } = tables;
   const sourceSnapshot = publicSourceSnapshot(tables);
-  const sourceFingerprint = scopedFingerprint(source, sourceSnapshot);
-  const legacySourceFingerprint = fingerprint(sourceSnapshot);
-  const previous = readJson(currentManifestFile, source === 'nocodb'
-    ? readJson(LEGACY_MANIFEST_FILE, { attachments: {} })
-    : { attachments: {} });
+  const sourceFingerprint = fingerprint({ source, records: sourceSnapshot });
+  const previous = readJson(currentManifestFile, { attachments: {} });
   const model = createModel(tables, config);
   const publishedCommissionCount = commissions.filter((record) => record.fields?.Published === true).length;
   console.log(
@@ -655,9 +536,7 @@ async function main() {
     previous.attachments?.[key]?.signature !== taskSignature(task) ||
     !cachedEntryIsComplete(previous.attachments?.[key], task),
   );
-  const fingerprintMatches = previous.sourceFingerprint === sourceFingerprint ||
-    (source === 'nocodb' && !fs.existsSync(currentManifestFile) &&
-      previous.sourceFingerprint === legacySourceFingerprint);
+  const fingerprintMatches = previous.sourceFingerprint === sourceFingerprint;
   const unchanged = previous.version === MANIFEST_VERSION &&
     fingerprintMatches && outputPresent &&
     incompleteCachedTasks.length === 0;

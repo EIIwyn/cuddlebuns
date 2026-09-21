@@ -1157,14 +1157,18 @@ until the drill passes.
 
 **Classification:** `[code]`
 
-**Purpose:** Simplify the repository only after the soak and restore gate.
+**Purpose:** Simplify the public runtime only after the soak and restore gate. The GameTora
+importer remains a documented temporary NocoDB exception until another editor replaces it with a
+least-privilege PocketBase writer.
 
-**Files affected:** NocoDB adapters, migration CLI/tests/manifests documentation, package scripts,
-source selector default, `.env.example`, `site/WORKFLOW.md`, `AGENTS.md`, both deploy scripts, and
-validators only where obsolete backend secret checks are deliberately retained or generalized.
+**Files affected:** Public NocoDB adapters, source selection, `.env.example`, `site/WORKFLOW.md`,
+`AGENTS.md`, both deploy scripts, and validators only where obsolete backend secret checks are
+deliberately retained or generalized. Retain the GameTora importer, NocoDB client, and manual Uma
+mirror until their PocketBase replacement is complete.
 
-**Interfaces or behavior produced:** PocketBase becomes the sole source; normal commands and
-`0/10/1` behavior remain. Historical migration documents may retain legitimate `NOCODB_` text.
+**Interfaces or behavior produced:** PocketBase becomes the sole public source; normal commands and
+`0/10/1` behavior remain. The GameTora import/mirror path is the sole remaining NocoDB dependency;
+historical migration documents may retain legitimate `NOCODB_` text.
 
 **Tests written first:** Assert no runtime import/command references NocoDB, both deploy paths still
 handle exit `10`, public output remains equivalent, and a scoped runtime-file search—not a
@@ -1176,11 +1180,12 @@ repository-wide historical-doc ban—finds no live NocoDB credentials.
 `npm run validate:cms`; `npm run validate:uma`; `npm run build`; run the named shell/static test
 scripts created for `sync-build-deploy.sh` and `auto-deploy.sh`.
 
-**Expected success result:** All production runtime paths use PocketBase and documentation describes
-post-migration operation accurately.
+**Expected success result:** All production public-runtime paths use PocketBase and documentation
+describes the temporary GameTora exception accurately.
 
 **Failure/stop conditions:** Stop if `auto-deploy.sh` has not been confirmed retired or tested,
-public output changes, or rollback archives have not met retention policy.
+public output changes, rollback archives have not met retention policy, or NocoDB is treated as
+safe to stop before the GameTora writer is replaced.
 
 **Commit boundary:** `chore: retire NocoDB source adapters after PocketBase soak`.
 
